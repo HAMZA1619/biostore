@@ -1,0 +1,42 @@
+export const MOROCCAN_CITIES = [
+  "Casablanca",
+  "Rabat",
+  "Marrakech",
+  "Fès",
+  "Tanger",
+  "Agadir",
+  "Meknès",
+  "Oujda",
+  "Kénitra",
+  "Tétouan",
+  "Safi",
+  "Mohammedia",
+  "El Jadida",
+  "Béni Mellal",
+  "Nador",
+  "Taza",
+  "Settat",
+  "Berrechid",
+  "Khouribga",
+  "Larache",
+  "Khémisset",
+  "Guelmim",
+  "Errachidia",
+  "Taourirt",
+  "Essaouira",
+  "Ouarzazate",
+  "Al Hoceima",
+  "Ifrane",
+  "Dakhla",
+  "Laâyoune",
+] as const
+
+export const ORDER_STATUSES = [
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+  "canceled",
+] as const
+
+export type OrderStatus = (typeof ORDER_STATUSES)[number]
