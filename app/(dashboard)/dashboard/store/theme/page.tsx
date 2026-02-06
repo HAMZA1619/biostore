@@ -9,16 +9,11 @@ export default async function DesignPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, logo_url, banner_url, primary_color, accent_color, theme, show_branding, phone")
+    .select("id, name, slug, currency, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message")
     .eq("owner_id", user.id)
     .single()
 
   if (!store) redirect("/dashboard/store")
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Design</h1>
-      <DesignBuilder store={store} />
-    </div>
-  )
+  return <DesignBuilder store={store} />
 }

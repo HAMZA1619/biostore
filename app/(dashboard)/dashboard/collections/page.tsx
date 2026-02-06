@@ -23,8 +23,10 @@ export default async function CollectionsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Collections</h1>
-      <CollectionsManager storeId={store.id} initialCollections={collections || []} />
+      <CollectionsManager
+        storeId={store.id}
+        initialCollections={collections || []}
+      />
     </div>
   )
 }

@@ -1,6 +1,23 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
+async function detectCountryFromIP(request: Request): Promise<string> {
+  try {
+    const forwarded = request.headers.get("x-forwarded-for")
+    const ip = forwarded ? forwarded.split(",")[0].trim() : null
+    if (!ip || ip === "127.0.0.1" || ip === "::1") return "Unknown"
+
+    const res = await fetch(`https://ipapi.co/${ip}/country_name/`, {
+      signal: AbortSignal.timeout(3000),
+    })
+    if (!res.ok) return "Unknown"
+    const country = await res.text()
+    return country && !country.includes("error") ? country.trim() : "Unknown"
+  } catch {
+    return "Unknown"
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -8,17 +25,18 @@ export async function POST(request: Request) {
       slug,
       customer_name,
       customer_phone,
+      customer_email,
       customer_city,
+      customer_country,
       customer_address,
-      payment_method,
       note,
       items,
     } = body
 
-    if (!slug || !customer_name || !customer_phone || !customer_city || !customer_address || !items?.length) {
+    if (!slug || !customer_name || !customer_phone || !customer_address || !items?.length) {
       return NextResponse.json({
         error: "Missing required fields",
-        debug: { slug: !!slug, customer_name: !!customer_name, customer_phone: !!customer_phone, customer_city: !!customer_city, customer_address: !!customer_address, items: items?.length || 0 },
+        debug: { slug: !!slug, customer_name: !!customer_name, customer_phone: !!customer_phone, customer_address: !!customer_address, items: items?.length || 0 },
       }, { status: 400 })
     }
 
@@ -30,7 +48,7 @@ export async function POST(request: Request) {
     // Get store
     const { data: store, error: storeError } = await supabase
       .from("stores")
-      .select("id, name, phone, owner_id")
+      .select("id, name, phone, currency, owner_id")
       .eq("slug", slug)
       .eq("is_published", true)
       .single()
@@ -46,7 +64,7 @@ export async function POST(request: Request) {
     const productIds = items.map((i: { product_id: string }) => i.product_id)
     const { data: products, error: productsError } = await supabase
       .from("products")
-      .select("id, name, price, image_urls, is_available")
+      .select("id, name, price, image_urls, is_available, stock, status")
       .in("id", productIds)
       .eq("store_id", store.id)
 
@@ -57,28 +75,83 @@ export async function POST(request: Request) {
       }, { status: 500 })
     }
 
-    if (!products || products.length !== items.length) {
+    if (!products || products.length !== new Set(productIds).size) {
       return NextResponse.json({
         error: "Some products are unavailable",
         debug: { requested: items.length, found: products?.length || 0, productIds },
       }, { status: 400 })
     }
 
+    // Fetch variants if any items have variant_id
+    const variantIds = items
+      .map((i: { variant_id?: string }) => i.variant_id)
+      .filter(Boolean) as string[]
+
+    let variantsMap: Record<string, { price: number; options: Record<string, string>; is_available: boolean; stock: number | null; product_id: string }> = {}
+
+    if (variantIds.length > 0) {
+      const { data: variants, error: varError } = await supabase
+        .from("product_variants")
+        .select("id, price, options, is_available, stock, product_id")
+        .in("id", variantIds)
+
+      if (varError || !variants) {
+        return NextResponse.json({
+          error: "Failed to fetch variants",
+          debug: { varError: varError?.message },
+        }, { status: 500 })
+      }
+
+      for (const item of items) {
+        if (item.variant_id) {
+          const variant = variants.find((v: { id: string }) => v.id === item.variant_id)
+          if (!variant || variant.product_id !== item.product_id || !variant.is_available) {
+            return NextResponse.json({
+              error: "Invalid or unavailable variant selection",
+            }, { status: 400 })
+          }
+          if (variant.stock !== null && variant.stock < item.quantity) {
+            return NextResponse.json({
+              error: "Not enough stock for this variant",
+            }, { status: 400 })
+          }
+        }
+      }
+
+      variantsMap = Object.fromEntries(
+        variants.map((v) => [v.id, {
+          price: v.price,
+          options: v.options as Record<string, string>,
+          is_available: v.is_available,
+          stock: v.stock,
+          product_id: v.product_id,
+        }])
+      )
+    }
+
     // Calculate totals
     let subtotal = 0
-    const orderItems = items.map((item: { product_id: string; quantity: number }) => {
+    const orderItems = items.map((item: { product_id: string; variant_id?: string | null; quantity: number }) => {
       const product = products.find((p) => p.id === item.product_id)!
-      subtotal += product.price * item.quantity
+      const variant = item.variant_id ? variantsMap[item.variant_id] : null
+      const price = variant ? variant.price : product.price
+
+      subtotal += price * item.quantity
       return {
         product_id: product.id,
+        variant_id: item.variant_id || null,
         product_name: product.name,
-        product_price: product.price,
+        product_price: price,
+        variant_options: variant ? variant.options : null,
         quantity: item.quantity,
         image_url: product.image_urls?.[0] || null,
       }
     })
 
     const total = subtotal
+
+    // Detect country from IP if not provided
+    const country = customer_country || await detectCountryFromIP(request)
 
     // Insert order
     const { data: order, error: orderError } = await supabase
@@ -87,9 +160,11 @@ export async function POST(request: Request) {
         store_id: store.id,
         customer_name,
         customer_phone,
-        customer_city,
+        customer_email: customer_email || null,
+        customer_city: customer_city || null,
+        customer_country: country,
         customer_address,
-        payment_method: payment_method || "cod",
+        payment_method: "cod",
         note: note || null,
         subtotal,
         total,
@@ -106,7 +181,7 @@ export async function POST(request: Request) {
 
     // Insert order items
     const { error: itemsError } = await supabase.from("order_items").insert(
-      orderItems.map((item: { product_id: string; product_name: string; product_price: number; quantity: number; image_url: string | null }) => ({
+      orderItems.map((item: { product_id: string; variant_id: string | null; product_name: string; product_price: number; variant_options: Record<string, string> | null; quantity: number; image_url: string | null }) => ({
         ...item,
         order_id: order.id,
       }))
@@ -124,6 +199,7 @@ export async function POST(request: Request) {
       order_number: order.order_number,
       store_phone: store.phone,
       store_name: store.name,
+      currency: store.currency,
       items: orderItems,
       total,
     })

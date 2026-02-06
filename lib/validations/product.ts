@@ -1,22 +1,44 @@
 import { z } from "zod"
 
-export const productSchema = z
-  .object({
-    name: z.string().min(1, "Product name is required"),
-    description: z.string().max(1000).optional(),
-    price: z.number().positive("Price must be positive"),
-    compare_at_price: z
-      .union([z.number().positive(), z.nan(), z.undefined()])
-      .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))
-      .optional(),
-    collection_id: z.string().optional(),
-    is_available: z.boolean(),
-    product_type: z.enum(["regular", "external"]),
-    external_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  })
-  .refine(
-    (data) => data.product_type !== "external" || (data.external_url && data.external_url.length > 0),
-    { message: "External URL is required for external products", path: ["external_url"] }
-  )
+export const productOptionSchema = z.object({
+  name: z.string().min(1, "Option name is required"),
+  values: z.array(z.string().min(1)).min(1, "At least one value required"),
+})
 
+export const productVariantSchema = z.object({
+  id: z.string().uuid().optional(),
+  options: z.record(z.string(), z.string()),
+  price: z.number().positive("Price must be positive"),
+  compare_at_price: z
+    .union([z.number().positive(), z.nan(), z.undefined(), z.null()])
+    .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))
+    .optional(),
+  sku: z.string().max(100).optional(),
+  stock: z
+    .union([z.number().int().min(0).max(1000), z.nan(), z.undefined(), z.null()])
+    .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? Math.min(v, 1000) : null))
+    .optional(),
+  is_available: z.boolean(),
+})
+
+export const productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  sku: z.string().max(100).optional(),
+  description: z.string().max(1000).optional(),
+  price: z.number().positive("Price must be positive"),
+  compare_at_price: z
+    .union([z.number().positive(), z.nan(), z.undefined()])
+    .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))
+    .optional(),
+  stock: z
+    .union([z.number().int().min(0).max(1000), z.nan(), z.undefined(), z.null()])
+    .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? Math.min(v, 1000) : null))
+    .optional(),
+  collection_id: z.string().optional(),
+  status: z.enum(["active", "draft"]),
+  is_available: z.boolean(),
+})
+
+export type ProductOption = z.infer<typeof productOptionSchema>
+export type ProductVariant = z.infer<typeof productVariantSchema>
 export type ProductFormData = z.infer<typeof productSchema>

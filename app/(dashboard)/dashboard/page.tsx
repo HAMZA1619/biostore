@@ -1,18 +1,27 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, ShoppingCart, DollarSign, Eye } from "lucide-react"
+import { Package, ShoppingCart, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { DashboardAnalytics } from "@/components/dashboard/analytics"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single()
+
+  const firstName = profile?.full_name?.split(" ")[0] || "there"
+
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, is_published")
+    .select("id, name, slug, is_published, currency")
     .eq("owner_id", user.id)
     .single()
 
@@ -39,12 +48,10 @@ export default async function DashboardPage() {
     .eq("store_id", store.id)
 
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0
-  const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Overview</h1>
         {store.is_published && (
           <Link
             href={`/${store.slug}`}
@@ -56,7 +63,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Products</CardTitle>
@@ -77,23 +84,16 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{pendingOrders}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{totalRevenue.toFixed(2)} MAD</p>
+            <p className="text-2xl font-bold">{totalRevenue.toFixed(2)} {store.currency}</p>
           </CardContent>
         </Card>
       </div>
+
+      <DashboardAnalytics storeId={store.id} currency={store.currency} firstName={firstName} />
     </div>
   )
 }

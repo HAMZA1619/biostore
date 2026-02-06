@@ -14,7 +14,7 @@ export default async function EditProductPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id")
+    .select("id, currency")
     .eq("owner_id", user.id)
     .single()
 
@@ -29,16 +29,27 @@ export default async function EditProductPage({
 
   if (!product) notFound()
 
-  const { data: collections } = await supabase
-    .from("collections")
-    .select("id, name")
-    .eq("store_id", store.id)
+  const { data: variants } = await supabase
+    .from("product_variants")
+    .select("id, options, price, compare_at_price, sku, stock, is_available")
+    .eq("product_id", productId)
     .order("sort_order")
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Edit Product</h1>
-      <ProductForm storeId={store.id} collections={collections || []} initialData={product} />
-    </div>
+    <ProductForm
+      storeId={store.id}
+      currency={store.currency}
+      title="Edit Product"
+      initialData={{ ...product, options: product.options || [], status: product.status || "active" }}
+      initialVariants={(variants || []).map((v) => ({
+        id: v.id,
+        options: v.options as Record<string, string>,
+        price: v.price,
+        compare_at_price: v.compare_at_price ?? undefined,
+        sku: v.sku || undefined,
+        stock: v.stock ?? undefined,
+        is_available: v.is_available,
+      }))}
+    />
   )
 }

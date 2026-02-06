@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 
 interface CollectionTabsProps {
   storeSlug: string
@@ -10,11 +10,12 @@ interface CollectionTabsProps {
 }
 
 export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) {
-  const pathname = usePathname()
   const searchParams = useSearchParams()
   const activeCollection = searchParams.get("collection")
 
   if (collections.length === 0) return null
+
+  const activeStyle = { backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2">
@@ -23,9 +24,10 @@ export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) 
         className={cn(
           "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
           !activeCollection
-            ? "border-transparent bg-foreground text-background"
+            ? "border-transparent"
             : "hover:bg-muted"
         )}
+        style={!activeCollection ? activeStyle : undefined}
       >
         All
       </Link>
@@ -36,9 +38,10 @@ export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) 
           className={cn(
             "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
             activeCollection === c.slug
-              ? "border-transparent bg-foreground text-background"
+              ? "border-transparent"
               : "hover:bg-muted"
           )}
+          style={activeCollection === c.slug ? activeStyle : undefined}
         >
           {c.name}
         </Link>

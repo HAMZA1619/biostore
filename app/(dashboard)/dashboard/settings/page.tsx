@@ -29,10 +29,6 @@ export default async function SettingsPage() {
             <span className="text-muted-foreground">Email</span>
             <span>{user.email}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Plan</span>
-            <span className="capitalize">{profile?.subscription_tier || "free"}</span>
-          </div>
         </CardContent>
       </Card>
     </div>

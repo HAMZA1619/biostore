@@ -1,11 +1,11 @@
 "use client"
 
-import { formatPrice } from "@/lib/utils"
+import { formatPriceSymbol } from "@/lib/utils"
 import { useCartStore } from "@/lib/store/cart-store"
+import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, ShoppingCart } from "lucide-react"
+import { ImageIcon, ShoppingCart } from "lucide-react"
 import Link from "next/link"
-import { toast } from "sonner"
 
 interface ProductCardProps {
   product: {
@@ -15,34 +15,43 @@ interface ProductCardProps {
     compare_at_price: number | null
     image_urls: string[]
     is_available: boolean
-    product_type: string
-    external_url: string | null
+    stock?: number | null
+    options?: unknown[]
+    product_variants?: { price: number }[]
   }
   storeSlug: string
 }
 
 export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem)
+  const currency = useStoreCurrency()
+  const hasVariants = product.options && product.options.length > 0
+  const inStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
 
   function handleAdd() {
-    if (!product.is_available) return
+    if (!inStock) return
     addItem(
       {
         productId: product.id,
+        variantId: null,
         name: product.name,
+        variantLabel: null,
         price: product.price,
         imageUrl: product.image_urls[0] || null,
       },
       storeSlug
     )
-    toast.success("Added to cart")
   }
 
-  const isExternal = product.product_type === "external"
+  const minVariantPrice = product.product_variants?.length
+    ? Math.min(...product.product_variants.map((v) => v.price))
+    : null
+
+  const displayPrice = hasVariants && minVariantPrice != null ? minVariantPrice : product.price
 
   return (
-    <div className="group overflow-hidden rounded-lg border">
-      <Link href={isExternal && product.external_url ? product.external_url : `/${storeSlug}/products/${product.id}`} target={isExternal ? "_blank" : undefined}>
+    <div className="store-card group overflow-hidden" style={{ borderRadius: "var(--store-radius)" }}>
+      <Link href={`/${storeSlug}/products/${product.id}`}>
         <div className="aspect-square overflow-hidden bg-muted">
           {product.image_urls[0] ? (
             <img
@@ -51,48 +60,48 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              No image
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground/40">
+              <ImageIcon className="h-10 w-10" />
             </div>
           )}
         </div>
       </Link>
       <div className="p-3">
-        <Link href={isExternal && product.external_url ? product.external_url : `/${storeSlug}/products/${product.id}`} target={isExternal ? "_blank" : undefined}>
-          <h3 className="font-medium leading-tight">{product.name}</h3>
+        <Link href={`/${storeSlug}/products/${product.id}`}>
+          <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight">{product.name}</h3>
         </Link>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-bold" style={{ color: "var(--store-primary)" }}>
-            {formatPrice(product.price)}
+            {hasVariants && minVariantPrice != null ? "From " : ""}
+            {formatPriceSymbol(displayPrice, currency)}
           </span>
-          {product.compare_at_price && (
+          {!hasVariants && product.compare_at_price && (
             <span className="text-sm text-muted-foreground line-through">
-              {formatPrice(product.compare_at_price)}
+              {formatPriceSymbol(product.compare_at_price, currency)}
             </span>
           )}
         </div>
-        {isExternal ? (
+        {hasVariants ? (
           <Button
             asChild
             size="sm"
             className="mt-2 w-full"
-            style={{ backgroundColor: "var(--store-accent)" }}
+            style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
           >
-            <a href={product.external_url || "#"} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="mr-2 h-3 w-3" />
-              Buy now
-            </a>
+            <Link href={`/${storeSlug}/products/${product.id}`}>
+              Choose options
+            </Link>
           </Button>
         ) : (
           <Button
             onClick={handleAdd}
             size="sm"
             className="mt-2 w-full"
-            disabled={!product.is_available}
-            style={{ backgroundColor: "var(--store-accent)" }}
+            disabled={!inStock}
+            style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
           >
             <ShoppingCart className="mr-2 h-3 w-3" />
-            {product.is_available ? "Add to cart" : "Sold out"}
+            {inStock ? "Add to cart" : "Sold out"}
           </Button>
         )}
       </div>

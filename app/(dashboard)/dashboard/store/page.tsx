@@ -14,11 +14,10 @@ export default async function StorePage() {
     .single()
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">
-        {store ? "Store Settings" : "Create Your Store"}
-      </h1>
-      <StoreForm userId={user.id} initialData={store} />
-    </div>
+    <StoreForm
+      userId={user.id}
+      title={store ? "Store Settings" : "Create Your Store"}
+      initialData={store}
+    />
   )
 }

@@ -123,3 +123,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Store theme card decorations */
+[data-theme="default"] .store-card {
+  border: 1px solid oklch(0.922 0 0);
+}
+[data-theme="modern"] .store-card {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+[data-theme="minimal"] .store-card {
+  border-bottom: 1px solid oklch(0.922 0 0);
+}
+
+@keyframes subtle-bounce {
+  0%, 8%, 20%, 100% { transform: translateY(0); }
+  4% { transform: translateY(-10px); }
+  12% { transform: translateY(-6px); }
+}

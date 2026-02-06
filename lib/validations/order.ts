@@ -6,7 +6,7 @@ export const orderSchema = z.object({
   customer_phone: z.string().min(8, "Phone number is required"),
   customer_city: z.string().min(1, "City is required"),
   customer_address: z.string().min(5, "Address is required"),
-  payment_method: z.enum(["cod", "bank_transfer"]).default("cod"),
+  payment_method: z.literal("cod").default("cod"),
   note: z.string().max(500).optional(),
   items: z
     .array(

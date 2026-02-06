@@ -21,7 +21,7 @@ export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps
 
   return (
     <>
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b backdrop-blur" style={{ backgroundColor: "color-mix(in srgb, var(--store-bg) 95%, transparent)" }}>
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <Link href={`/${slug}`} className="flex items-center gap-2">
           {logoUrl && (

@@ -51,12 +51,10 @@ export function SingleImageUpload({
 
   if (value) {
     return (
-      <div className="space-y-1">
+      <div className="h-full space-y-1">
         {label && <p className="text-sm text-muted-foreground">{label}</p>}
         <div
-          className={`relative overflow-hidden rounded-md border ${
-            aspect === "wide" ? "h-28 w-full" : "h-24 w-24"
-          }`}
+          className="relative h-full w-full overflow-hidden rounded-md border"
         >
           <img src={value} alt="" className="h-full w-full object-cover" />
           <button
@@ -72,12 +70,10 @@ export function SingleImageUpload({
   }
 
   return (
-    <div className="space-y-1">
+    <div className="h-full space-y-1">
       {label && <p className="text-sm text-muted-foreground">{label}</p>}
       <label
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-foreground hover:text-foreground ${
-          aspect === "wide" ? "h-28 w-full" : "h-24 w-24"
-        }`}
+        className="flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-foreground hover:text-foreground"
       >
         <ImagePlus className="h-5 w-5" />
         <span className="mt-1 text-xs">{uploading ? "Uploading..." : "Upload"}</span>

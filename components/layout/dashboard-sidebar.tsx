@@ -10,7 +10,6 @@ import {
   Package,
   FolderOpen,
   ShoppingCart,
-  BarChart3,
   Settings,
   LogOut,
   Menu,
@@ -28,7 +27,6 @@ const navItems = [
   { href: "/dashboard/products", label: "Products", icon: Package },
   { href: "/dashboard/collections", label: "Collections", icon: FolderOpen },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 

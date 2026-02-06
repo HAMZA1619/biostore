@@ -8,11 +8,9 @@ export const storeSchema = z.object({
     .max(30, "Slug must be 30 characters or less")
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
   description: z.string().max(500).optional(),
-  phone: z.string().optional(),
   city: z.string().optional(),
-  currency: z.string(),
-  delivery_note: z.string().max(200).optional(),
-  payment_methods: z.array(z.enum(["cod", "bank_transfer"])),
+  currency: z.string().min(1, "Currency is required"),
+  payment_methods: z.array(z.literal("cod")).default(["cod"]),
   primary_color: z.string(),
   accent_color: z.string(),
 })

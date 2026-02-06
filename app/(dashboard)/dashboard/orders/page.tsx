@@ -2,16 +2,9 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { formatPrice } from "@/lib/utils"
-
-const statusColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  pending: "outline",
-  confirmed: "default",
-  shipped: "secondary",
-  delivered: "default",
-  canceled: "destructive",
-}
+import { OrderStatusSelect } from "@/components/dashboard/order-status-select"
+import { RelativeDate } from "@/components/dashboard/relative-date"
 
 export default async function OrdersPage() {
   const supabase = await createClient()
@@ -20,7 +13,7 @@ export default async function OrdersPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id")
+    .select("id, currency")
     .eq("owner_id", user.id)
     .single()
 
@@ -28,7 +21,7 @@ export default async function OrdersPage() {
 
   const { data: orders } = await supabase
     .from("orders")
-    .select("*")
+    .select("id, order_number, customer_name, customer_phone, customer_country, total, status, created_at")
     .eq("store_id", store.id)
     .order("created_at", { ascending: false })
 
@@ -43,40 +36,34 @@ export default async function OrdersPage() {
             <TableRow>
               <TableHead>#</TableHead>
               <TableHead>Customer</TableHead>
-              <TableHead>City</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead>Total</TableHead>
-              <TableHead>Payment</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} className="relative cursor-pointer">
                 <TableCell>
                   <Link
                     href={`/dashboard/orders/${order.id}`}
-                    className="font-medium text-primary underline"
-                  >
+                    className="absolute inset-0"
+                  />
+                  <span className="relative font-medium text-primary">
                     #{order.order_number}
-                  </Link>
+                  </span>
+                </TableCell>
+                <TableCell className="font-medium">{order.customer_name}</TableCell>
+                <TableCell className="text-muted-foreground">{order.customer_phone}</TableCell>
+                <TableCell className="text-muted-foreground">{order.customer_country || "—"}</TableCell>
+                <TableCell>{formatPrice(order.total, store.currency)}</TableCell>
+                <TableCell className="relative z-10">
+                  <OrderStatusSelect orderId={order.id} status={order.status} />
                 </TableCell>
                 <TableCell>
-                  <div>
-                    <p className="font-medium">{order.customer_name}</p>
-                    <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
-                  </div>
-                </TableCell>
-                <TableCell>{order.customer_city}</TableCell>
-                <TableCell>{formatPrice(order.total)}</TableCell>
-                <TableCell className="capitalize">{order.payment_method === "cod" ? "COD" : "Bank"}</TableCell>
-                <TableCell>
-                  <Badge variant={statusColors[order.status] || "outline"}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {new Date(order.created_at).toLocaleDateString()}
+                  <RelativeDate date={order.created_at} />
                 </TableCell>
               </TableRow>
             ))}

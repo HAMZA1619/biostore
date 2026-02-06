@@ -3,7 +3,6 @@
 import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
-import { toast } from "sonner"
 
 interface AddToCartButtonProps {
   product: {
@@ -24,13 +23,14 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
     addItem(
       {
         productId: product.id,
+        variantId: null,
         name: product.name,
+        variantLabel: null,
         price: product.price,
         imageUrl: product.imageUrl,
       },
       storeSlug
     )
-    toast.success("Added to cart")
   }
 
   return (
@@ -39,7 +39,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
       size="lg"
       className="w-full"
       disabled={!product.isAvailable}
-      style={{ backgroundColor: "var(--store-accent)" }}
+      style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
     >
       <ShoppingCart className="mr-2 h-4 w-4" />
       {product.isAvailable ? "Add to cart" : "Sold out"}

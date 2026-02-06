@@ -8,32 +8,36 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { slugify } from "@/lib/utils"
+import { slugify, cn } from "@/lib/utils"
+import { CURRENCIES } from "@/lib/constants"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 interface StoreFormProps {
   userId: string
+  title: string
   initialData?: {
     id: string
     name: string
     slug: string
     description: string | null
-    phone: string | null
     city: string | null
     currency: string
-    delivery_note: string | null
-    payment_methods: string[]
+    payment_methods: ("cod")[]
     primary_color: string | null
     accent_color: string | null
     is_published: boolean
   } | null
 }
 
-export function StoreForm({ userId, initialData }: StoreFormProps) {
+export function StoreForm({ userId, title, initialData }: StoreFormProps) {
   const [loading, setLoading] = useState(false)
+  const [currencyOpen, setCurrencyOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -42,18 +46,16 @@ export function StoreForm({ userId, initialData }: StoreFormProps) {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(storeSchema),
     defaultValues: {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
       description: initialData?.description || "",
-      phone: initialData?.phone || "",
       city: initialData?.city || "",
       currency: initialData?.currency || "MAD",
-      delivery_note: initialData?.delivery_note || "",
-      payment_methods: (initialData?.payment_methods || ["cod"]) as ("cod" | "bank_transfer")[],
+      payment_methods: ["cod"] as const,
       primary_color: initialData?.primary_color || "#000000",
       accent_color: initialData?.accent_color || "#3B82F6",
     },
@@ -120,7 +122,26 @@ export function StoreForm({ userId, initialData }: StoreFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <div className="flex gap-3">
+          {initialData && (
+            <Button type="button" variant="outline" onClick={togglePublish}>
+              {initialData.is_published ? "Unpublish" : "Publish"}
+            </Button>
+          )}
+          <Button type="submit" disabled={loading || (!!initialData && !isDirty)}>
+            {loading
+              ? "Saving..."
+              : initialData
+                ? "Update store"
+                : "Create store"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-2xl space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Store name</Label>
         <Input
@@ -163,36 +184,58 @@ export function StoreForm({ userId, initialData }: StoreFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="phone">WhatsApp / Phone</Label>
-        <Input
-          id="phone"
-          {...register("phone")}
-          placeholder="+212 6XX XXX XXX"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="delivery_note">Delivery note</Label>
-        <Input
-          id="delivery_note"
-          {...register("delivery_note")}
-          placeholder="e.g. Delivery: 30 MAD nationwide"
-        />
-      </div>
-
-      <div className="flex gap-3">
-        <Button type="submit" disabled={loading}>
-          {loading
-            ? "Saving..."
-            : initialData
-              ? "Update store"
-              : "Create store"}
-        </Button>
-        {initialData && (
-          <Button type="button" variant="outline" onClick={togglePublish}>
-            {initialData.is_published ? "Unpublish" : "Publish"}
-          </Button>
+        <Label>Currency</Label>
+        <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              role="combobox"
+              aria-expanded={currencyOpen}
+              className="w-full justify-between font-normal"
+            >
+              {(() => {
+                const curr = CURRENCIES.find((c) => c.code === watch("currency"))
+                return curr ? `${curr.code} — ${curr.name}` : "Select currency"
+              })()}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0">
+            <Command>
+              <CommandInput placeholder="Search currency..." />
+              <CommandList>
+                <CommandEmpty>No currency found.</CommandEmpty>
+                <CommandGroup>
+                  {CURRENCIES.map((c) => (
+                    <CommandItem
+                      key={c.code}
+                      value={`${c.code} ${c.name}`}
+                      onSelect={() => {
+                        setValue("currency", c.code, { shouldDirty: true })
+                        setCurrencyOpen(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          watch("currency") === c.code ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <span className="font-medium">{c.code}</span>
+                      <span className="ml-2 text-muted-foreground">{c.name}</span>
+                      <span className="ml-auto text-muted-foreground">{c.symbol}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        {errors.currency && (
+          <p className="text-sm text-red-600">{errors.currency.message}</p>
         )}
+      </div>
       </div>
     </form>
   )

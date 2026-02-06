@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/layout/store-header"
 import { StoreFooter } from "@/components/layout/store-footer"
+import { FloatingCartButton } from "@/components/store/floating-cart-button"
+import { BORDER_RADIUS_OPTIONS } from "@/lib/constants"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -38,27 +40,47 @@ export default async function StoreLayout({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("name, slug, logo_url, banner_url, phone, primary_color, accent_color, theme, show_branding")
+    .select("name, slug, currency, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
 
   if (!store) notFound()
 
+  const fontFamily = store.font_family || "Inter"
+  const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === (store.border_radius || "md"))?.css || "8px"
+  const fontHref = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;500;600;700&display=swap`
+
   return (
     <div
       className="min-h-screen"
+      data-currency={store.currency || "MAD"}
       data-theme={store.theme || "default"}
+      data-show-email={store.checkout_show_email ?? true}
+      data-show-country={store.checkout_show_country ?? true}
+      data-show-city={store.checkout_show_city ?? true}
+      data-show-note={store.checkout_show_note ?? true}
+      data-thank-you-message={store.thank_you_message || ""}
       style={
         {
           "--store-primary": store.primary_color || "#000000",
           "--store-accent": store.accent_color || "#3B82F6",
+          "--store-bg": store.background_color || "#ffffff",
+          "--store-text": store.text_color || "#111111",
+          "--store-btn-text": store.button_text_color || "#ffffff",
+          "--store-radius": radiusCss,
+          "--store-font": `'${fontFamily}', sans-serif`,
+          backgroundColor: store.background_color || "#ffffff",
+          color: store.text_color || "#111111",
+          fontFamily: `'${fontFamily}', sans-serif`,
         } as React.CSSProperties
       }
     >
+      <link rel="stylesheet" href={fontHref} />
       <StoreHeader slug={store.slug} name={store.name} logoUrl={store.logo_url} bannerUrl={store.banner_url} />
       <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
-      <StoreFooter phone={store.phone} showBranding={store.show_branding} />
+      <StoreFooter showBranding={store.show_branding} />
+      <FloatingCartButton />
     </div>
   )
 }
