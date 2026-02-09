@@ -35,7 +35,7 @@ export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps
           <Link href={`/${slug}/cart`}>
             <ShoppingCart className="h-4 w-4" />
             {mounted && itemCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+              <span className="absolute -end-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 {itemCount}
               </span>
             )}

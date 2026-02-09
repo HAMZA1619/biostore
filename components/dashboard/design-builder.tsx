@@ -8,12 +8,15 @@ import { Button } from "@/components/ui/button"
 import { DesignControls } from "./design-controls"
 import { DesignPreview } from "./design-preview"
 import type { DesignState, PreviewTab } from "./design-preview"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface StoreDesignData {
   id: string
   name: string
   slug: string
   currency: string
+  language: string | null
   logo_url: string | null
   banner_url: string | null
   primary_color: string | null
@@ -25,6 +28,7 @@ interface StoreDesignData {
   border_radius: string | null
   theme: string | null
   show_branding: boolean
+  show_floating_cart: boolean
   checkout_show_email: boolean
   checkout_show_country: boolean
   checkout_show_city: boolean
@@ -37,6 +41,7 @@ interface DesignBuilderProps {
 }
 
 export function DesignBuilder({ store }: DesignBuilderProps) {
+  const { t } = useTranslation()
   const [state, setState] = useState<DesignState>({
     logoUrl: store.logo_url,
     bannerUrl: store.banner_url,
@@ -49,6 +54,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
     borderRadius: (store.border_radius as DesignState["borderRadius"]) || "md",
     theme: (store.theme as DesignState["theme"]) || "default",
     showBranding: store.show_branding ?? true,
+    showFloatingCart: store.show_floating_cart ?? true,
     checkoutShowEmail: store.checkout_show_email ?? true,
     checkoutShowCountry: store.checkout_show_country ?? true,
     checkoutShowCity: store.checkout_show_city ?? true,
@@ -80,6 +86,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
         border_radius: state.borderRadius,
         theme: state.theme,
         show_branding: state.showBranding,
+        show_floating_cart: state.showFloatingCart,
         checkout_show_email: state.checkoutShowEmail,
         checkout_show_country: state.checkoutShowCountry,
         checkout_show_city: state.checkoutShowCity,
@@ -92,7 +99,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success("Design saved")
+      toast.success(t("design.designSaved"))
       router.refresh()
     }
     setSaving(false)
@@ -101,9 +108,9 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
   return (
     <div className="space-y-4">
       <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background pb-4">
-        <h1 className="text-2xl font-bold">Design</h1>
+        <h1 className="text-2xl font-bold">{t("design.title")}</h1>
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? t("design.saving") : t("design.saveChanges")}
         </Button>
       </div>
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -115,6 +122,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
             state={state}
             storeName={store.name}
             currency={store.currency}
+            storeLang={store.language || "en"}
             previewTab={previewTab}
             onTabChange={setPreviewTab}
           />

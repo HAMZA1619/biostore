@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatPrice } from "@/lib/utils"
 import { OrderStatusSelect } from "@/components/dashboard/order-status-select"
 import { RelativeDate } from "@/components/dashboard/relative-date"
+import { T } from "@/components/dashboard/translated-text"
 
 export default async function OrdersPage() {
   const supabase = await createClient()
@@ -27,20 +28,20 @@ export default async function OrdersPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Orders</h1>
+      <h1 className="text-2xl font-bold"><T k="orders.title" /></h1>
 
       {orders && orders.length > 0 ? (
         <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead><T k="orders.columns.number" /></TableHead>
+              <TableHead><T k="orders.columns.customer" /></TableHead>
+              <TableHead><T k="orders.columns.phone" /></TableHead>
+              <TableHead><T k="orders.columns.country" /></TableHead>
+              <TableHead><T k="orders.columns.total" /></TableHead>
+              <TableHead><T k="orders.columns.status" /></TableHead>
+              <TableHead><T k="orders.columns.date" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -72,7 +73,7 @@ export default async function OrdersPage() {
         </div>
       ) : (
         <div className="py-12 text-center text-muted-foreground">
-          No orders yet. Share your store link to start receiving orders.
+          <T k="orders.empty" />
         </div>
       )}
     </div>

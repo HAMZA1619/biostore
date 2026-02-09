@@ -8,6 +8,7 @@ import { Plus } from "lucide-react"
 import { ProductActions } from "@/components/dashboard/delete-product-button"
 import { ProductSearch } from "@/components/dashboard/product-search"
 import { ProductStatusSelect } from "@/components/dashboard/product-status-select"
+import { T } from "@/components/dashboard/translated-text"
 
 const PAGE_SIZE = 20
 
@@ -59,11 +60,11 @@ export default async function ProductsPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
+        <h1 className="text-2xl font-bold"><T k="products.title" /></h1>
         <Button asChild>
           <Link href="/dashboard/products/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add product
+            <Plus className="me-2 h-4 w-4" />
+            <T k="products.addProduct" />
           </Link>
         </Button>
       </div>
@@ -76,12 +77,12 @@ export default async function ProductsPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Collection</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[100px] text-right">Actions</TableHead>
+              <TableHead><T k="products.columns.name" /></TableHead>
+              <TableHead><T k="products.columns.sku" /></TableHead>
+              <TableHead><T k="products.columns.price" /></TableHead>
+              <TableHead><T k="products.columns.collection" /></TableHead>
+              <TableHead><T k="products.columns.status" /></TableHead>
+              <TableHead className="w-[100px] text-end"><T k="products.columns.actions" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -100,7 +101,7 @@ export default async function ProductsPage({
                 <TableCell>
                   <ProductStatusSelect productId={product.id} status={product.status || "active"} />
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-end">
                   <ProductActions productId={product.id} />
                 </TableCell>
               </TableRow>
@@ -112,17 +113,17 @@ export default async function ProductsPage({
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Page {currentPage + 1} of {totalPages}
+              <T k="products.pagination.page" values={{ current: String(currentPage + 1), total: String(totalPages) }} />
             </p>
             <div className="flex gap-2">
               {currentPage > 0 && (
                 <Button asChild size="sm" variant="outline">
-                  <Link href={buildUrl({ page: String(currentPage - 1) })}>Previous</Link>
+                  <Link href={buildUrl({ page: String(currentPage - 1) })}><T k="products.pagination.previous" /></Link>
                 </Button>
               )}
               {currentPage + 1 < totalPages && (
                 <Button asChild size="sm" variant="outline">
-                  <Link href={buildUrl({ page: String(currentPage + 1) })}>Next</Link>
+                  <Link href={buildUrl({ page: String(currentPage + 1) })}><T k="products.pagination.next" /></Link>
                 </Button>
               )}
             </div>
@@ -131,7 +132,7 @@ export default async function ProductsPage({
         </>
       ) : (
         <div className="py-12 text-center text-muted-foreground">
-          {q ? "No products match your search." : "No products yet. Add your first product to get started."}
+          {q ? <T k="products.emptySearch" /> : <T k="products.empty" />}
         </div>
       )}
     </div>

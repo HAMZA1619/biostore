@@ -30,13 +30,15 @@ CREATE TABLE stores (
   button_text_color TEXT DEFAULT '#ffffff',
   font_family TEXT DEFAULT 'Inter',
   border_radius TEXT DEFAULT 'md' CHECK (border_radius IN ('none', 'sm', 'md', 'lg', 'xl')),
-  theme TEXT DEFAULT 'default' CHECK (theme IN ('default', 'modern', 'minimal')),
+  theme TEXT DEFAULT 'default' CHECK (theme IN ('default', 'modern', 'minimal', 'single')),
   show_branding BOOLEAN NOT NULL DEFAULT true,
+  show_floating_cart BOOLEAN NOT NULL DEFAULT true,
   checkout_show_email BOOLEAN NOT NULL DEFAULT true,
   checkout_show_country BOOLEAN NOT NULL DEFAULT true,
   checkout_show_city BOOLEAN NOT NULL DEFAULT true,
   checkout_show_note BOOLEAN NOT NULL DEFAULT true,
   thank_you_message TEXT,
+  language TEXT NOT NULL DEFAULT 'en' CHECK (language IN ('en', 'fr', 'ar')),
   currency TEXT NOT NULL DEFAULT 'MAD',
   payment_methods TEXT[] DEFAULT '{cod}' CHECK (payment_methods = '{cod}'),
   is_published BOOLEAN NOT NULL DEFAULT false,
@@ -68,8 +70,10 @@ CREATE TABLE products (
   description TEXT,
   price DECIMAL(10,2) NOT NULL,
   compare_at_price DECIMAL(10,2),
-  image_urls TEXT[] DEFAULT '{}' CHECK (array_length(image_urls, 1) IS NULL OR array_length(image_urls, 1) <= 5),
+  image_urls TEXT[] DEFAULT '{}' CHECK (array_length(image_urls, 1) IS NULL OR array_length(image_urls, 1) <= 20),
   options JSONB NOT NULL DEFAULT '[]',
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'draft')),
+  stock INTEGER,
   is_available BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -84,6 +88,8 @@ CREATE TABLE product_variants (
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   options JSONB NOT NULL DEFAULT '{}',
   price DECIMAL(10,2) NOT NULL,
+  compare_at_price DECIMAL(10,2),
+  stock INTEGER,
   sku TEXT,
   is_available BOOLEAN NOT NULL DEFAULT true,
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -137,6 +143,17 @@ CREATE TABLE store_views (
 CREATE INDEX idx_store_views_store ON store_views(store_id);
 CREATE INDEX idx_store_views_date ON store_views(store_id, viewed_at);
 
+-- Store Images (central gallery)
+CREATE TABLE store_images (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  url TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  storage_path TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_store_images_store ON store_images(store_id);
+
 -- Auto-create profile on signup trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -149,7 +166,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -159,82 +176,94 @@ CREATE TRIGGER on_auth_user_created
 
 -- Profiles
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can view own profile" ON profiles FOR SELECT USING ((select auth.uid()) = id);
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING ((select auth.uid()) = id);
 
 -- Stores
 ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view published stores" ON stores FOR SELECT USING (is_published = true);
-CREATE POLICY "Owners can view own stores" ON stores FOR SELECT USING (auth.uid() = owner_id);
-CREATE POLICY "Owners can insert stores" ON stores FOR INSERT WITH CHECK (auth.uid() = owner_id);
-CREATE POLICY "Owners can update own stores" ON stores FOR UPDATE USING (auth.uid() = owner_id);
-CREATE POLICY "Owners can delete own stores" ON stores FOR DELETE USING (auth.uid() = owner_id);
+CREATE POLICY "Owners can view own stores" ON stores FOR SELECT USING ((select auth.uid()) = owner_id);
+CREATE POLICY "Owners can insert stores" ON stores FOR INSERT WITH CHECK ((select auth.uid()) = owner_id);
+CREATE POLICY "Owners can update own stores" ON stores FOR UPDATE USING ((select auth.uid()) = owner_id);
+CREATE POLICY "Owners can delete own stores" ON stores FOR DELETE USING ((select auth.uid()) = owner_id);
 
 -- Products
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view products of published stores" ON products FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND (stores.is_published = true OR stores.owner_id = auth.uid())));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND (stores.is_published = true OR stores.owner_id = (select auth.uid()))));
 CREATE POLICY "Owners can insert products" ON products FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = auth.uid()));
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update products" ON products FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete products" ON products FOR DELETE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = products.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Product Variants
 ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view variants of published stores" ON product_variants FOR SELECT
   USING (EXISTS (
     SELECT 1 FROM products JOIN stores ON stores.id = products.store_id
-    WHERE products.id = product_variants.product_id AND (stores.is_published = true OR stores.owner_id = auth.uid())
+    WHERE products.id = product_variants.product_id AND (stores.is_published = true OR stores.owner_id = (select auth.uid()))
   ));
 CREATE POLICY "Owners can insert variants" ON product_variants FOR INSERT
   WITH CHECK (EXISTS (
     SELECT 1 FROM products JOIN stores ON stores.id = products.store_id
-    WHERE products.id = product_variants.product_id AND stores.owner_id = auth.uid()
+    WHERE products.id = product_variants.product_id AND stores.owner_id = (select auth.uid())
   ));
 CREATE POLICY "Owners can update variants" ON product_variants FOR UPDATE
   USING (EXISTS (
     SELECT 1 FROM products JOIN stores ON stores.id = products.store_id
-    WHERE products.id = product_variants.product_id AND stores.owner_id = auth.uid()
+    WHERE products.id = product_variants.product_id AND stores.owner_id = (select auth.uid())
   ));
 CREATE POLICY "Owners can delete variants" ON product_variants FOR DELETE
   USING (EXISTS (
     SELECT 1 FROM products JOIN stores ON stores.id = products.store_id
-    WHERE products.id = product_variants.product_id AND stores.owner_id = auth.uid()
+    WHERE products.id = product_variants.product_id AND stores.owner_id = (select auth.uid())
   ));
 
 -- Collections
 ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view collections of published stores" ON collections FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND (stores.is_published = true OR stores.owner_id = auth.uid())));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND (stores.is_published = true OR stores.owner_id = (select auth.uid()))));
 CREATE POLICY "Owners can insert collections" ON collections FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = auth.uid()));
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update collections" ON collections FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete collections" ON collections FOR DELETE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can place orders" ON orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can place orders" ON orders FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.is_published = true));
 CREATE POLICY "Owners can view orders" ON orders FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update orders" ON orders FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Order Items
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert order items" ON order_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can insert order items" ON order_items FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id));
 CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
   USING (EXISTS (
     SELECT 1 FROM orders
     JOIN stores ON stores.id = orders.store_id
-    WHERE orders.id = order_items.order_id AND stores.owner_id = auth.uid()
+    WHERE orders.id = order_items.order_id AND stores.owner_id = (select auth.uid())
   ));
 
 -- Store Views
 ALTER TABLE store_views ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert store views" ON store_views FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can insert store views" ON store_views FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views.store_id AND stores.is_published = true));
 CREATE POLICY "Owners can view store views" ON store_views FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views.store_id AND stores.owner_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Store Images
+ALTER TABLE store_images ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Owners can view own store images" ON store_images FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));

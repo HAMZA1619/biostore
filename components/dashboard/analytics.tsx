@@ -9,6 +9,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { formatPrice } from "@/lib/utils"
 import { CalendarIcon, TrendingUp, TrendingDown } from "lucide-react"
 import type { DateRange } from "react-day-picker"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface AnalyticsProps {
   storeId: string
@@ -55,15 +57,15 @@ function daysAgo(n: number): DateRange {
 }
 
 const DATE_PRESETS = [
-  { label: "Today", range: () => daysAgo(0) },
-  { label: "Yesterday", range: () => { const d = new Date(); d.setDate(d.getDate() - 1); return { from: d, to: d } } },
-  { label: "Last 7 days", range: () => daysAgo(7) },
-  { label: "Last 14 days", range: () => daysAgo(14) },
-  { label: "Last 30 days", range: () => daysAgo(30) },
-  { label: "Last 60 days", range: () => daysAgo(60) },
-  { label: "Last 90 days", range: () => daysAgo(90) },
-  { label: "Last 180 days", range: () => daysAgo(180) },
-  { label: "Last year", range: () => daysAgo(365) },
+  { labelKey: "analytics.today", range: () => daysAgo(0) },
+  { labelKey: "analytics.yesterday", range: () => { const d = new Date(); d.setDate(d.getDate() - 1); return { from: d, to: d } } },
+  { labelKey: "analytics.last7days", range: () => daysAgo(7) },
+  { labelKey: "analytics.last14days", range: () => daysAgo(14) },
+  { labelKey: "analytics.last30days", range: () => daysAgo(30) },
+  { labelKey: "analytics.last60days", range: () => daysAgo(60) },
+  { labelKey: "analytics.last90days", range: () => daysAgo(90) },
+  { labelKey: "analytics.last180days", range: () => daysAgo(180) },
+  { labelKey: "analytics.lastYear", range: () => daysAgo(365) },
 ]
 
 function useIsMobile(breakpoint = 768) {
@@ -79,6 +81,7 @@ function useIsMobile(breakpoint = 768) {
 
 export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsProps) {
   const isMobile = useIsMobile()
+  const { t } = useTranslation()
   const [dateRange, setDateRange] = useState<DateRange>({
     from: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d })(),
     to: new Date(),
@@ -204,18 +207,18 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Analytics</h2>
+          <h2 className="text-lg font-semibold">{t("analytics.title")}</h2>
           <p className="text-sm text-muted-foreground">
-            Hi {firstName} - here&apos;s what&apos;s happening with your store.
+            {t("analytics.greeting", { name: firstName })}
           </p>
         </div>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="ml-auto gap-2 font-normal">
+            <Button variant="outline" size="sm" className="ms-auto gap-2 font-normal">
               <CalendarIcon className="h-4 w-4" />
               {dateRange.from && dateRange.to
                 ? `${formatDateShort(dateRange.from)} - ${formatDateShort(dateRange.to)}`
-                : "Pick a date range"}
+                : t("analytics.pickDateRange")}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
@@ -232,21 +235,21 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
                   disabled={{ after: new Date() }}
                 />
               </div>
-              <div className={isMobile ? "border-t flex flex-wrap gap-1 p-2" : "border-l p-2 space-y-1"}>
+              <div className={isMobile ? "border-t flex flex-wrap gap-1 p-2" : "border-s p-2 space-y-1"}>
                 {DATE_PRESETS.map((preset) => (
                   <button
-                    key={preset.label}
+                    key={preset.labelKey}
                     type="button"
                     className={isMobile
                       ? "rounded-md px-2.5 py-1 text-xs hover:bg-accent whitespace-nowrap"
-                      : "block w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-accent whitespace-nowrap"
+                      : "block w-full rounded-md px-3 py-1.5 text-start text-sm hover:bg-accent whitespace-nowrap"
                     }
                     onClick={() => {
                       setDateRange(preset.range())
                       setCalendarOpen(false)
                     }}
                   >
-                    {preset.label}
+                    {t(preset.labelKey)}
                   </button>
                 ))}
               </div>
@@ -256,27 +259,27 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
       </div>
 
       {loading ? (
-        <div className="py-8 text-center text-sm text-muted-foreground">Loading analytics...</div>
+        <div className="py-8 text-center text-sm text-muted-foreground">{t("analytics.loading")}</div>
       ) : (
         <>
           {/* Metric cards grid */}
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
             <MetricCard
-              title="Visitors"
+              title={t("analytics.visitors")}
               value={totalVisitors.toString()}
               change={pctChange(totalVisitors, prevTotalVisitors)}
               data={visitorsDaily}
               days={allDays}
             />
             <MetricCard
-              title="Orders"
+              title={t("dashboard.orders")}
               value={orders.length.toString()}
               change={pctChange(orders.length, prevOrders.length)}
               data={ordersDaily}
               days={allDays}
             />
             <MetricCard
-              title="Sales"
+              title={t("analytics.sales")}
               value={formatPrice(totalRevenue, currency)}
               change={pctChange(totalRevenue, prevTotalRevenue)}
               data={salesDaily}
@@ -288,7 +291,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
 
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
             <MetricCard
-              title="Conversion Rate"
+              title={t("analytics.conversionRate")}
               value={`${conversionRate.toFixed(2)}%`}
               change={pctChange(conversionRate, prevConversionRate)}
               data={conversionDaily}
@@ -296,7 +299,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
               isPercent
             />
             <MetricCard
-              title="AOV"
+              title={t("analytics.aov")}
               value={formatPrice(avgOrderValue, currency)}
               change={pctChange(avgOrderValue, prevAvgOrderValue)}
               data={aovDaily}
@@ -305,7 +308,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
               currency={currency}
             />
             <MetricCard
-              title="EPC"
+              title={t("analytics.epc")}
               value={formatPrice(totalVisitors > 0 ? totalRevenue / totalVisitors : 0, currency)}
               change={pctChange(
                 totalVisitors > 0 ? totalRevenue / totalVisitors : 0,
@@ -344,6 +347,7 @@ function MetricCard({
   isPercent?: boolean
   currency?: string
 }) {
+  const { t } = useTranslation()
   const isPositive = change >= 0
   const barCount = data.length
   // Show at most ~30 bars, aggregate if too many days
@@ -376,7 +380,7 @@ function MetricCard({
           <span className={isPositive ? "text-emerald-500" : "text-red-500"}>
             {isPositive ? "+" : ""}{change.toFixed(0)}%
           </span>
-          <span className="text-muted-foreground">vs. prev period</span>
+          <span className="text-muted-foreground">{t("analytics.vsPrevPeriod")}</span>
         </div>
         {/* Mini bar chart */}
         <div className="mt-3 flex items-end gap-[2px]" style={{ height: 60 }}>

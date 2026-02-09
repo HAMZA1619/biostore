@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { ProductCard } from "./product-card"
 import { Loader2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface Product {
   id: string
@@ -25,6 +27,7 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId, hasMore: initialHasMore }: ProductGridProps) {
+  const { t } = useTranslation()
   const [products, setProducts] = useState(initialProducts)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -42,16 +45,27 @@ export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId,
     if (loading || !hasMore) return
     setLoading(true)
 
-    const params = new URLSearchParams({ store_id: storeId, page: String(page) })
-    if (collectionId) params.set("collection_id", collectionId)
+    try {
+      const params = new URLSearchParams({ store_id: storeId, page: String(page) })
+      if (collectionId) params.set("collection_id", collectionId)
 
-    const res = await fetch(`/api/products?${params}`)
-    const data = await res.json()
+      const res = await fetch(`/api/products?${params}`)
 
-    setProducts((prev) => [...prev, ...data.products])
-    setHasMore(data.hasMore)
-    setPage((prev) => prev + 1)
-    setLoading(false)
+      if (!res.ok) {
+        setHasMore(false)
+        return
+      }
+
+      const data = await res.json()
+
+      setProducts((prev) => [...prev, ...data.products])
+      setHasMore(data.hasMore)
+      setPage((prev) => prev + 1)
+    } catch {
+      setHasMore(false)
+    } finally {
+      setLoading(false)
+    }
   }, [loading, hasMore, storeId, collectionId, page])
 
   useEffect(() => {
@@ -74,14 +88,14 @@ export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId,
   if (products.length === 0) {
     return (
       <div className="py-12 text-center text-muted-foreground">
-        No products available
+        {t("storefront.noProducts")}
       </div>
     )
   }
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="product-grid grid grid-cols-2 gap-3">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
         ))}

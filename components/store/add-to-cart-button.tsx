@@ -3,6 +3,8 @@
 import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface AddToCartButtonProps {
   product: {
@@ -16,6 +18,7 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
+  const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
 
   function handleAdd() {
@@ -41,8 +44,8 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
       disabled={!product.isAvailable}
       style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
     >
-      <ShoppingCart className="mr-2 h-4 w-4" />
-      {product.isAvailable ? "Add to cart" : "Sold out"}
+      <ShoppingCart className="me-2 h-4 w-4" />
+      {product.isAvailable ? t("storefront.addToCart") : t("storefront.soldOut")}
     </Button>
   )
 }

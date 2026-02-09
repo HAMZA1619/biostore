@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ImageUpload } from "@/components/dashboard/image-upload"
+import type { ImageItem } from "@/components/dashboard/image-upload"
 import { OptionValuesInput } from "@/components/forms/option-values-input"
 import { getCurrencySymbol } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -20,6 +21,8 @@ import { useState, useCallback } from "react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Globe, Loader2, Plus, Trash2, Wand2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface ProductFormProps {
   storeId: string
@@ -33,7 +36,7 @@ interface ProductFormProps {
     price: number
     compare_at_price: number | null
     stock: number | null
-    image_urls: string[]
+    images: ImageItem[]
     options: ProductOption[]
     status: "active" | "draft"
     is_available: boolean
@@ -81,9 +84,10 @@ function variantLabel(options: Record<string, string>): string {
 
 export function ProductForm({ storeId, currency, title, initialData, initialVariants = [] }: ProductFormProps) {
   const symbol = getCurrencySymbol(currency)
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(false)
-  const [images, setImages] = useState<string[]>(initialData?.image_urls || [])
+  const [images, setImages] = useState<ImageItem[]>(initialData?.images || [])
   const [imagesChanged, setImagesChanged] = useState(false)
   const [options, setOptions] = useState<ProductOption[]>(initialData?.options || [])
   const [variants, setVariants] = useState<ProductVariant[]>(initialVariants)
@@ -94,6 +98,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
 
   const [fetchUrl, setFetchUrl] = useState("")
   const [importOpen, setImportOpen] = useState(false)
+  const [pendingImageUrls, setPendingImageUrls] = useState<string[]>([])
 
   const {
     register,
@@ -166,7 +171,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
 
   async function fetchUrlDetails() {
     if (!fetchUrl) {
-      toast.error("Enter a URL first")
+      toast.error(t("productForm.enterUrlFirst"))
       return
     }
 
@@ -181,40 +186,91 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
       const data = await res.json()
 
       if (!res.ok) {
-        toast.error(data.error || "Failed to fetch URL")
+        toast.error(data.error || t("productForm.failedFetchUrl"))
         setFetching(false)
         return
       }
 
+      // Populate form fields
       if (data.title) setValue("name", data.title, { shouldDirty: true })
-      if (data.description) setValue("description", data.description, { shouldDirty: true })
+      if (data.description) setValue("description", data.description.slice(0, 1000), { shouldDirty: true })
       if (data.price) setValue("price", data.price, { shouldDirty: true })
-      if (data.images?.length) {
-        setImages((prev) => {
-          const existing = new Set(prev)
-          const newImages = (data.images as string[]).filter((img: string) => !existing.has(img))
-          return [...prev, ...newImages].slice(0, 5)
-        })
-      } else if (data.image && !images.includes(data.image) && images.length < 5) {
-        setImages((prev) => [...prev, data.image].slice(0, 5))
+      if (data.sku) setValue("sku", data.sku, { shouldDirty: true })
+
+      // Set pending image URLs (will be uploaded on save)
+      const scrapedImageUrls = (data.images as string[] || []).slice(0, 20)
+      if (scrapedImageUrls.length > 0) {
+        setPendingImageUrls(scrapedImageUrls)
+        setImagesChanged(true)
       }
 
-      toast.success("Product details filled")
+      // Set options and variants
+      const scrapedOptions = (data.options as { name: string; values: string[] }[] || []).slice(0, 3)
+      const validOptions = scrapedOptions.filter((o) => o.name.trim() && o.values.length > 0)
+
+      if (validOptions.length > 0) {
+        setOptions(validOptions)
+        setOptionsChanged(true)
+
+        if (data.variants?.length) {
+          const scrapedVariants = (data.variants as { options: Record<string, string>; price: number; sku: string; is_available: boolean }[]).map((v) => ({
+            options: v.options,
+            price: v.price || data.price || 0,
+            compare_at_price: null,
+            sku: v.sku || "",
+            stock: null,
+            is_available: v.is_available ?? true,
+          }))
+          setVariants(scrapedVariants)
+        } else {
+          regenerateVariants(validOptions)
+        }
+      }
+
+      setImportOpen(false)
+      toast.success(t("productForm.importSuccess"))
     } catch {
-      toast.error("Failed to fetch URL")
+      toast.error(t("productForm.failedFetchUrl"))
+    } finally {
+      setFetching(false)
     }
-    setFetching(false)
   }
 
   async function onSubmit(data: z.infer<typeof productSchema>) {
     setLoading(true)
+
+    // Upload pending external images first
+    let allImages = [...images]
+    if (pendingImageUrls.length > 0) {
+      try {
+        const uploadRes = await fetch("/api/upload-images", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urls: pendingImageUrls, storeId }),
+        })
+        if (!uploadRes.ok) {
+          toast.error(t("productForm.imageUploadFailed"))
+          setLoading(false)
+          return
+        }
+        const uploadData = await uploadRes.json()
+        const uploadedImages = (uploadData.images || []) as ImageItem[]
+        allImages = [...allImages, ...uploadedImages]
+        setImages(allImages)
+        setPendingImageUrls([])
+      } catch {
+        toast.error(t("productForm.imageUploadFailed"))
+        setLoading(false)
+        return
+      }
+    }
 
     const validOptions = options.filter((o) => o.name.trim() && o.values.length > 0)
 
     const payload = {
       ...data,
       store_id: storeId,
-      image_urls: images,
+      image_urls: allImages.map((i) => i.id),
       sku: data.sku || null,
       compare_at_price: data.compare_at_price || null,
       stock: data.stock ?? null,
@@ -242,7 +298,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
         .single()
 
       if (error || !newProduct) {
-        toast.error(error?.message || "Failed to create product")
+        toast.error(error?.message || t("productForm.failedCreateProduct"))
         setLoading(false)
         return
       }
@@ -251,51 +307,53 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
 
     // Sync variants
     if (productId) {
-      if (validOptions.length === 0) {
-        // No options — delete all variants
-        await supabase.from("product_variants").delete().eq("product_id", productId)
-      } else {
-        // Delete old variants
-        await supabase.from("product_variants").delete().eq("product_id", productId)
+      const { error: deleteError } = await supabase
+        .from("product_variants")
+        .delete()
+        .eq("product_id", productId)
 
-        // Insert new variants
-        if (variants.length > 0) {
-          const variantRows = variants.map((v, i) => ({
-            product_id: productId,
-            options: v.options,
-            price: v.price,
-            compare_at_price: v.compare_at_price || null,
-            sku: v.sku || null,
-            stock: v.stock ?? null,
-            is_available: v.is_available,
-            sort_order: i,
-          }))
+      if (deleteError) {
+        toast.error(t("productForm.variantsFailed", { message: deleteError.message }))
+        setLoading(false)
+        return
+      }
 
-          const { error: varError } = await supabase
-            .from("product_variants")
-            .insert(variantRows)
+      if (validOptions.length > 0 && variants.length > 0) {
+        const variantRows = variants.map((v, i) => ({
+          product_id: productId,
+          options: v.options,
+          price: v.price,
+          compare_at_price: v.compare_at_price || null,
+          sku: v.sku || null,
+          stock: v.stock ?? null,
+          is_available: v.is_available,
+          sort_order: i,
+        }))
 
-          if (varError) {
-            toast.error("Product saved but variants failed: " + varError.message)
-            setLoading(false)
-            return
-          }
+        const { error: varError } = await supabase
+          .from("product_variants")
+          .insert(variantRows)
+
+        if (varError) {
+          toast.error(t("productForm.variantsFailed", { message: varError.message }))
+          setLoading(false)
+          return
         }
       }
     }
 
-    toast.success(initialData ? "Product updated" : "Product added")
+    toast.success(initialData ? t("productForm.productUpdated") : t("productForm.productAdded"))
     setLoading(false)
     router.push("/dashboard/products")
   }
 
-  const hasChanges = isDirty || imagesChanged || optionsChanged
+  const hasChanges = isDirty || imagesChanged || optionsChanged || pendingImageUrls.length > 0
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <h1 className="text-2xl font-bold">{t(title)}</h1>
           <Select
             value={watch("status")}
             onValueChange={(v) => { setValue("status", v as "active" | "draft", { shouldDirty: true }) }}
@@ -304,7 +362,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
               <SelectValue>
                 <span className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${watch("status") === "active" ? "bg-green-500" : "bg-red-400"}`} />
-                  <span className="text-sm">{watch("status") === "active" ? "Active" : "Draft"}</span>
+                  <span className="text-sm">{watch("status") === "active" ? t("products.statusActive") : t("products.statusDraft")}</span>
                 </span>
               </SelectValue>
             </SelectTrigger>
@@ -312,13 +370,13 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
               <SelectItem value="active">
                 <span className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
-                  Active
+                  {t("products.statusActive")}
                 </span>
               </SelectItem>
               <SelectItem value="draft">
                 <span className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-red-400" />
-                  Draft
+                  {t("products.statusDraft")}
                 </span>
               </SelectItem>
             </SelectContent>
@@ -326,35 +384,32 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
         </div>
         <div className="flex gap-3">
           {!initialData && (
-            <Dialog open={importOpen} onOpenChange={setImportOpen}>
+            <Dialog open={importOpen} onOpenChange={(open) => { if (!fetching) setImportOpen(open) }}>
               <DialogTrigger asChild>
                 <Button type="button" variant="ghost">
-                  <Globe className="mr-2 h-4 w-4" />
-                  Import
+                  <Globe className="me-2 h-4 w-4" />
+                  {t("productForm.import")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Import from URL</DialogTitle>
+                  <DialogTitle>{t("productForm.importFromUrl")}</DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">
-                  Auto-fill product name, description, price and image from a URL
+                  {t("productForm.importDescription")}
                 </p>
                 <div className="flex gap-2">
                   <Input
                     value={fetchUrl}
                     onChange={(e) => setFetchUrl(e.target.value)}
-                    placeholder="https://example.com/product"
+                    placeholder={t("productForm.urlPlaceholder")}
                     type="url"
                     className="flex-1"
+                    disabled={fetching}
                   />
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => {
-                      fetchUrlDetails()
-                      setImportOpen(false)
-                    }}
+                    onClick={fetchUrlDetails}
                     disabled={fetching}
                   >
                     {fetching ? (
@@ -362,59 +417,78 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                     ) : (
                       <Wand2 className="h-4 w-4" />
                     )}
-                    <span className="ml-2">{fetching ? "Fetching..." : "Fetch"}</span>
+                    <span className="ms-2">{fetching ? t("productForm.saving") : t("productForm.fetch")}</span>
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           )}
           <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancel
+            {t("productForm.cancel")}
           </Button>
           <Button type="submit" disabled={loading || (!!initialData && !hasChanges)}>
-            {loading ? "Saving..." : initialData ? "Update product" : "Add product"}
+            {loading ? t("productForm.saving") : initialData ? t("productForm.updateProduct") : t("productForm.addProductBtn")}
           </Button>
         </div>
       </div>
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Product name</Label>
-          <Input id="name" {...register("name")} placeholder="Product name" />
-          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
+          <Label htmlFor="name">{t("productForm.productName")}</Label>
+          <Input id="name" {...register("name")} placeholder={t("productForm.productName")} />
+          {errors.name && <p className="text-sm text-red-600">{t(errors.name.message!)}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" {...register("description")} placeholder="Describe your product" rows={3} />
+          <Label htmlFor="description">{t("productForm.description")}</Label>
+          <Textarea id="description" {...register("description")} placeholder={t("productForm.describePlaceholder")} rows={3} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="sku">SKU</Label>
-          <Input id="sku" {...register("sku")} placeholder="e.g. PROD-001 (optional)" />
+          <Label htmlFor="sku">{t("productForm.sku")}</Label>
+          <Input id="sku" {...register("sku")} placeholder={t("productForm.skuPlaceholder")} />
         </div>
 
         <div className="space-y-2">
-          <Label>Images</Label>
+          <Label>{t("productForm.images")}</Label>
           <ImageUpload storeId={storeId} images={images} onImagesChange={(imgs) => { setImages(imgs); setImagesChanged(true) }} />
+          {pendingImageUrls.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">{t("productForm.pendingImages")}</p>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                {pendingImageUrls.map((url, i) => (
+                  <div key={i} className="group relative aspect-square overflow-hidden rounded-md border border-dashed">
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPendingImageUrls((prev) => prev.filter((_, j) => j !== i))}
+                      className="absolute end-1 top-1 rounded-full bg-black/60 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price">{t("productForm.price")}</Label>
             <div className="relative">
-              <Input id="price" type="number" step="0.01" className="pr-12" {...register("price", { valueAsNumber: true })} />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{symbol}</span>
+              <Input id="price" type="number" step="0.01" className="pe-12" {...register("price", { valueAsNumber: true })} />
+              <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{symbol}</span>
             </div>
-            {errors.price && <p className="text-sm text-red-600">{errors.price.message}</p>}
+            {errors.price && <p className="text-sm text-red-600">{t(errors.price.message!)}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="compare_at_price">Compare at price</Label>
+            <Label htmlFor="compare_at_price">{t("productForm.compareAtPrice")}</Label>
             <div className="relative">
               <Input
                 id="compare_at_price"
                 type="number"
                 step="0.01"
-                className="pr-12"
+                className="pe-12"
                 {...register("compare_at_price", {
                   setValueAs: (v: string) => {
                     if (v === "" || v === undefined) return undefined
@@ -422,9 +496,9 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                     return isNaN(n) ? undefined : n
                   },
                 })}
-                placeholder="Optional"
+                placeholder={t("productForm.optional")}
               />
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{symbol}</span>
+              <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{symbol}</span>
             </div>
           </div>
         </div>
@@ -445,11 +519,11 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                 setOptionsChanged(true)
               }}
             />
-            <Label>Track stock</Label>
+            <Label>{t("productForm.trackStock")}</Label>
           </div>
           {trackStock && (
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock quantity</Label>
+              <Label htmlFor="stock">{t("productForm.stockQuantity")}</Label>
               <Input
                 id="stock"
                 type="number"
@@ -472,28 +546,28 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
         {/* Product Options */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label>Product Options</Label>
+            <Label>{t("productForm.productOptions")}</Label>
             <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={addOption}>
-              + Add new option
+              {t("productForm.addNewOption")}
             </button>
           </div>
 
           {options.map((option, i) => (
             <div key={i} className="flex items-end gap-3">
               <div className="w-36 shrink-0 space-y-1">
-                <Label className="text-xs text-muted-foreground">Option name</Label>
+                <Label className="text-xs text-muted-foreground">{t("productForm.optionName")}</Label>
                 <Input
                   value={option.name}
                   onChange={(e) => updateOption(i, "name", e.target.value)}
-                  placeholder="Name"
+                  placeholder={t("productForm.optionNamePlaceholder")}
                 />
               </div>
               <div className="flex-1 space-y-1">
-                <Label className="text-xs text-muted-foreground">Option values</Label>
+                <Label className="text-xs text-muted-foreground">{t("productForm.optionValues")}</Label>
                 <OptionValuesInput
                   values={option.values}
                   onChange={(values) => updateOption(i, "values", values)}
-                  placeholder="Type a value and press Enter"
+                  placeholder={t("productForm.optionValuesPlaceholder")}
                 />
               </div>
               <Button
@@ -514,9 +588,9 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
         {variants.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Variants ({variants.length})</Label>
+              <Label>{t("productForm.variants", { count: variants.length })}</Label>
               <Button type="button" variant="outline" size="sm" onClick={setAllPrices}>
-                Set all prices from base
+                {t("productForm.setAllPrices")}
               </Button>
             </div>
 
@@ -524,11 +598,11 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium">Variant</th>
-                    <th className="px-3 py-2 text-left font-medium">Price</th>
-                    <th className="px-3 py-2 text-left font-medium">Compare at</th>
-                    <th className="px-3 py-2 text-left font-medium">SKU</th>
-                    {trackStock && <th className="px-3 py-2 text-left font-medium">Stock</th>}
+                    <th className="px-3 py-2 text-start font-medium">{t("productForm.variantColumns.variant")}</th>
+                    <th className="px-3 py-2 text-start font-medium">{t("productForm.variantColumns.price")}</th>
+                    <th className="px-3 py-2 text-start font-medium">{t("productForm.variantColumns.compareAt")}</th>
+                    <th className="px-3 py-2 text-start font-medium">{t("productForm.variantColumns.sku")}</th>
+                    {trackStock && <th className="px-3 py-2 text-start font-medium">{t("productForm.variantColumns.stock")}</th>}
                     <th className="w-10"></th>
                   </tr>
                 </thead>
@@ -547,9 +621,9 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                             onChange={(e) =>
                               updateVariantField(i, "price", parseFloat(e.target.value) || 0)
                             }
-                            className="h-8 w-28 pr-10"
+                            className="h-8 w-28 pe-10"
                           />
-                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{symbol}</span>
+                          <span className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{symbol}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2">
@@ -563,16 +637,16 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                               updateVariantField(i, "compare_at_price", v === "" ? null : parseFloat(v) || null)
                             }}
                             placeholder="—"
-                            className="h-8 w-28 pr-10"
+                            className="h-8 w-28 pe-10"
                           />
-                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{symbol}</span>
+                          <span className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{symbol}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2">
                         <Input
                           value={variant.sku || ""}
                           onChange={(e) => updateVariantField(i, "sku", e.target.value)}
-                          placeholder="Optional"
+                          placeholder={t("productForm.optional")}
                           className="h-8 w-28"
                         />
                       </td>

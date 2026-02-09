@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface ProductStatusSelectProps {
   productId: string
@@ -12,6 +14,7 @@ interface ProductStatusSelectProps {
 }
 
 export function ProductStatusSelect({ productId, status }: ProductStatusSelectProps) {
+  const { t } = useTranslation()
   const [current, setCurrent] = useState(status)
   const router = useRouter()
   const supabase = createClient()
@@ -27,7 +30,7 @@ export function ProductStatusSelect({ productId, status }: ProductStatusSelectPr
 
     if (error) {
       setCurrent(prev)
-      toast.error("Failed to update status")
+      toast.error(t("products.failedUpdateStatus"))
     } else {
       router.refresh()
     }
@@ -39,7 +42,7 @@ export function ProductStatusSelect({ productId, status }: ProductStatusSelectPr
         <SelectValue>
           <span className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${current === "active" ? "bg-green-500" : "bg-red-400"}`} />
-            <span className="text-sm">{current === "active" ? "Active" : "Draft"}</span>
+            <span className="text-sm">{current === "active" ? t("products.statusActive") : t("products.statusDraft")}</span>
           </span>
         </SelectValue>
       </SelectTrigger>
@@ -47,13 +50,13 @@ export function ProductStatusSelect({ productId, status }: ProductStatusSelectPr
         <SelectItem value="active">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-green-500" />
-            Active
+            {t("products.statusActive")}
           </span>
         </SelectItem>
         <SelectItem value="draft">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-red-400" />
-            Draft
+            {t("products.statusDraft")}
           </span>
         </SelectItem>
       </SelectContent>

@@ -34,10 +34,7 @@ export async function POST(request: Request) {
     } = body
 
     if (!slug || !customer_name || !customer_phone || !customer_address || !items?.length) {
-      return NextResponse.json({
-        error: "Missing required fields",
-        debug: { slug: !!slug, customer_name: !!customer_name, customer_phone: !!customer_phone, customer_address: !!customer_address, items: items?.length || 0 },
-      }, { status: 400 })
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
     const supabase = createClient(
@@ -54,10 +51,7 @@ export async function POST(request: Request) {
       .single()
 
     if (storeError || !store) {
-      return NextResponse.json({
-        error: "Store not found",
-        debug: { slug, storeError: storeError?.message, storeCode: storeError?.code },
-      }, { status: 404 })
+      return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
     // Fetch products and verify prices
@@ -69,17 +63,11 @@ export async function POST(request: Request) {
       .eq("store_id", store.id)
 
     if (productsError) {
-      return NextResponse.json({
-        error: "Failed to fetch products",
-        debug: { productsError: productsError.message, productsCode: productsError.code },
-      }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
     }
 
     if (!products || products.length !== new Set(productIds).size) {
-      return NextResponse.json({
-        error: "Some products are unavailable",
-        debug: { requested: items.length, found: products?.length || 0, productIds },
-      }, { status: 400 })
+      return NextResponse.json({ error: "Some products are unavailable" }, { status: 400 })
     }
 
     // Fetch variants if any items have variant_id
@@ -96,10 +84,7 @@ export async function POST(request: Request) {
         .in("id", variantIds)
 
       if (varError || !variants) {
-        return NextResponse.json({
-          error: "Failed to fetch variants",
-          debug: { varError: varError?.message },
-        }, { status: 500 })
+        return NextResponse.json({ error: "Failed to fetch variants" }, { status: 500 })
       }
 
       for (const item of items) {
@@ -129,12 +114,21 @@ export async function POST(request: Request) {
       )
     }
 
+    // Resolve image IDs to URLs for order item snapshots
+    const allImageIds = products.flatMap((p) => p.image_urls?.slice(0, 1) || [])
+    const imageMap = new Map<string, string>()
+    if (allImageIds.length > 0) {
+      const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", allImageIds)
+      for (const img of imgs || []) imageMap.set(img.id, img.url)
+    }
+
     // Calculate totals
     let subtotal = 0
     const orderItems = items.map((item: { product_id: string; variant_id?: string | null; quantity: number }) => {
       const product = products.find((p) => p.id === item.product_id)!
       const variant = item.variant_id ? variantsMap[item.variant_id] : null
       const price = variant ? variant.price : product.price
+      const firstImageId = product.image_urls?.[0]
 
       subtotal += price * item.quantity
       return {
@@ -144,7 +138,7 @@ export async function POST(request: Request) {
         product_price: price,
         variant_options: variant ? variant.options : null,
         quantity: item.quantity,
-        image_url: product.image_urls?.[0] || null,
+        image_url: firstImageId ? (imageMap.get(firstImageId) || null) : null,
       }
     })
 
@@ -173,10 +167,7 @@ export async function POST(request: Request) {
       .single()
 
     if (orderError) {
-      return NextResponse.json({
-        error: "Failed to create order",
-        debug: { orderError: orderError.message, orderCode: orderError.code, orderHint: orderError.hint },
-      }, { status: 500 })
+      return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
     }
 
     // Insert order items
@@ -188,10 +179,7 @@ export async function POST(request: Request) {
     )
 
     if (itemsError) {
-      return NextResponse.json({
-        error: "Order created but failed to add items",
-        debug: { itemsError: itemsError.message, itemsCode: itemsError.code },
-      }, { status: 500 })
+      return NextResponse.json({ error: "Order created but failed to add items" }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -203,10 +191,7 @@ export async function POST(request: Request) {
       items: orderItems,
       total,
     })
-  } catch (err) {
-    return NextResponse.json({
-      error: "Internal server error",
-      debug: { message: err instanceof Error ? err.message : String(err) },
-    }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

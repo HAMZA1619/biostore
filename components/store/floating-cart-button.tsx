@@ -7,8 +7,11 @@ import { ShoppingCart } from "lucide-react"
 import { useParams, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 export function FloatingCartButton() {
+  const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const pathname = usePathname()
   const currency = useStoreCurrency()
@@ -33,16 +36,16 @@ export function FloatingCartButton() {
     >
       <Link
         href={`/${slug}/cart`}
-        className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 rounded-full px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5"
-        style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
+        className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5"
+        style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
       >
         <div className="relative">
           <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold" style={{ color: "var(--store-accent)" }}>
+          <span className="absolute -end-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-bold" style={{ color: "var(--store-accent)" }}>
             {count}
           </span>
         </div>
-        <span className="font-medium sm:text-lg">View Cart</span>
+        <span className="font-medium sm:text-lg">{t("storefront.viewCart")}</span>
         <span className="font-bold sm:text-lg">{formatPriceSymbol(getTotal(), currency)}</span>
       </Link>
     </div>

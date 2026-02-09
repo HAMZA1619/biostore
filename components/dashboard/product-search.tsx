@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useRef } from "react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 export function ProductSearch() {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -26,12 +29,12 @@ export function ProductSearch() {
 
   return (
     <div className="relative">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         defaultValue={searchParams.get("q") || ""}
         onChange={(e) => handleChange(e.target.value)}
-        placeholder="Search products..."
-        className="pl-9"
+        placeholder={t("search.searchProducts")}
+        className="ps-9"
       />
     </div>
   )

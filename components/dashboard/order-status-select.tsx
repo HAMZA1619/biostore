@@ -6,13 +6,15 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ORDER_STATUSES } from "@/lib/constants"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
-const statusConfig: Record<string, { color: string; label: string }> = {
-  pending: { color: "bg-yellow-500", label: "Pending" },
-  confirmed: { color: "bg-blue-500", label: "Confirmed" },
-  shipped: { color: "bg-purple-500", label: "Shipped" },
-  delivered: { color: "bg-green-500", label: "Delivered" },
-  canceled: { color: "bg-red-400", label: "Canceled" },
+const statusConfig: Record<string, { color: string; labelKey: string }> = {
+  pending: { color: "bg-yellow-500", labelKey: "orders.statusPending" },
+  confirmed: { color: "bg-blue-500", labelKey: "orders.statusConfirmed" },
+  shipped: { color: "bg-purple-500", labelKey: "orders.statusShipped" },
+  delivered: { color: "bg-green-500", labelKey: "orders.statusDelivered" },
+  canceled: { color: "bg-red-400", labelKey: "orders.statusCanceled" },
 }
 
 interface OrderStatusSelectProps {
@@ -21,6 +23,7 @@ interface OrderStatusSelectProps {
 }
 
 export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
+  const { t } = useTranslation()
   const [current, setCurrent] = useState(status)
   const router = useRouter()
   const supabase = createClient()
@@ -36,13 +39,13 @@ export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
 
     if (error) {
       setCurrent(prev)
-      toast.error("Failed to update status")
+      toast.error(t("orders.failedUpdateStatus"))
     } else {
       router.refresh()
     }
   }
 
-  const cfg = statusConfig[current] || { color: "bg-gray-400", label: current }
+  const cfg = statusConfig[current] || { color: "bg-gray-400", labelKey: current }
 
   return (
     <Select value={current} onValueChange={handleChange}>
@@ -50,18 +53,18 @@ export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
         <SelectValue>
           <span className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${cfg.color}`} />
-            <span className="text-sm">{cfg.label}</span>
+            <span className="text-sm">{t(cfg.labelKey)}</span>
           </span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {ORDER_STATUSES.map((s) => {
-          const c = statusConfig[s] || { color: "bg-gray-400", label: s }
+          const c = statusConfig[s] || { color: "bg-gray-400", labelKey: s }
           return (
             <SelectItem key={s} value={s}>
               <span className="flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${c.color}`} />
-                {c.label}
+                {t(c.labelKey)}
               </span>
             </SelectItem>
           )

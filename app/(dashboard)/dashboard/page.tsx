@@ -5,6 +5,7 @@ import { Package, ShoppingCart, DollarSign } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { DashboardAnalytics } from "@/components/dashboard/analytics"
+import { T } from "@/components/dashboard/translated-text"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -28,10 +29,10 @@ export default async function DashboardPage() {
   if (!store) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <h1 className="text-2xl font-bold">Welcome to BioStore</h1>
-        <p className="text-muted-foreground">Create your store to get started</p>
+        <h1 className="text-2xl font-bold"><T k="dashboard.welcome" /></h1>
+        <p className="text-muted-foreground"><T k="dashboard.createStorePrompt" /></p>
         <Button asChild>
-          <Link href="/dashboard/store">Create Store</Link>
+          <Link href="/dashboard/store"><T k="dashboard.createStore" /></Link>
         </Button>
       </div>
     )
@@ -51,7 +52,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Overview</h1>
+        <h1 className="text-2xl font-bold"><T k="dashboard.overview" /></h1>
         {store.is_published && (
           <Link
             href={`/${store.slug}`}
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Products</CardTitle>
+            <CardTitle className="text-sm font-medium"><T k="dashboard.products" /></CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -75,7 +76,7 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-sm font-medium"><T k="dashboard.orders" /></CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -84,7 +85,7 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium"><T k="dashboard.revenue" /></CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

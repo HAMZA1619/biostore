@@ -1,15 +1,16 @@
 import { z } from "zod"
 
 export const storeSchema = z.object({
-  name: z.string().min(2, "Store name must be at least 2 characters"),
+  name: z.string().min(2, "validation.storeNameMin"),
   slug: z
     .string()
-    .min(3, "Slug must be at least 3 characters")
-    .max(30, "Slug must be 30 characters or less")
-    .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
+    .min(3, "validation.slugMin")
+    .max(30, "validation.slugMax")
+    .regex(/^[a-z0-9-]+$/, "validation.slugFormat"),
   description: z.string().max(500).optional(),
   city: z.string().optional(),
-  currency: z.string().min(1, "Currency is required"),
+  language: z.enum(["en", "fr", "ar"]).default("en"),
+  currency: z.string().min(1, "validation.currencyRequired"),
   payment_methods: z.array(z.literal("cod")).default(["cod"]),
   primary_color: z.string(),
   accent_color: z.string(),

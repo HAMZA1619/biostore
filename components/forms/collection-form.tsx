@@ -29,6 +29,8 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { slugify } from "@/lib/utils"
 import { Check, ChevronsUpDown, FolderOpen, Loader2, MoreHorizontal, Pencil, Plus, Trash2, X } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 const PAGE_SIZE = 20
 
@@ -66,6 +68,7 @@ export function CollectionsManager({
 
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useTranslation()
 
   const fetchProducts = useCallback(async (page: number, searchQuery: string, reset: boolean) => {
     setDropdownLoading(true)
@@ -164,7 +167,7 @@ export function CollectionsManager({
 
   async function handleSave() {
     if (!name.trim()) {
-      toast.error("Collection name is required")
+      toast.error(t("collections.nameRequired"))
       return
     }
 
@@ -178,27 +181,39 @@ export function CollectionsManager({
           .update({ name: name.trim(), slug: slugify(name) })
           .eq("id", editingCollection.id)
         if (error) {
-          toast.error(error.code === "23505" ? "Collection with this name already exists" : error.message)
+          toast.error(error.code === "23505" ? t("collections.duplicateName") : error.message)
           setLoading(false)
           return
         }
       }
 
       // Clear all products from this collection first
-      await supabase
+      const { error: clearError } = await supabase
         .from("products")
         .update({ collection_id: null })
         .eq("collection_id", editingCollection.id)
 
+      if (clearError) {
+        toast.error(clearError.message)
+        setLoading(false)
+        return
+      }
+
       // Set selected products
       if (selected.length > 0) {
-        await supabase
+        const { error: assignError } = await supabase
           .from("products")
           .update({ collection_id: editingCollection.id })
           .in("id", selected)
+
+        if (assignError) {
+          toast.error(assignError.message)
+          setLoading(false)
+          return
+        }
       }
 
-      toast.success("Collection updated")
+      toast.success(t("collections.collectionUpdated"))
     } else {
       const { data: newCollection, error } = await supabase
         .from("collections")
@@ -212,19 +227,25 @@ export function CollectionsManager({
         .single()
 
       if (error || !newCollection) {
-        toast.error(error?.code === "23505" ? "Collection with this name already exists" : error?.message || "Failed")
+        toast.error(error?.code === "23505" ? t("collections.duplicateName") : error?.message || "Failed")
         setLoading(false)
         return
       }
 
       if (selected.length > 0) {
-        await supabase
+        const { error: assignError } = await supabase
           .from("products")
           .update({ collection_id: newCollection.id })
           .in("id", selected)
+
+        if (assignError) {
+          toast.error(assignError.message)
+          setLoading(false)
+          return
+        }
       }
 
-      toast.success("Collection created")
+      toast.success(t("collections.collectionCreated"))
     }
 
     setLoading(false)
@@ -240,7 +261,7 @@ export function CollectionsManager({
       setDeleteId(null)
       return
     }
-    toast.success("Collection deleted")
+    toast.success(t("collections.collectionDeleted"))
     setDeleteId(null)
     router.refresh()
   }
@@ -248,10 +269,10 @@ export function CollectionsManager({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Collections</h1>
+        <h1 className="text-2xl font-bold">{t("collections.title")}</h1>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create collection
+          <Plus className="me-2 h-4 w-4" />
+          {t("collections.createCollection")}
         </Button>
       </div>
 
@@ -260,9 +281,9 @@ export function CollectionsManager({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Products</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
+                <TableHead>{t("collections.columns.name")}</TableHead>
+                <TableHead>{t("collections.columns.products")}</TableHead>
+                <TableHead className="w-[100px] text-end">{t("collections.columns.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -274,7 +295,7 @@ export function CollectionsManager({
                       ? c.products[0].count
                       : 0}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
@@ -283,12 +304,12 @@ export function CollectionsManager({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openEdit(c)}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          <Pencil className="me-2 h-4 w-4" />
+                          {t("collections.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setDeleteId(c.id)} className="text-red-600 focus:text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
+                          <Trash2 className="me-2 h-4 w-4" />
+                          {t("collections.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -301,8 +322,8 @@ export function CollectionsManager({
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FolderOpen className="mb-3 h-10 w-10 text-muted-foreground/40" />
-          <p className="text-muted-foreground">No collections yet</p>
-          <p className="text-sm text-muted-foreground">Collections help organize your products into categories.</p>
+          <p className="text-muted-foreground">{t("collections.empty")}</p>
+          <p className="text-sm text-muted-foreground">{t("collections.emptyHint")}</p>
         </div>
       )}
 
@@ -310,29 +331,29 @@ export function CollectionsManager({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingCollection ? "Edit collection" : "Create collection"}
+              {editingCollection ? t("collections.editCollection") : t("collections.createCollection")}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Name</Label>
+              <Label>{t("collections.nameLabel")}</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Summer collection"
+                placeholder={t("collections.namePlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Products</Label>
+              <Label>{t("collections.productsLabel")}</Label>
               <Popover modal open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button type="button" variant="outline" className="w-full justify-between font-normal">
                     {selectedProducts.size > 0
-                      ? `${selectedProducts.size} product${selectedProducts.size > 1 ? "s" : ""} selected`
-                      : "Select products..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      ? t("collections.productsSelected", { count: selectedProducts.size })
+                      : t("collections.selectProducts")}
+                    <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="overflow-hidden p-0" align="start" style={{ width: 'var(--radix-popover-trigger-width)', maxWidth: 'var(--radix-popover-trigger-width)' }}>
@@ -340,7 +361,7 @@ export function CollectionsManager({
                     <Input
                       value={search}
                       onChange={(e) => handleSearchChange(e.target.value)}
-                      placeholder="Search products..."
+                      placeholder={t("collections.searchProducts")}
                       className="h-8"
                     />
                   </div>
@@ -356,7 +377,7 @@ export function CollectionsManager({
                           key={p.id}
                           type="button"
                           onClick={() => toggleProduct(p.id, p.name)}
-                          className="flex w-full min-w-0 items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted"
+                          className="flex w-full min-w-0 items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-muted"
                         >
                           <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"}`}>
                             {isSelected && <Check className="h-3 w-3" />}
@@ -372,7 +393,7 @@ export function CollectionsManager({
                     )}
                     {!dropdownLoading && dropdownProducts.length === 0 && (
                       <p className="px-3 py-4 text-center text-sm text-muted-foreground">
-                        {search ? "No products match" : "No products yet"}
+                        {search ? t("collections.noProductsMatch") : t("collections.noProductsYet")}
                       </p>
                     )}
                   </div>
@@ -381,12 +402,12 @@ export function CollectionsManager({
               {selectedProducts.size > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {Array.from(selectedProducts.entries()).map(([id, productName]) => (
-                    <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                    <Badge key={id} variant="secondary" className="gap-1 pe-1">
                       <span className="max-w-[150px] truncate">{productName}</span>
                       <button
                         type="button"
                         onClick={() => removeProduct(id)}
-                        className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                        className="ms-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -397,7 +418,7 @@ export function CollectionsManager({
             </div>
 
             <Button onClick={handleSave} disabled={loading || !name.trim()} className="w-full">
-              {loading ? "Saving..." : editingCollection ? "Update collection" : "Create collection"}
+              {loading ? t("collections.saving") : editingCollection ? t("collections.updateCollection") : t("collections.createCollection")}
             </Button>
           </div>
         </DialogContent>
@@ -406,15 +427,15 @@ export function CollectionsManager({
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete collection?</AlertDialogTitle>
+            <AlertDialogTitle>{t("collections.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Products in this collection will become uncategorized. This action cannot be undone.
+              {t("collections.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("collections.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={deleteCollection} className="bg-red-600 hover:bg-red-700">
-              Delete
+              {t("collections.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

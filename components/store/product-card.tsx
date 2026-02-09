@@ -6,6 +6,8 @@ import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, ShoppingCart } from "lucide-react"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface ProductCardProps {
   product: {
@@ -23,6 +25,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, storeSlug }: ProductCardProps) {
+  const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const currency = useStoreCurrency()
   const hasVariants = product.options && product.options.length > 0
@@ -72,7 +75,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
         </Link>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-bold" style={{ color: "var(--store-primary)" }}>
-            {hasVariants && minVariantPrice != null ? "From " : ""}
+            {hasVariants && minVariantPrice != null ? `${t("storefront.from")} ` : ""}
             {formatPriceSymbol(displayPrice, currency)}
           </span>
           {!hasVariants && product.compare_at_price && (
@@ -89,7 +92,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
           >
             <Link href={`/${storeSlug}/products/${product.id}`}>
-              Choose options
+              {t("storefront.chooseOptions")}
             </Link>
           </Button>
         ) : (
@@ -100,8 +103,8 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             disabled={!inStock}
             style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
           >
-            <ShoppingCart className="mr-2 h-3 w-3" />
-            {inStock ? "Add to cart" : "Sold out"}
+            <ShoppingCart className="me-2 h-3 w-3" />
+            {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}
           </Button>
         )}
       </div>

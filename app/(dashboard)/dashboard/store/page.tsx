@@ -16,7 +16,7 @@ export default async function StorePage() {
   return (
     <StoreForm
       userId={user.id}
-      title={store ? "Store Settings" : "Create Your Store"}
+      title={store ? "storeForm.storeSettings" : "storeForm.createYourStore"}
       initialData={store}
     />
   )

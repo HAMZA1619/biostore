@@ -2,9 +2,7 @@ import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-
-const DEFAULT_MESSAGE =
-  "Thank you for your order! We've received it and will confirm it shortly."
+import { getT } from "@/lib/i18n/storefront"
 
 export default async function OrderConfirmedPage({
   params,
@@ -19,12 +17,13 @@ export default async function OrderConfirmedPage({
   const supabase = await createClient()
   const { data: store } = await supabase
     .from("stores")
-    .select("thank_you_message")
+    .select("language, thank_you_message")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
 
-  const message = store?.thank_you_message || DEFAULT_MESSAGE
+  const t = getT(store?.language || "en")
+  const message = store?.thank_you_message || t("storefront.defaultThankYou")
 
   return (
     <div className="flex flex-col items-center gap-4 py-12 text-center">
@@ -34,13 +33,13 @@ export default async function OrderConfirmedPage({
       >
         <CheckCircle className="h-10 w-10" />
       </div>
-      <h1 className="text-2xl font-bold">Order Confirmed!</h1>
+      <h1 className="text-2xl font-bold">{t("storefront.orderConfirmed")}</h1>
       {order && (
-        <p className="text-lg opacity-60">Order #{order}</p>
+        <p className="text-lg opacity-60">{t("storefront.orderNumber", { number: order })}</p>
       )}
       <p className="max-w-sm opacity-60">{message}</p>
       <Button asChild style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}>
-        <Link href={`/${slug}`}>Continue shopping</Link>
+        <Link href={`/${slug}`}>{t("storefront.continueShopping")}</Link>
       </Button>
     </div>
   )

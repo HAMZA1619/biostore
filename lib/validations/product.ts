@@ -1,14 +1,14 @@
 import { z } from "zod"
 
 export const productOptionSchema = z.object({
-  name: z.string().min(1, "Option name is required"),
-  values: z.array(z.string().min(1)).min(1, "At least one value required"),
+  name: z.string().min(1, "validation.optionNameRequired"),
+  values: z.array(z.string().min(1)).min(1, "validation.atLeastOneValue"),
 })
 
 export const productVariantSchema = z.object({
   id: z.string().uuid().optional(),
   options: z.record(z.string(), z.string()),
-  price: z.number().positive("Price must be positive"),
+  price: z.number().positive("validation.priceMustBePositive"),
   compare_at_price: z
     .union([z.number().positive(), z.nan(), z.undefined(), z.null()])
     .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))
@@ -22,10 +22,10 @@ export const productVariantSchema = z.object({
 })
 
 export const productSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
+  name: z.string().min(1, "validation.productNameRequired"),
   sku: z.string().max(100).optional(),
   description: z.string().max(1000).optional(),
-  price: z.number().positive("Price must be positive"),
+  price: z.number().positive("validation.priceMustBePositive"),
   compare_at_price: z
     .union([z.number().positive(), z.nan(), z.undefined()])
     .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))

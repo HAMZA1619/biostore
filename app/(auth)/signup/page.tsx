@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 export default function SignupPage() {
+  const { t } = useTranslation()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -43,8 +46,8 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create your store</CardTitle>
-          <CardDescription>Sign up to start selling</CardDescription>
+          <CardTitle className="text-2xl">{t("auth.createStore")}</CardTitle>
+          <CardDescription>{t("auth.signUpDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,32 +57,32 @@ export default function SignupPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">Full name</Label>
+              <Label htmlFor="name">{t("auth.fullName")}</Label>
               <Input
                 id="name"
-                placeholder="Your name"
+                placeholder={t("auth.fullNamePlaceholder")}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Min 6 characters"
+                placeholder={t("auth.minChars")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
@@ -87,13 +90,13 @@ export default function SignupPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Sign up"}
+              {loading ? t("auth.creatingAccount") : t("auth.signUp")}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t("auth.alreadyHaveAccount")}{" "}
             <Link href="/login" className="text-primary underline">
-              Sign in
+              {t("auth.signIn")}
             </Link>
           </p>
         </CardContent>

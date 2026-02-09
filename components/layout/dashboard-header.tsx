@@ -3,6 +3,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { MobileNav } from "@/components/layout/dashboard-sidebar"
+import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
+import { T } from "@/components/dashboard/translated-text"
 
 export async function DashboardHeader() {
   const supabase = await createClient()
@@ -30,11 +32,12 @@ export async function DashboardHeader() {
             target="_blank"
             className="hidden items-center gap-1 text-sm text-muted-foreground hover:text-foreground sm:flex"
           >
-            View store <ExternalLink className="h-3 w-3" />
+            <T k="nav.viewStore" /> <ExternalLink className="h-3 w-3" />
           </Link>
         )}
       </div>
       <div className="flex items-center gap-2 md:gap-3">
+        <LanguageSwitcher />
         <span className="hidden text-sm text-muted-foreground sm:inline">{user?.email}</span>
         <Avatar className="h-8 w-8">
           <AvatarFallback className="text-xs">{initials}</AvatarFallback>

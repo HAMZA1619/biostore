@@ -15,8 +15,11 @@ import { cn } from "@/lib/utils"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 export default function CartPage() {
+  const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const currency = useStoreCurrency()
   const items = useCartStore((s) => s.items)
@@ -70,13 +73,13 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="py-12 text-center">
-        <p className="text-muted-foreground">Your cart is empty</p>
+        <p className="text-muted-foreground">{t("storefront.cartEmpty")}</p>
         <Button
           variant="outline"
           className="mt-4"
           onClick={() => router.push(`/${slug}`)}
         >
-          Continue shopping
+          {t("storefront.continueShopping")}
         </Button>
       </div>
     )
@@ -85,43 +88,47 @@ export default function CartPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.customer_name || !form.customer_phone || !form.customer_address) {
-      toast.error("Please fill in all required fields")
+      toast.error(t("storefront.fillRequired"))
       return
     }
 
     setLoading(true)
 
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug,
-        ...form,
-        payment_method: "cod",
-        items: items.map((i) => ({
-          product_id: i.productId,
-          variant_id: i.variantId || null,
-          quantity: i.quantity,
-        })),
-      }),
-    })
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          ...form,
+          payment_method: "cod",
+          items: items.map((i) => ({
+            product_id: i.productId,
+            variant_id: i.variantId || null,
+            quantity: i.quantity,
+          })),
+        }),
+      })
 
-    const data = await res.json()
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        toast.error(data?.error || t("storefront.failedPlaceOrder"))
+        setLoading(false)
+        return
+      }
 
-    if (!res.ok) {
-      console.error("Order failed:", data)
-      toast.error(data.error + (data.debug ? ` — ${JSON.stringify(data.debug)}` : ""))
+      const data = await res.json()
+      clearCart()
+      router.push(`/${slug}/order-confirmed?order=${data.order_number}`)
+    } catch {
+      toast.error(t("storefront.failedPlaceOrder"))
       setLoading(false)
-      return
     }
-
-    clearCart()
-    router.push(`/${slug}/order-confirmed?order=${data.order_number}`)
   }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-bold">Your Cart</h1>
+      <h1 className="text-xl font-bold">{t("storefront.yourCart")}</h1>
 
       <div className="space-y-3">
         {items.map((item) => (
@@ -184,45 +191,45 @@ export default function CartPage() {
       </div>
 
       <div className="flex justify-between text-lg font-bold">
-        <span>Total</span>
+        <span>{t("storefront.total")}</span>
         <span>{formatPriceSymbol(getTotal(), currency)}</span>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
-        <h2 className="text-lg font-bold">Delivery Information</h2>
+        <h2 className="text-lg font-bold">{t("storefront.deliveryInformation")}</h2>
 
         <div className="space-y-2">
-          <Label htmlFor="name">Full name</Label>
+          <Label htmlFor="name">{t("storefront.fullName")}</Label>
           <Input
             id="name"
             value={form.customer_name}
             onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-            placeholder="Your full name"
+            placeholder={t("storefront.fullNamePlaceholder")}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone number</Label>
+          <Label htmlFor="phone">{t("storefront.phone")}</Label>
           <Input
             id="phone"
             type="tel"
             value={form.customer_phone}
             onChange={(e) => setForm({ ...form, customer_phone: e.target.value })}
-            placeholder="06XX XXX XXX"
+            placeholder={t("storefront.phonePlaceholder")}
             required
           />
         </div>
 
         {showFields.email && (
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("storefront.email")}</Label>
             <Input
               id="email"
               type="email"
               value={form.customer_email}
               onChange={(e) => setForm({ ...form, customer_email: e.target.value })}
-              placeholder="your@email.com"
+              placeholder={t("storefront.emailPlaceholder")}
               required
             />
           </div>
@@ -230,7 +237,7 @@ export default function CartPage() {
 
         {showFields.country && (
           <div className="space-y-2">
-            <Label>Country</Label>
+            <Label>{t("storefront.country")}</Label>
             <CountryCombobox
               value={form.customer_country}
               onChange={(v) => setForm({ ...form, customer_country: v })}
@@ -240,24 +247,24 @@ export default function CartPage() {
 
         {showFields.city && (
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
+            <Label htmlFor="city">{t("storefront.city")}</Label>
             <Input
               id="city"
               value={form.customer_city}
               onChange={(e) => setForm({ ...form, customer_city: e.target.value })}
-              placeholder="Your city"
+              placeholder={t("storefront.cityPlaceholder")}
               required
             />
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">{t("storefront.address")}</Label>
           <Textarea
             id="address"
             value={form.customer_address}
             onChange={(e) => setForm({ ...form, customer_address: e.target.value })}
-            placeholder="Full delivery address"
+            placeholder={t("storefront.addressPlaceholder")}
             rows={2}
             required
           />
@@ -265,12 +272,12 @@ export default function CartPage() {
 
         {showFields.note && (
           <div className="space-y-2">
-            <Label htmlFor="note">Note</Label>
+            <Label htmlFor="note">{t("storefront.note")}</Label>
             <Textarea
               id="note"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
-              placeholder="Any special instructions..."
+              placeholder={t("storefront.notePlaceholder")}
               rows={2}
               required
             />
@@ -284,7 +291,7 @@ export default function CartPage() {
           disabled={loading}
           style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
         >
-          {loading ? "Placing order..." : "Order now"}
+          {loading ? t("storefront.placingOrder") : t("storefront.orderNow")}
         </Button>
       </form>
     </div>
@@ -298,6 +305,7 @@ function CountryCombobox({
   value: string
   onChange: (value: string) => void
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   return (
@@ -309,15 +317,15 @@ function CountryCombobox({
           aria-expanded={open}
           className="w-full justify-between font-normal"
         >
-          {value || "Select country"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {value || t("storefront.selectCountry")}
+          <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Search country..." />
+          <CommandInput placeholder={t("storefront.searchCountry")} />
           <CommandList>
-            <CommandEmpty>No country found.</CommandEmpty>
+            <CommandEmpty>{t("storefront.noCountryFound")}</CommandEmpty>
             <CommandGroup>
               {COUNTRIES.map((country) => (
                 <CommandItem
@@ -330,7 +338,7 @@ function CountryCombobox({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "me-2 h-4 w-4",
                       value === country ? "opacity-100" : "opacity-0"
                     )}
                   />

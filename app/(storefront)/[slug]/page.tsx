@@ -50,7 +50,19 @@ export default async function StorePage({
     productsQuery = productsQuery.eq("collection_id", activeCollectionId)
   }
 
-  const { data: products } = await productsQuery
+  const { data: rawProducts } = await productsQuery
+
+  // Resolve image IDs to URLs
+  const allImageIds = (rawProducts || []).flatMap((p) => p.image_urls || [])
+  const imageMap = new Map<string, string>()
+  if (allImageIds.length > 0) {
+    const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", allImageIds)
+    for (const img of imgs || []) imageMap.set(img.id, img.url)
+  }
+  const products = (rawProducts || []).map((p) => ({
+    ...p,
+    image_urls: (p.image_urls || []).map((id: string) => imageMap.get(id)).filter(Boolean) as string[],
+  }))
 
   return (
     <div className="space-y-6">

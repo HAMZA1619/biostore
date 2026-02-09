@@ -4,6 +4,7 @@ import { formatPriceSymbol } from "@/lib/utils"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { ProductImageGallery } from "@/components/store/product-image-gallery"
 import { VariantSelector } from "@/components/store/variant-selector"
+import { getT } from "@/lib/i18n/storefront"
 
 export default async function ProductPage({
   params,
@@ -15,7 +16,7 @@ export default async function ProductPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, currency")
+    .select("id, language, currency")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
@@ -30,6 +31,15 @@ export default async function ProductPage({
     .single()
 
   if (!product) notFound()
+
+  // Resolve image IDs to URLs
+  const imageIds: string[] = product.image_urls || []
+  let resolvedImageUrls: string[] = []
+  if (imageIds.length > 0) {
+    const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", imageIds)
+    const imgMap = new Map((imgs || []).map((i: { id: string; url: string }) => [i.id, i.url]))
+    resolvedImageUrls = imageIds.map((id) => imgMap.get(id)).filter(Boolean) as string[]
+  }
 
   const hasOptions = product.options && (product.options as unknown[]).length > 0
 
@@ -53,15 +63,16 @@ export default async function ProductPage({
   }
 
   const productInStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
+  const t = getT(store.language || "en")
 
   return (
     <div className="space-y-6">
-      <ProductImageGallery images={product.image_urls || []} productName={product.name} />
+      <ProductImageGallery images={resolvedImageUrls} productName={product.name} />
 
       <div className="space-y-3">
         <h1 className="text-2xl font-bold">{product.name}</h1>
         {product.sku && !hasOptions && (
-          <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+          <p className="text-sm text-muted-foreground">{t("storefront.sku")}: {product.sku}</p>
         )}
 
         {!hasOptions && (
@@ -87,7 +98,7 @@ export default async function ProductPage({
               id: product.id,
               name: product.name,
               price: product.price,
-              imageUrl: product.image_urls?.[0] || null,
+              imageUrl: resolvedImageUrls[0] || null,
             }}
             options={product.options as { name: string; values: string[] }[]}
             variants={variants}
@@ -99,7 +110,7 @@ export default async function ProductPage({
               id: product.id,
               name: product.name,
               price: product.price,
-              imageUrl: product.image_urls?.[0] || null,
+              imageUrl: resolvedImageUrls[0] || null,
               isAvailable: productInStock,
             }}
             storeSlug={slug}

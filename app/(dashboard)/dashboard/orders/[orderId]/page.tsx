@@ -12,6 +12,7 @@ import {
   StickyNote,
   Banknote,
 } from "lucide-react"
+import { T } from "@/components/dashboard/translated-text"
 
 export default async function OrderDetailPage({
   params,
@@ -69,9 +70,9 @@ export default async function OrderDetailPage({
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/dashboard/orders" className="hover:text-foreground">
-          Orders
+          <T k="orders.title" />
         </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
+        <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" />
         <span className="text-foreground font-medium">
           #{order.order_number}
         </span>
@@ -92,7 +93,7 @@ export default async function OrderDetailPage({
         <div className="space-y-8 lg:col-span-2">
           {/* Items */}
           <div>
-            <h2 className="text-sm font-semibold mb-3">Items</h2>
+            <h2 className="text-sm font-semibold mb-3"><T k="orderDetail.items" /></h2>
             <div className="divide-y">
               {items?.map((item) => (
                 <div
@@ -126,7 +127,7 @@ export default async function OrderDetailPage({
                       </div>
                     )}
                   </div>
-                  <div className="text-right shrink-0 text-sm">
+                  <div className="text-end shrink-0 text-sm">
                     <span className="text-muted-foreground">
                       {formatPrice(item.product_price, store.currency)} × {item.quantity}
                     </span>
@@ -150,21 +151,21 @@ export default async function OrderDetailPage({
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Banknote className="h-4 w-4" />
               </div>
-              <span className="font-medium text-sm">Cash on Delivery</span>
+              <span className="font-medium text-sm"><T k="orderDetail.cashOnDelivery" /></span>
             </div>
 
             <div className="space-y-2 text-sm">
               <p className="text-muted-foreground">
-                Original order &bull; {orderDate}
+                <T k="orderDetail.originalOrder" /> &bull; {orderDate}
               </p>
 
               <Separator />
 
               <div className="flex items-center justify-between pt-1">
                 <span className="text-muted-foreground">
-                  Subtotal{" "}
+                  <T k="orderDetail.subtotal" />{" "}
                   <span className="text-primary">
-                    {itemCount} {itemCount === 1 ? "item" : "items"}
+                    <T k={itemCount === 1 ? "orderDetail.item" : "orderDetail.items_plural"} values={{ count: String(itemCount) }} />
                   </span>
                 </span>
                 <span>{formatPrice(order.subtotal, store.currency)}</span>
@@ -172,7 +173,7 @@ export default async function OrderDetailPage({
 
               {order.delivery_fee > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="text-muted-foreground"><T k="orderDetail.delivery" /></span>
                   <span>
                     {formatPrice(order.delivery_fee, store.currency)}
                   </span>
@@ -182,7 +183,7 @@ export default async function OrderDetailPage({
               <Separator />
 
               <div className="flex items-center justify-between pt-1 font-semibold">
-                <span>Total</span>
+                <span><T k="orderDetail.total" /></span>
                 <span>{formatPrice(order.total, store.currency)}</span>
               </div>
             </div>
@@ -213,7 +214,7 @@ export default async function OrderDetailPage({
 
           {/* Contact info */}
           <div>
-            <h3 className="text-sm font-semibold mb-3">Contact Info</h3>
+            <h3 className="text-sm font-semibold mb-3"><T k="orderDetail.contactInfo" /></h3>
             <div className="space-y-2.5 text-sm">
               <div className="flex items-center gap-2.5">
                 <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -232,7 +233,7 @@ export default async function OrderDetailPage({
 
           {/* Shipping address */}
           <div>
-            <h3 className="text-sm font-semibold mb-3">Shipping Address</h3>
+            <h3 className="text-sm font-semibold mb-3"><T k="orderDetail.shippingAddress" /></h3>
             <div className="space-y-1 text-sm">
               <p>{order.customer_name}</p>
               <p className="text-muted-foreground">{order.customer_address}</p>
@@ -255,7 +256,7 @@ export default async function OrderDetailPage({
               <div>
                 <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                   <StickyNote className="h-3.5 w-3.5" />
-                  Note
+                  <T k="orderDetail.note" />
                 </h3>
                 <p className="text-sm text-muted-foreground italic">
                   {order.note}

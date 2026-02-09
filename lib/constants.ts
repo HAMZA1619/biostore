@@ -1,35 +1,4 @@
-export const MOROCCAN_CITIES = [
-  "Casablanca",
-  "Rabat",
-  "Marrakech",
-  "Fès",
-  "Tanger",
-  "Agadir",
-  "Meknès",
-  "Oujda",
-  "Kénitra",
-  "Tétouan",
-  "Safi",
-  "Mohammedia",
-  "El Jadida",
-  "Béni Mellal",
-  "Nador",
-  "Taza",
-  "Settat",
-  "Berrechid",
-  "Khouribga",
-  "Larache",
-  "Khémisset",
-  "Guelmim",
-  "Errachidia",
-  "Taourirt",
-  "Essaouira",
-  "Ouarzazate",
-  "Al Hoceima",
-  "Ifrane",
-  "Dakhla",
-  "Laâyoune",
-] as const
+
 
 export const ORDER_STATUSES = [
   "pending",
@@ -60,6 +29,229 @@ export const BORDER_RADIUS_OPTIONS = [
   { value: "md", label: "Medium", css: "8px" },
   { value: "lg", label: "Large", css: "12px" },
   { value: "xl", label: "Extra Large", css: "16px" },
+] as const
+
+export const COLOR_THEME_PRESETS = [
+  {
+    id: "classic-store",
+    nameKey: "design.presetClassicStore",
+    colors: {
+      primary_color: "#1D4ED8",
+      accent_color: "#2563EB",
+      background_color: "#FFFFFF",
+      text_color: "#111827",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "trust-green",
+    nameKey: "design.presetTrustGreen",
+    colors: {
+      primary_color: "#15803D",
+      accent_color: "#16A34A",
+      background_color: "#FFFFFF",
+      text_color: "#111827",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "soft-rose",
+    nameKey: "design.presetSoftRose",
+    colors: {
+      primary_color: "#BE185D",
+      accent_color: "#E11D48",
+      background_color: "#FFF5F6",
+      text_color: "#1F2937",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "warm-amber",
+    nameKey: "design.presetWarmAmber",
+    colors: {
+      primary_color: "#B45309",
+      accent_color: "#D97706",
+      background_color: "#FFFBF5",
+      text_color: "#292524",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "ocean-teal",
+    nameKey: "design.presetOceanTeal",
+    colors: {
+      primary_color: "#0F766E",
+      accent_color: "#0D9488",
+      background_color: "#FFFFFF",
+      text_color: "#111827",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "coral-pop",
+    nameKey: "design.presetCoralPop",
+    colors: {
+      primary_color: "#DC2626",
+      accent_color: "#F43F5E",
+      background_color: "#FFFFFF",
+      text_color: "#18181B",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "lavender-chic",
+    nameKey: "design.presetLavenderChic",
+    colors: {
+      primary_color: "#7C3AED",
+      accent_color: "#8B5CF6",
+      background_color: "#FAFAFF",
+      text_color: "#1E1B4B",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "forest-natural",
+    nameKey: "design.presetForestNatural",
+    colors: {
+      primary_color: "#3F6212",
+      accent_color: "#65A30D",
+      background_color: "#F8FAF5",
+      text_color: "#1A2E05",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "midnight-luxe",
+    nameKey: "design.presetMidnightLuxe",
+    colors: {
+      primary_color: "#F59E0B",
+      accent_color: "#FBBF24",
+      background_color: "#0F172A",
+      text_color: "#F1F5F9",
+      button_text_color: "#0F172A",
+    },
+  },
+  {
+    id: "slate-minimal",
+    nameKey: "design.presetSlateMinimal",
+    colors: {
+      primary_color: "#334155",
+      accent_color: "#475569",
+      background_color: "#FFFFFF",
+      text_color: "#0F172A",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "sunset-market",
+    nameKey: "design.presetSunsetMarket",
+    colors: {
+      primary_color: "#EA580C",
+      accent_color: "#F97316",
+      background_color: "#FFFCF5",
+      text_color: "#431407",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "berry-boutique",
+    nameKey: "design.presetBerryBoutique",
+    colors: {
+      primary_color: "#A21CAF",
+      accent_color: "#C026D3",
+      background_color: "#FDF4FF",
+      text_color: "#4A044E",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "sky-fresh",
+    nameKey: "design.presetSkyFresh",
+    colors: {
+      primary_color: "#0369A1",
+      accent_color: "#0284C7",
+      background_color: "#F0F9FF",
+      text_color: "#0C4A6E",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "mocha-cafe",
+    nameKey: "design.presetMochaCafe",
+    colors: {
+      primary_color: "#78350F",
+      accent_color: "#92400E",
+      background_color: "#FDF8F4",
+      text_color: "#422006",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "mint-clean",
+    nameKey: "design.presetMintClean",
+    colors: {
+      primary_color: "#047857",
+      accent_color: "#059669",
+      background_color: "#F0FDF4",
+      text_color: "#064E3B",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "plum-premium",
+    nameKey: "design.presetPlumPremium",
+    colors: {
+      primary_color: "#6B21A8",
+      accent_color: "#7E22CE",
+      background_color: "#FAF5FF",
+      text_color: "#3B0764",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "honey-gold",
+    nameKey: "design.presetHoneyGold",
+    colors: {
+      primary_color: "#A16207",
+      accent_color: "#CA8A04",
+      background_color: "#FFFDF5",
+      text_color: "#422006",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "deep-navy",
+    nameKey: "design.presetDeepNavy",
+    colors: {
+      primary_color: "#60A5FA",
+      accent_color: "#3B82F6",
+      background_color: "#0C1222",
+      text_color: "#E2E8F0",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "peach-soft",
+    nameKey: "design.presetPeachSoft",
+    colors: {
+      primary_color: "#C2410C",
+      accent_color: "#EA580C",
+      background_color: "#FFF7ED",
+      text_color: "#7C2D12",
+      button_text_color: "#FFFFFF",
+    },
+  },
+  {
+    id: "charcoal-edge",
+    nameKey: "design.presetCharcoalEdge",
+    colors: {
+      primary_color: "#E4E4E7",
+      accent_color: "#A1A1AA",
+      background_color: "#18181B",
+      text_color: "#FAFAFA",
+      button_text_color: "#18181B",
+    },
+  },
 ] as const
 
 export const COUNTRIES = [

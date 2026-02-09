@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { StoreHeader } from "@/components/layout/store-header"
 import { StoreFooter } from "@/components/layout/store-footer"
 import { FloatingCartButton } from "@/components/store/floating-cart-button"
+import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { BORDER_RADIUS_OPTIONS } from "@/lib/constants"
 import type { Metadata } from "next"
 
@@ -40,13 +41,15 @@ export default async function StoreLayout({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("name, slug, currency, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message")
+    .select("name, slug, language, currency, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, show_floating_cart, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
 
   if (!store) notFound()
 
+  const storeLang = store.language || "en"
+  const isRtl = storeLang === "ar"
   const fontFamily = store.font_family || "Inter"
   const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === (store.border_radius || "md"))?.css || "8px"
   const fontHref = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;500;600;700&display=swap`
@@ -54,6 +57,8 @@ export default async function StoreLayout({
   return (
     <div
       className="min-h-screen"
+      dir={isRtl ? "rtl" : "ltr"}
+      lang={storeLang}
       data-currency={store.currency || "MAD"}
       data-theme={store.theme || "default"}
       data-show-email={store.checkout_show_email ?? true}
@@ -77,10 +82,12 @@ export default async function StoreLayout({
       }
     >
       <link rel="stylesheet" href={fontHref} />
-      <StoreHeader slug={store.slug} name={store.name} logoUrl={store.logo_url} bannerUrl={store.banner_url} />
-      <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
-      <StoreFooter showBranding={store.show_branding} />
-      <FloatingCartButton />
+      <StorefrontI18nProvider lang={storeLang}>
+        <StoreHeader slug={store.slug} name={store.name} logoUrl={store.logo_url} bannerUrl={store.banner_url} />
+        <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+        <StoreFooter showBranding={store.show_branding} storeLang={storeLang} />
+        {(store.show_floating_cart ?? true) && <FloatingCartButton />}
+      </StorefrontI18nProvider>
     </div>
   )
 }

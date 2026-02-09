@@ -6,6 +6,8 @@ import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { ShoppingCart } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface VariantOption {
   name: string
@@ -35,6 +37,7 @@ interface VariantSelectorProps {
 }
 
 export function VariantSelector({ product, options, variants, storeSlug }: VariantSelectorProps) {
+  const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const currency = useStoreCurrency()
   const [selected, setSelected] = useState<Record<string, string>>({})
@@ -138,12 +141,12 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
           </span>
         )}
         {matchedVariant?.sku && (
-          <span className="text-sm text-muted-foreground">SKU: {matchedVariant.sku}</span>
+          <span className="text-sm text-muted-foreground">{t("storefront.sku")}: {matchedVariant.sku}</span>
         )}
       </div>
 
       {allSelected && matchedVariant && !variantInStock && (
-        <p className="text-sm text-red-500">This variant is sold out</p>
+        <p className="text-sm text-red-500">{t("storefront.variantSoldOut")}</p>
       )}
 
       <Button
@@ -153,12 +156,12 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
         disabled={!allSelected || !variantInStock}
         style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
       >
-        <ShoppingCart className="mr-2 h-4 w-4" />
+        <ShoppingCart className="me-2 h-4 w-4" />
         {!allSelected
-          ? "Select options"
+          ? t("storefront.selectOptions")
           : variantInStock
-            ? "Add to cart"
-            : "Sold out"}
+            ? t("storefront.addToCart")
+            : t("storefront.soldOut")}
       </Button>
     </div>
   )

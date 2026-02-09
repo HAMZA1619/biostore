@@ -16,6 +16,6 @@ export default async function NewProductPage() {
   if (!store) redirect("/dashboard/store")
 
   return (
-    <ProductForm storeId={store.id} currency={store.currency} title="Add Product" />
+    <ProductForm storeId={store.id} currency={store.currency} title="products.addProduct" />
   )
 }

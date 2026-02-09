@@ -17,6 +17,8 @@ import { toast } from "sonner"
 import { slugify, cn } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
 import { Check, ChevronsUpDown } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface StoreFormProps {
   userId: string
@@ -27,6 +29,7 @@ interface StoreFormProps {
     slug: string
     description: string | null
     city: string | null
+    language: string
     currency: string
     payment_methods: ("cod")[]
     primary_color: string | null
@@ -40,6 +43,7 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useTranslation()
 
   const {
     register,
@@ -54,6 +58,7 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
       slug: initialData?.slug || "",
       description: initialData?.description || "",
       city: initialData?.city || "",
+      language: (initialData?.language as "en" | "fr" | "ar") || "en",
       currency: initialData?.currency || "MAD",
       payment_methods: ["cod"] as const,
       primary_color: initialData?.primary_color || "#000000",
@@ -83,7 +88,7 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
         setLoading(false)
         return
       }
-      toast.success("Store updated")
+      toast.success(t("storeForm.storeUpdated"))
     } else {
       const { error } = await supabase.from("stores").insert({
         ...data,
@@ -92,14 +97,14 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
 
       if (error) {
         if (error.code === "23505") {
-          toast.error("This slug is already taken")
+          toast.error(t("storeForm.slugTaken"))
         } else {
           toast.error(error.message)
         }
         setLoading(false)
         return
       }
-      toast.success("Store created")
+      toast.success(t("storeForm.storeCreated"))
     }
 
     setLoading(false)
@@ -117,46 +122,46 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
       toast.error(error.message)
       return
     }
-    toast.success(initialData.is_published ? "Store unpublished" : "Store published")
+    toast.success(initialData.is_published ? t("storeForm.storeUnpublished") : t("storeForm.storePublished"))
     router.refresh()
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="text-2xl font-bold">{t(title)}</h1>
         <div className="flex gap-3">
           {initialData && (
             <Button type="button" variant="outline" onClick={togglePublish}>
-              {initialData.is_published ? "Unpublish" : "Publish"}
+              {initialData.is_published ? t("storeForm.unpublish") : t("storeForm.publish")}
             </Button>
           )}
           <Button type="submit" disabled={loading || (!!initialData && !isDirty)}>
             {loading
-              ? "Saving..."
+              ? t("storeForm.saving")
               : initialData
-                ? "Update store"
-                : "Create store"}
+                ? t("storeForm.updateStore")
+                : t("storeForm.createStore")}
           </Button>
         </div>
       </div>
 
       <div className="max-w-2xl space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Store name</Label>
+        <Label htmlFor="name">{t("storeForm.storeName")}</Label>
         <Input
           id="name"
           {...register("name")}
           onBlur={autoSlug}
-          placeholder="My Store"
+          placeholder={t("storeForm.storeNamePlaceholder")}
         />
         {errors.name && (
-          <p className="text-sm text-red-600">{errors.name.message}</p>
+          <p className="text-sm text-red-600">{t(errors.name.message!)}</p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="slug">Store URL</Label>
+        <Label htmlFor="slug">{t("storeForm.storeUrl")}</Label>
         <div className="flex items-center gap-1">
           <span className="text-sm text-muted-foreground">
             {process.env.NEXT_PUBLIC_APP_URL}/
@@ -164,27 +169,27 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
           <Input
             id="slug"
             {...register("slug")}
-            placeholder="my-store"
+            placeholder={t("storeForm.storeUrlPlaceholder")}
             disabled={!!initialData}
           />
         </div>
         {errors.slug && (
-          <p className="text-sm text-red-600">{errors.slug.message}</p>
+          <p className="text-sm text-red-600">{t(errors.slug.message!)}</p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{t("storeForm.description")}</Label>
         <Textarea
           id="description"
           {...register("description")}
-          placeholder="What do you sell?"
+          placeholder={t("storeForm.descriptionPlaceholder")}
           rows={3}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>Currency</Label>
+        <Label>{t("storeForm.currency")}</Label>
         <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -196,16 +201,16 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
             >
               {(() => {
                 const curr = CURRENCIES.find((c) => c.code === watch("currency"))
-                return curr ? `${curr.code} — ${curr.name}` : "Select currency"
+                return curr ? `${curr.code} — ${curr.name}` : t("storeForm.selectCurrency")
               })()}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0">
             <Command>
-              <CommandInput placeholder="Search currency..." />
+              <CommandInput placeholder={t("storeForm.searchCurrency")} />
               <CommandList>
-                <CommandEmpty>No currency found.</CommandEmpty>
+                <CommandEmpty>{t("storeForm.noCurrencyFound")}</CommandEmpty>
                 <CommandGroup>
                   {CURRENCIES.map((c) => (
                     <CommandItem
@@ -218,13 +223,13 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
                     >
                       <Check
                         className={cn(
-                          "mr-2 h-4 w-4",
+                          "me-2 h-4 w-4",
                           watch("currency") === c.code ? "opacity-100" : "opacity-0"
                         )}
                       />
                       <span className="font-medium">{c.code}</span>
-                      <span className="ml-2 text-muted-foreground">{c.name}</span>
-                      <span className="ml-auto text-muted-foreground">{c.symbol}</span>
+                      <span className="ms-2 text-muted-foreground">{c.name}</span>
+                      <span className="ms-auto text-muted-foreground">{c.symbol}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -233,8 +238,26 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
           </PopoverContent>
         </Popover>
         {errors.currency && (
-          <p className="text-sm text-red-600">{errors.currency.message}</p>
+          <p className="text-sm text-red-600">{t(errors.currency.message!)}</p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>{t("storefront.storefrontLanguage")}</Label>
+        <p className="text-xs text-muted-foreground">{t("storefront.storefrontLanguageHint")}</p>
+        <div className="flex gap-2">
+          {(["en", "fr", "ar"] as const).map((lang) => (
+            <Button
+              key={lang}
+              type="button"
+              variant={watch("language") === lang ? "default" : "outline"}
+              size="sm"
+              onClick={() => setValue("language", lang, { shouldDirty: true })}
+            >
+              {t(`language.${lang}`)}
+            </Button>
+          ))}
+        </div>
       </div>
       </div>
     </form>

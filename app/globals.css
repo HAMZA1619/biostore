@@ -134,6 +134,12 @@
 [data-theme="minimal"] .store-card {
   border-bottom: 1px solid oklch(0.922 0 0);
 }
+[data-theme="single"] .store-card {
+  border: 1px solid oklch(0.922 0 0 / 0.5);
+}
+[data-theme="single"] .product-grid {
+  grid-template-columns: 1fr;
+}
 
 @keyframes subtle-bounce {
   0%, 8%, 20%, 100% { transform: translateY(0); }
