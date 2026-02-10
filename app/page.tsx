@@ -1,6 +1,64 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, Smartphone, Zap } from "lucide-react"
+import {
+  BarChart3,
+  Globe,
+  Languages,
+  Layers,
+  Megaphone,
+  Palette,
+  ShoppingCart,
+  Smartphone,
+  Zap,
+} from "lucide-react"
+
+const features = [
+  {
+    icon: Zap,
+    title: "Ready in 2 minutes",
+    description: "Create your store, add products, share the link. That simple.",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile-first",
+    description: "Your store looks perfect on phones — where your customers are.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "Orders via COD",
+    description: "Cash on delivery. No online payment setup needed.",
+  },
+  {
+    icon: Palette,
+    title: "Full design control",
+    description: "Custom colors, fonts, themes, and layout. Make your store truly yours.",
+  },
+  {
+    icon: Layers,
+    title: "Collections & variants",
+    description: "Organize products into collections. Support sizes, colors, and more.",
+  },
+  {
+    icon: BarChart3,
+    title: "Built-in analytics",
+    description: "Track visitors, sales, conversion rate, and revenue — all in one dashboard.",
+  },
+  {
+    icon: Megaphone,
+    title: "Marketing pixels",
+    description: "Add Google Analytics and Facebook Pixel to track your ad performance.",
+  },
+  {
+    icon: Globe,
+    title: "Custom domains",
+    description: "Connect your own domain for a professional storefront.",
+  },
+  {
+    icon: Languages,
+    title: "Multi-language",
+    description: "Serve your customers in English, French, or Arabic with full RTL support.",
+  },
+]
 
 export default function LandingPage() {
   return (
@@ -37,38 +95,22 @@ export default function LandingPage() {
 
       {/* Features */}
       <section className="border-t bg-muted/30 px-4 py-20">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-5xl">
           <h2 className="mb-12 text-center text-2xl font-bold">
             Everything you need to sell online
           </h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="space-y-3 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Zap className="h-6 w-6 text-primary" />
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.title} className="space-y-3 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <feature.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-bold">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="font-bold">Ready in 2 minutes</h3>
-              <p className="text-sm text-muted-foreground">
-                Create your store, add products, share the link. That simple.
-              </p>
-            </div>
-            <div className="space-y-3 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Smartphone className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold">Mobile-first</h3>
-              <p className="text-sm text-muted-foreground">
-                Your store looks perfect on phones — where your Facebook customers are.
-              </p>
-            </div>
-            <div className="space-y-3 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <ShoppingCart className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold">Orders via COD</h3>
-              <p className="text-sm text-muted-foreground">
-                Cash on delivery or bank transfer. No online payment setup needed.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
