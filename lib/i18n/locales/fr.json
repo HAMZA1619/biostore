@@ -8,6 +8,10 @@
     "orders": "Commandes",
     "settings": "Paramètres",
     "logout": "Déconnexion",
+    "logoutTitle": "Se déconnecter ?",
+    "logoutDescription": "Êtes-vous sûr de vouloir vous déconnecter de votre compte ?",
+    "logoutCancel": "Annuler",
+    "logoutConfirm": "Se déconnecter",
     "brandName": "BioStore",
     "viewStore": "Voir la boutique"
   },

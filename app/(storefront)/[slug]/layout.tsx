@@ -93,7 +93,7 @@ export default async function StoreLayout({
       <StorefrontI18nProvider lang={storeLang}>
         <StoreHeader slug={store.slug} name={store.name} logoUrl={store.logo_url} bannerUrl={store.banner_url} />
         <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
-        <StoreFooter showBranding={store.show_branding} storeLang={storeLang} />
+        <StoreFooter storeName={store.name} />
         {(store.show_floating_cart ?? true) && <FloatingCartButton />}
       </StorefrontI18nProvider>
     </div>

@@ -8,6 +8,10 @@
     "orders": "الطلبات",
     "settings": "الإعدادات",
     "logout": "تسجيل الخروج",
+    "logoutTitle": "تسجيل الخروج؟",
+    "logoutDescription": "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
+    "logoutCancel": "إلغاء",
+    "logoutConfirm": "تسجيل الخروج",
     "brandName": "BioStore",
     "viewStore": "عرض المتجر"
   },

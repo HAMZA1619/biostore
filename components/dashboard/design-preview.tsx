@@ -260,7 +260,7 @@ function StorePreview({
         </div>
       </div>
       <div className="border-t px-3 py-4 text-center text-[10px] opacity-50">
-        {state.showBranding && <p>{st("designPreview.poweredBy")}</p>}
+        <p>&copy; {new Date().getFullYear()} {storeName}</p>
       </div>
 
       {state.showFloatingCart && cartCount > 0 && (

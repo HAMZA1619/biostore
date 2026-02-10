@@ -8,6 +8,10 @@
     "orders": "Orders",
     "settings": "Settings",
     "logout": "Log out",
+    "logoutTitle": "Log out?",
+    "logoutDescription": "Are you sure you want to log out of your account?",
+    "logoutCancel": "Cancel",
+    "logoutConfirm": "Log out",
     "brandName": "BioStore",
     "viewStore": "View store"
   },

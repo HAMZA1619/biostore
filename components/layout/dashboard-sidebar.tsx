@@ -18,6 +18,17 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useLanguageStore } from "@/lib/store/language-store"
@@ -56,7 +67,7 @@ function SidebarContent({ pathname, onLogout, onNavigate }: {
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
               pathname === item.href
-                ? "bg-primary text-primary-foreground"
+                ? "bg-primary/5 text-primary font-medium"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
@@ -66,13 +77,26 @@ function SidebarContent({ pathname, onLogout, onNavigate }: {
         ))}
       </nav>
       <div className="border-t p-3">
-        <button
-          onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4" />
-          {t("nav.logout")}
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              {t("nav.logout")}
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("nav.logoutTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("nav.logoutDescription")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("nav.logoutCancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={onLogout}>{t("nav.logoutConfirm")}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   )
