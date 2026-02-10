@@ -16,14 +16,12 @@ interface ImageUploadProps {
   storeId: string
   images: ImageItem[]
   onImagesChange: (images: ImageItem[]) => void
-  max?: number
 }
 
 export function ImageUpload({
   storeId,
   images,
   onImagesChange,
-  max = 20,
 }: ImageUploadProps) {
   const { t } = useTranslation()
   const [galleryOpen, setGalleryOpen] = useState(false)
@@ -47,16 +45,14 @@ export function ImageUpload({
             </button>
           </div>
         ))}
-        {images.length < max && (
-          <button
-            type="button"
-            onClick={() => setGalleryOpen(true)}
-            className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-foreground hover:text-foreground"
-          >
-            <Images className="h-5 w-5" />
-            <span className="text-xs">{t("imageGallery.browse")}</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setGalleryOpen(true)}
+          className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed text-muted-foreground hover:border-foreground hover:text-foreground"
+        >
+          <Images className="h-5 w-5" />
+          <span className="text-xs">{t("imageGallery.browse")}</span>
+        </button>
       </div>
       <ImageGalleryDialog
         storeId={storeId}
@@ -64,7 +60,6 @@ export function ImageUpload({
         onOpenChange={setGalleryOpen}
         onSelect={(selected) => onImagesChange([...images, ...selected])}
         multiple
-        maxSelect={max - images.length}
       />
     </div>
   )

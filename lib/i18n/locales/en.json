@@ -270,7 +270,9 @@
     "presetPeachSoft": "Peach Soft",
     "presetCharcoalEdge": "Charcoal Edge",
     "floatingCart": "Floating cart button",
-    "floatingCartHint": "Show a sticky cart button on the storefront"
+    "floatingCartHint": "Show a sticky cart button on the storefront",
+    "searchInput": "Search input",
+    "searchInputHint": "Show a search bar on the storefront"
   },
   "designPreview": {
     "tabStore": "Store",
@@ -318,7 +320,11 @@
     "cancel": "Cancel",
     "empty": "No images yet. Upload your first image.",
     "failedList": "Failed to load images",
-    "failedDelete": "Failed to delete image"
+    "failedDelete": "Failed to delete images",
+    "delete": "Delete",
+    "confirmDeleteTitle": "Delete images?",
+    "confirmDeleteDescription": "This will permanently delete {{count}} image(s) from your gallery. This action cannot be undone.",
+    "confirmDelete": "Delete"
   },
   "search": {
     "searchProducts": "Search products..."

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { CollectionTabs } from "@/components/store/collection-tabs"
+import { SearchInput } from "@/components/store/search-input"
 import { ViewTracker } from "@/components/store/view-tracker"
 import { ProductGrid } from "@/components/store/product-grid"
 
@@ -11,15 +12,15 @@ export default async function StorePage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ collection?: string }>
+  searchParams: Promise<{ collection?: string; search?: string }>
 }) {
   const { slug } = await params
-  const { collection } = await searchParams
+  const { collection, search } = await searchParams
   const supabase = await createClient()
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, description")
+    .select("id, description, show_search")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
@@ -50,6 +51,10 @@ export default async function StorePage({
     productsQuery = productsQuery.eq("collection_id", activeCollectionId)
   }
 
+  if (search) {
+    productsQuery = productsQuery.ilike("name", `%${search}%`)
+  }
+
   const { data: rawProducts } = await productsQuery
 
   // Resolve image IDs to URLs
@@ -71,13 +76,16 @@ export default async function StorePage({
         <p className="text-muted-foreground">{store.description}</p>
       )}
 
-      <CollectionTabs storeSlug={slug} collections={collections || []} />
+      {(store.show_search ?? true) && <SearchInput storeSlug={slug} />}
+
+      {!search && <CollectionTabs storeSlug={slug} collections={collections || []} />}
 
       <ProductGrid
         initialProducts={products || []}
         storeId={store.id}
         storeSlug={slug}
         collectionId={activeCollectionId}
+        search={search || null}
         hasMore={(products?.length || 0) === PAGE_SIZE}
       />
     </div>

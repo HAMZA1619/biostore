@@ -23,10 +23,11 @@ interface ProductGridProps {
   storeId: string
   storeSlug: string
   collectionId?: string | null
+  search?: string | null
   hasMore: boolean
 }
 
-export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId, hasMore: initialHasMore }: ProductGridProps) {
+export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId, search, hasMore: initialHasMore }: ProductGridProps) {
   const { t } = useTranslation()
   const [products, setProducts] = useState(initialProducts)
   const [page, setPage] = useState(1)
@@ -48,6 +49,7 @@ export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId,
     try {
       const params = new URLSearchParams({ store_id: storeId, page: String(page) })
       if (collectionId) params.set("collection_id", collectionId)
+      if (search) params.set("search", search)
 
       const res = await fetch(`/api/products?${params}`)
 
@@ -66,7 +68,7 @@ export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId,
     } finally {
       setLoading(false)
     }
-  }, [loading, hasMore, storeId, collectionId, page])
+  }, [loading, hasMore, storeId, collectionId, search, page])
 
   useEffect(() => {
     const sentinel = sentinelRef.current

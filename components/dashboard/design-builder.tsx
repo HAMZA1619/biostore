@@ -29,6 +29,7 @@ interface StoreDesignData {
   theme: string | null
   show_branding: boolean
   show_floating_cart: boolean
+  show_search: boolean
   checkout_show_email: boolean
   checkout_show_country: boolean
   checkout_show_city: boolean
@@ -55,6 +56,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
     theme: (store.theme as DesignState["theme"]) || "default",
     showBranding: store.show_branding ?? true,
     showFloatingCart: store.show_floating_cart ?? true,
+    showSearch: store.show_search ?? true,
     checkoutShowEmail: store.checkout_show_email ?? true,
     checkoutShowCountry: store.checkout_show_country ?? true,
     checkoutShowCity: store.checkout_show_city ?? true,
@@ -87,6 +89,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
         theme: state.theme,
         show_branding: state.showBranding,
         show_floating_cart: state.showFloatingCart,
+        show_search: state.showSearch,
         checkout_show_email: state.checkoutShowEmail,
         checkout_show_country: state.checkoutShowCountry,
         checkout_show_city: state.checkoutShowCity,
@@ -107,7 +110,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-background pb-4">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-background pb-4">
         <h1 className="text-2xl font-bold">{t("design.title")}</h1>
         <Button onClick={handleSave} disabled={saving}>
           {saving ? t("design.saving") : t("design.saveChanges")}

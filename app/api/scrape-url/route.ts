@@ -101,7 +101,7 @@ function extractImages(jsonLd: Record<string, unknown> | null, html: string, bas
   const images: string[] = []
 
   function add(src: string | null | undefined) {
-    if (!src || images.length >= 20) return
+    if (!src) return
     const absolute = makeAbsolute(src, baseUrl)
     if (absolute && !seen.has(absolute)) {
       seen.add(absolute)

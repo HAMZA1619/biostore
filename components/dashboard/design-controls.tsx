@@ -256,6 +256,19 @@ export function DesignControls({ state, onChange, storeId, activeTab }: DesignCo
               onCheckedChange={(v) => onChange({ showFloatingCart: v })}
             />
           </div>
+
+          {/* Search Input */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="show-search" className="text-sm">{t("design.searchInput")}</Label>
+              <p className="text-[11px] text-muted-foreground">{t("design.searchInputHint")}</p>
+            </div>
+            <Switch
+              id="show-search"
+              checked={state.showSearch}
+              onCheckedChange={(v) => onChange({ showSearch: v })}
+            />
+          </div>
         </>
       )}
 

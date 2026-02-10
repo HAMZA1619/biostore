@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { ShoppingCart } from "lucide-react"
 import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,9 @@ interface StoreHeaderProps {
 
 export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps) {
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
   const itemCount = useCartStore((s) => s.getItemCount())
+  const isHomePage = pathname === `/${slug}`
 
   useEffect(() => setMounted(true), [])
 
@@ -43,9 +46,9 @@ export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps
         </Button>
       </div>
     </header>
-    {bannerUrl && (
-      <div className="mx-auto max-w-2xl">
-        <img src={bannerUrl} alt="" className="h-32 w-full object-cover" />
+    {bannerUrl && isHomePage && (
+      <div className="mx-auto max-w-2xl px-4 pt-4">
+        <img src={bannerUrl} alt="" className="w-full" style={{ borderRadius: "var(--store-radius)" }} />
       </div>
     )}
   </>

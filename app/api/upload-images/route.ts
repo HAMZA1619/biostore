@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 const MIME_TO_EXT: Record<string, string> = {
@@ -18,10 +18,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "storeId and urls are required" }, { status: 400 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = await createClient()
     const uploaded: { id: string; url: string }[] = []
 
-    for (const imgUrl of urls.slice(0, 20)) {
+    for (const imgUrl of urls) {
       try {
         const imgRes = await fetch(imgUrl, {
           headers: {
@@ -31,7 +31,6 @@ export async function POST(request: Request) {
           signal: AbortSignal.timeout(10000),
           redirect: "follow",
         })
-
         if (!imgRes.ok) continue
 
         const contentType = imgRes.headers.get("content-type")?.split(";")[0] || ""
@@ -45,7 +44,6 @@ export async function POST(request: Request) {
         const { error: uploadError } = await supabase.storage
           .from("product-images")
           .upload(storagePath, buffer, { contentType: contentType || "image/jpeg" })
-
         if (uploadError) continue
 
         const { data: urlData } = supabase.storage

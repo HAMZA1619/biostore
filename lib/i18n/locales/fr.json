@@ -270,7 +270,9 @@
     "presetPeachSoft": "Pêche Douce",
     "presetCharcoalEdge": "Charbon Moderne",
     "floatingCart": "Bouton panier flottant",
-    "floatingCartHint": "Afficher un bouton panier fixe sur la boutique"
+    "floatingCartHint": "Afficher un bouton panier fixe sur la boutique",
+    "searchInput": "Barre de recherche",
+    "searchInputHint": "Afficher une barre de recherche sur la boutique"
   },
   "designPreview": {
     "tabStore": "Boutique",
@@ -318,7 +320,11 @@
     "cancel": "Annuler",
     "empty": "Aucune image pour le moment. Téléchargez votre première image.",
     "failedList": "Échec du chargement des images",
-    "failedDelete": "Échec de la suppression de l'image"
+    "failedDelete": "Échec de la suppression des images",
+    "delete": "Supprimer",
+    "confirmDeleteTitle": "Supprimer les images ?",
+    "confirmDeleteDescription": "Cela supprimera définitivement {{count}} image(s) de votre galerie. Cette action est irréversible.",
+    "confirmDelete": "Supprimer"
   },
   "search": {
     "searchProducts": "Rechercher des produits..."

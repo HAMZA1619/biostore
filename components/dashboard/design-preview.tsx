@@ -23,6 +23,7 @@ export interface DesignState {
   theme: "default" | "modern" | "minimal" | "single"
   showBranding: boolean
   showFloatingCart: boolean
+  showSearch: boolean
   checkoutShowEmail: boolean
   checkoutShowCountry: boolean
   checkoutShowCity: boolean
@@ -240,9 +241,19 @@ function StorePreview({
     <>
       <PreviewHeader state={state} storeName={storeName} cartCount={cartCount} onCartClick={onGoToCheckout} />
       {state.bannerUrl && (
-        <img src={state.bannerUrl} alt="" className="h-24 w-full object-cover" />
+        <div className="px-3 pt-3">
+          <img src={state.bannerUrl} alt="" className="w-full" style={{ borderRadius: radiusCss }} />
+        </div>
       )}
       <div className="p-3">
+        {state.showSearch && (
+          <div className="relative mb-2">
+            <div className="flex h-7 w-full items-center rounded-md border border-current/10 bg-current/5 ps-7 text-[9px] opacity-50" style={{ borderRadius: radiusCss }}>
+              {st("search.searchProducts")}
+            </div>
+            <svg className="absolute start-2 top-1/2 h-3 w-3 -translate-y-1/2 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+        )}
         <div className={cn("grid gap-2", state.theme === "single" ? "grid-cols-1" : "grid-cols-2")}>
           <PreviewProductCard state={state} name={st("designPreview.sampleProduct")} price={99} currency={currency} radiusCss={radiusCss} st={st} onAdd={onAddToCart} imageUrl={img1} />
           <PreviewProductCard state={state} name={st("designPreview.anotherItem")} price={149} currency={currency} radiusCss={radiusCss} st={st} onAdd={onAddToCart} imageUrl={img2} />

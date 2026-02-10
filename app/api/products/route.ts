@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl
     const storeId = searchParams.get("store_id")
     const collectionId = searchParams.get("collection_id")
+    const search = searchParams.get("search")
     const page = parseInt(searchParams.get("page") || "0", 10)
 
     if (!storeId) {
@@ -26,6 +27,10 @@ export async function GET(request: NextRequest) {
 
     if (collectionId) {
       query = query.eq("collection_id", collectionId)
+    }
+
+    if (search) {
+      query = query.ilike("name", `%${search}%`)
     }
 
     const { data: rawProducts, error } = await query

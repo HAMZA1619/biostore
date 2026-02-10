@@ -33,6 +33,7 @@ CREATE TABLE stores (
   theme TEXT DEFAULT 'default' CHECK (theme IN ('default', 'modern', 'minimal', 'single')),
   show_branding BOOLEAN NOT NULL DEFAULT true,
   show_floating_cart BOOLEAN NOT NULL DEFAULT true,
+  show_search BOOLEAN NOT NULL DEFAULT true,
   checkout_show_email BOOLEAN NOT NULL DEFAULT true,
   checkout_show_country BOOLEAN NOT NULL DEFAULT true,
   checkout_show_city BOOLEAN NOT NULL DEFAULT true,

@@ -25,9 +25,9 @@ export const productSchema = z.object({
   name: z.string().min(1, "validation.productNameRequired"),
   sku: z.string().max(100).optional(),
   description: z.string().max(1000).optional(),
-  price: z.number().positive("validation.priceMustBePositive"),
+  price: z.number().min(0, "validation.priceMustBePositive"),
   compare_at_price: z
-    .union([z.number().positive(), z.nan(), z.undefined()])
+    .union([z.number().min(0), z.nan(), z.undefined()])
     .transform((v) => (typeof v === "number" && !Number.isNaN(v) ? v : null))
     .optional(),
   stock: z

@@ -190,15 +190,14 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
         setFetching(false)
         return
       }
-
       // Populate form fields
       if (data.title) setValue("name", data.title, { shouldDirty: true })
       if (data.description) setValue("description", data.description.slice(0, 1000), { shouldDirty: true })
-      if (data.price) setValue("price", data.price, { shouldDirty: true })
+      if (data.price != null) setValue("price", data.price, { shouldDirty: true })
       if (data.sku) setValue("sku", data.sku, { shouldDirty: true })
 
       // Set pending image URLs (will be uploaded on save)
-      const scrapedImageUrls = (data.images as string[] || []).slice(0, 20)
+      const scrapedImageUrls = (data.images as string[] || [])
       if (scrapedImageUrls.length > 0) {
         setPendingImageUrls(scrapedImageUrls)
         setImagesChanged(true)
@@ -253,6 +252,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
           setLoading(false)
           return
         }
+        
         const uploadData = await uploadRes.json()
         const uploadedImages = (uploadData.images || []) as ImageItem[]
         allImages = [...allImages, ...uploadedImages]

@@ -270,7 +270,9 @@
     "presetPeachSoft": "خوخي ناعم",
     "presetCharcoalEdge": "فحم عصري",
     "floatingCart": "زر السلة العائم",
-    "floatingCartHint": "عرض زر سلة ثابت في المتجر"
+    "floatingCartHint": "عرض زر سلة ثابت في المتجر",
+    "searchInput": "شريط البحث",
+    "searchInputHint": "عرض شريط بحث في المتجر"
   },
   "designPreview": {
     "tabStore": "المتجر",
@@ -318,7 +320,11 @@
     "cancel": "إلغاء",
     "empty": "لا توجد صور بعد. ارفع أول صورة.",
     "failedList": "فشل تحميل الصور",
-    "failedDelete": "فشل حذف الصورة"
+    "failedDelete": "فشل حذف الصور",
+    "delete": "حذف",
+    "confirmDeleteTitle": "حذف الصور؟",
+    "confirmDeleteDescription": "سيتم حذف {{count}} صورة نهائياً من معرضك. لا يمكن التراجع عن هذا الإجراء.",
+    "confirmDelete": "حذف"
   },
   "search": {
     "searchProducts": "البحث عن منتجات..."
