@@ -60,6 +60,12 @@ export default async function StoreLayout({
   const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === (store.border_radius || "md"))?.css || "8px"
   const fontHref = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;500;600;700&display=swap`
 
+  const bg = store.background_color || "#ffffff"
+  const text = store.text_color || "#111111"
+  const primary = store.primary_color || "#000000"
+  const accent = store.accent_color || "#3B82F6"
+  const btnText = store.button_text_color || "#ffffff"
+
   return (
     <div
       className="min-h-screen"
@@ -75,19 +81,57 @@ export default async function StoreLayout({
       data-thank-you-message={store.thank_you_message || ""}
       style={
         {
-          "--store-primary": store.primary_color || "#000000",
-          "--store-accent": store.accent_color || "#3B82F6",
-          "--store-bg": store.background_color || "#ffffff",
-          "--store-text": store.text_color || "#111111",
-          "--store-btn-text": store.button_text_color || "#ffffff",
+          "--store-primary": primary,
+          "--store-accent": accent,
+          "--store-bg": bg,
+          "--store-text": text,
+          "--store-btn-text": btnText,
           "--store-radius": radiusCss,
           "--store-font": `'${fontFamily}', sans-serif`,
-          backgroundColor: store.background_color || "#ffffff",
-          color: store.text_color || "#111111",
+          "--background": bg,
+          "--foreground": text,
+          "--card": bg,
+          "--card-foreground": text,
+          "--popover": bg,
+          "--popover-foreground": text,
+          "--primary": primary,
+          "--primary-foreground": btnText,
+          "--secondary": `color-mix(in srgb, ${bg} 90%, ${text})`,
+          "--secondary-foreground": text,
+          "--muted": `color-mix(in srgb, ${bg} 90%, ${text})`,
+          "--muted-foreground": `color-mix(in srgb, ${text} 50%, ${bg})`,
+          "--accent": `color-mix(in srgb, ${bg} 85%, ${primary})`,
+          "--accent-foreground": text,
+          "--border": `color-mix(in srgb, ${text} 15%, ${bg})`,
+          "--input": `color-mix(in srgb, ${text} 15%, ${bg})`,
+          "--ring": primary,
+          backgroundColor: bg,
+          color: text,
           fontFamily: `'${fontFamily}', sans-serif`,
         } as React.CSSProperties
       }
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --background: ${bg};
+          --foreground: ${text};
+          --card: ${bg};
+          --card-foreground: ${text};
+          --popover: ${bg};
+          --popover-foreground: ${text};
+          --primary: ${primary};
+          --primary-foreground: ${btnText};
+          --secondary: color-mix(in srgb, ${bg} 90%, ${text});
+          --secondary-foreground: ${text};
+          --muted: color-mix(in srgb, ${bg} 90%, ${text});
+          --muted-foreground: color-mix(in srgb, ${text} 50%, ${bg});
+          --accent: color-mix(in srgb, ${bg} 85%, ${primary});
+          --accent-foreground: ${text};
+          --border: color-mix(in srgb, ${text} 15%, ${bg});
+          --input: color-mix(in srgb, ${text} 15%, ${bg});
+          --ring: ${primary};
+        }
+      `}} />
       <link rel="stylesheet" href={fontHref} />
       <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={store.fb_pixel_id} />
       <StorefrontI18nProvider lang={storeLang}>
