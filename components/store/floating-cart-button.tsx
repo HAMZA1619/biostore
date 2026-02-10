@@ -8,12 +8,14 @@ import { useParams, usePathname } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useBaseHref } from "@/lib/hooks/use-base-href"
 import "@/lib/i18n"
 
 export function FloatingCartButton() {
   const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const pathname = usePathname()
+  const baseHref = useBaseHref()
   const currency = useStoreCurrency()
   const items = useCartStore((s) => s.items)
   const getTotal = useCartStore((s) => s.getTotal)
@@ -22,7 +24,7 @@ export function FloatingCartButton() {
 
   useEffect(() => setMounted(true), [])
 
-  const isCartPage = pathname === `/${slug}/cart`
+  const isCartPage = pathname === `/${slug}/cart` || pathname === "/cart"
   const count = getItemCount()
   const show = mounted && count > 0 && !isCartPage
 
@@ -35,7 +37,7 @@ export function FloatingCartButton() {
       }`}
     >
       <Link
-        href={`/${slug}/cart`}
+        href={`${baseHref}/cart`}
         className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5"
         style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
       >

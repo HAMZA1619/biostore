@@ -18,11 +18,13 @@ import { slugify, cn } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { MarketingSettings } from "@/components/forms/marketing-settings"
 import "@/lib/i18n"
 
 interface StoreFormProps {
   userId: string
   title: string
+  children?: React.ReactNode
   initialData?: {
     id: string
     name: string
@@ -35,10 +37,12 @@ interface StoreFormProps {
     primary_color: string | null
     accent_color: string | null
     is_published: boolean
+    ga_measurement_id: string | null
+    fb_pixel_id: string | null
   } | null
 }
 
-export function StoreForm({ userId, title, initialData }: StoreFormProps) {
+export function StoreForm({ userId, title, initialData, children }: StoreFormProps) {
   const [loading, setLoading] = useState(false)
   const [currencyOpen, setCurrencyOpen] = useState(false)
   const router = useRouter()
@@ -63,6 +67,8 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
       payment_methods: ["cod"] as const,
       primary_color: initialData?.primary_color || "#000000",
       accent_color: initialData?.accent_color || "#3B82F6",
+      ga_measurement_id: initialData?.ga_measurement_id || "",
+      fb_pixel_id: initialData?.fb_pixel_id || "",
     },
   })
 
@@ -146,7 +152,8 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
         </div>
       </div>
 
-      <div className="max-w-2xl space-y-4">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">{t("storeForm.storeName")}</Label>
         <Input
@@ -258,6 +265,11 @@ export function StoreForm({ userId, title, initialData }: StoreFormProps) {
             </Button>
           ))}
         </div>
+      </div>
+      </div>
+      <div className="space-y-8">
+        {children}
+        {initialData && <MarketingSettings register={register as unknown as (name: string) => ReturnType<typeof register>} />}
       </div>
       </div>
     </form>

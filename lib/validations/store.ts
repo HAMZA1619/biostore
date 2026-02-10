@@ -14,6 +14,8 @@ export const storeSchema = z.object({
   payment_methods: z.array(z.literal("cod")).default(["cod"]),
   primary_color: z.string(),
   accent_color: z.string(),
+  ga_measurement_id: z.string().optional().default(""),
+  fb_pixel_id: z.string().optional().default(""),
 })
 
 export type StoreFormData = z.infer<typeof storeSchema>

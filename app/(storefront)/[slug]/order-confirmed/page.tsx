@@ -2,6 +2,7 @@ import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
+import { headers } from "next/headers"
 import { getT } from "@/lib/i18n/storefront"
 
 export default async function OrderConfirmedPage({
@@ -22,6 +23,10 @@ export default async function OrderConfirmedPage({
     .eq("is_published", true)
     .single()
 
+  const headersList = await headers()
+  const isCustomDomain = headersList.get("x-custom-domain") === "true"
+  const baseHref = isCustomDomain ? "" : `/${slug}`
+
   const t = getT(store?.language || "en")
   const message = store?.thank_you_message || t("storefront.defaultThankYou")
 
@@ -39,7 +44,7 @@ export default async function OrderConfirmedPage({
       )}
       <p className="max-w-sm opacity-60">{message}</p>
       <Button asChild style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}>
-        <Link href={`/${slug}`}>{t("storefront.continueShopping")}</Link>
+        <Link href={`${baseHref}/`}>{t("storefront.continueShopping")}</Link>
       </Button>
     </div>
   )

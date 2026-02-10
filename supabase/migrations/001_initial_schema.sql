@@ -43,11 +43,16 @@ CREATE TABLE stores (
   currency TEXT NOT NULL DEFAULT 'MAD',
   payment_methods TEXT[] DEFAULT '{cod}' CHECK (payment_methods = '{cod}'),
   is_published BOOLEAN NOT NULL DEFAULT false,
+  custom_domain TEXT UNIQUE,
+  domain_verified BOOLEAN NOT NULL DEFAULT false,
+  ga_measurement_id TEXT,
+  fb_pixel_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_stores_owner ON stores(owner_id);
 CREATE INDEX idx_stores_slug ON stores(slug);
+CREATE INDEX idx_stores_custom_domain ON stores(custom_domain) WHERE custom_domain IS NOT NULL;
 
 -- Collections
 CREATE TABLE collections (

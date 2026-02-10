@@ -18,6 +18,22 @@ async function detectCountryFromIP(request: Request): Promise<string> {
   }
 }
 
+async function verifyCaptcha(token: string): Promise<boolean> {
+  try {
+    const secret = process.env.HCAPTCHA_SECRET_KEY
+    if (!secret) return true // skip if not configured
+    const res = await fetch("https://api.hcaptcha.com/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `response=${encodeURIComponent(token)}&secret=${encodeURIComponent(secret)}`,
+    })
+    const data = await res.json()
+    return data.success === true
+  } catch {
+    return false
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -30,11 +46,17 @@ export async function POST(request: Request) {
       customer_country,
       customer_address,
       note,
+      captcha_token,
       items,
     } = body
 
     if (!slug || !customer_name || !customer_phone || !customer_address || !items?.length) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+    }
+
+    // Verify hCaptcha
+    if (!captcha_token || !(await verifyCaptcha(captcha_token))) {
+      return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 })
     }
 
     const supabase = createClient(

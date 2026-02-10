@@ -13,15 +13,18 @@ import { COUNTRIES } from "@/lib/constants"
 import { Check, ChevronsUpDown, ImageIcon, Minus, Plus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useParams, useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
+import { useBaseHref } from "@/lib/hooks/use-base-href"
+import Script from "next/script"
 import "@/lib/i18n"
 
 export default function CartPage() {
   const { t } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const currency = useStoreCurrency()
+  const baseHref = useBaseHref()
   const items = useCartStore((s) => s.items)
   const updateQuantity = useCartStore((s) => s.updateQuantity)
   const removeItem = useCartStore((s) => s.removeItem)
@@ -39,6 +42,18 @@ export default function CartPage() {
     note: "",
   })
   const [loading, setLoading] = useState(false)
+  const captchaRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  const renderCaptcha = useCallback(() => {
+    const hcaptcha = (window as unknown as { hcaptcha?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string } }).hcaptcha
+    if (!hcaptcha || !captchaRef.current || widgetIdRef.current !== null) return
+    widgetIdRef.current = hcaptcha.render(captchaRef.current, {
+      sitekey: process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY,
+      size: "invisible",
+    })
+  }, [])
+
   const [showFields, setShowFields] = useState({
     email: true,
     country: true,
@@ -59,12 +74,13 @@ export default function CartPage() {
 
   // Pre-fill country from IP address
   useEffect(() => {
-    fetch("https://ipapi.co/country_name/")
+    fetch("https://ipapi.co/country_code/")
       .then((res) => res.text())
-      .then((name) => {
-        const trimmed = name.trim()
-        if (COUNTRIES.includes(trimmed as typeof COUNTRIES[number])) {
-          setForm((prev) => prev.customer_country ? prev : { ...prev, customer_country: trimmed })
+      .then((code) => {
+        const trimmed = code.trim().toUpperCase()
+        const match = COUNTRIES.find((c) => c.code === trimmed)
+        if (match) {
+          setForm((prev) => prev.customer_country ? prev : { ...prev, customer_country: match.name })
         }
       })
       .catch(() => {})
@@ -77,7 +93,7 @@ export default function CartPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() => router.push(`/${slug}`)}
+          onClick={() => router.push(`${baseHref}/`)}
         >
           {t("storefront.continueShopping")}
         </Button>
@@ -95,12 +111,21 @@ export default function CartPage() {
     setLoading(true)
 
     try {
+      // Execute invisible hCaptcha — passes silently or shows challenge if risky
+      const hcaptcha = (window as unknown as { hcaptcha?: { execute: (id: string, opts: { async: boolean }) => Promise<{ response: string }>, reset: (id: string) => void } }).hcaptcha
+      let captchaToken = ""
+      if (hcaptcha && widgetIdRef.current !== null) {
+        const { response } = await hcaptcha.execute(widgetIdRef.current, { async: true })
+        captchaToken = response
+      }
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slug,
           ...form,
+          captcha_token: captchaToken,
           payment_method: "cod",
           items: items.map((i) => ({
             product_id: i.productId,
@@ -113,15 +138,18 @@ export default function CartPage() {
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         toast.error(data?.error || t("storefront.failedPlaceOrder"))
+        if (hcaptcha && widgetIdRef.current !== null) hcaptcha.reset(widgetIdRef.current)
         setLoading(false)
         return
       }
 
       const data = await res.json()
       clearCart()
-      router.push(`/${slug}/order-confirmed?order=${data.order_number}`)
+      router.push(`${baseHref}/order-confirmed?order=${data.order_number}`)
     } catch {
       toast.error(t("storefront.failedPlaceOrder"))
+      const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
+      if (hcaptcha && widgetIdRef.current !== null) hcaptcha.reset(widgetIdRef.current)
       setLoading(false)
     }
   }
@@ -284,6 +312,13 @@ export default function CartPage() {
           </div>
         )}
 
+        <Script
+          src="https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off"
+          strategy="afterInteractive"
+          onReady={renderCaptcha}
+        />
+        <div ref={captchaRef} />
+
         <Button
           type="submit"
           className="w-full"
@@ -305,8 +340,20 @@ function CountryCombobox({
   value: string
   onChange: (value: string) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
+
+  const displayNames = useMemo(
+    () => new Intl.DisplayNames([i18n.language], { type: "region" }),
+    [i18n.language]
+  )
+
+  const getLocalName = (code: string) => {
+    try { return displayNames.of(code) || code } catch { return code }
+  }
+
+  const selectedCountry = COUNTRIES.find((c) => c.name === value)
+  const displayValue = selectedCountry ? getLocalName(selectedCountry.code) : ""
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -317,7 +364,7 @@ function CountryCombobox({
           aria-expanded={open}
           className="w-full justify-between font-normal"
         >
-          {value || t("storefront.selectCountry")}
+          {displayValue || t("storefront.selectCountry")}
           <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -327,24 +374,27 @@ function CountryCombobox({
           <CommandList>
             <CommandEmpty>{t("storefront.noCountryFound")}</CommandEmpty>
             <CommandGroup>
-              {COUNTRIES.map((country) => (
-                <CommandItem
-                  key={country}
-                  value={country}
-                  onSelect={() => {
-                    onChange(country)
-                    setOpen(false)
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "me-2 h-4 w-4",
-                      value === country ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {country}
-                </CommandItem>
-              ))}
+              {COUNTRIES.map((country) => {
+                const localName = getLocalName(country.code)
+                return (
+                  <CommandItem
+                    key={country.code}
+                    value={localName}
+                    onSelect={() => {
+                      onChange(country.name)
+                      setOpen(false)
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "me-2 h-4 w-4",
+                        value === country.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {localName}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
