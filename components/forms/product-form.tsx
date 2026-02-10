@@ -351,7 +351,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{t(title)}</h1>
           <Select
@@ -454,7 +454,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
           {pendingImageUrls.length > 0 && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">{t("productForm.pendingImages")}</p>
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
                 {pendingImageUrls.map((url, i) => (
                   <div key={i} className="group relative aspect-square overflow-hidden rounded-md border border-dashed">
                     <img src={url} alt="" className="h-full w-full object-cover" />
@@ -472,7 +472,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="price">{t("productForm.price")}</Label>
             <div className="relative">
@@ -553,8 +553,8 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
           </div>
 
           {options.map((option, i) => (
-            <div key={i} className="flex items-end gap-3">
-              <div className="w-36 shrink-0 space-y-1">
+            <div key={i} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="w-full space-y-1 sm:w-36 sm:shrink-0">
                 <Label className="text-xs text-muted-foreground">{t("productForm.optionName")}</Label>
                 <Input
                   value={option.name}
@@ -574,7 +574,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="mb-0.5 shrink-0"
+                className="mb-0.5 shrink-0 self-end"
                 onClick={() => removeOption(i)}
               >
                 <Trash2 className="h-4 w-4 text-muted-foreground" />
