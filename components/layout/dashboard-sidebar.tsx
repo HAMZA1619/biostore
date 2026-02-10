@@ -10,6 +10,7 @@ import {
   Package,
   FolderOpen,
   ShoppingCart,
+  MessageCircle,
   Settings,
   Menu,
 } from "lucide-react"
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/dashboard/products", labelKey: "nav.products", icon: Package },
   { href: "/dashboard/collections", labelKey: "nav.collections", icon: FolderOpen },
   { href: "/dashboard/orders", labelKey: "nav.orders", icon: ShoppingCart },
+  { href: "/dashboard/faqs", labelKey: "nav.faqs", icon: MessageCircle },
   { href: "/dashboard/settings", labelKey: "nav.settings", icon: Settings },
 ]
 

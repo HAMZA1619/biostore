@@ -13,7 +13,8 @@
     "logoutCancel": "Annuler",
     "logoutConfirm": "Se déconnecter",
     "brandName": "BioStore",
-    "viewStore": "Voir la boutique"
+    "viewStore": "Voir la boutique",
+    "faqs": "FAQ"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -353,7 +354,9 @@
     "phoneRequired": "Le numéro de téléphone est requis",
     "cityRequired": "La ville est requise",
     "addressRequired": "L'adresse est requise",
-    "cartEmpty": "Le panier ne peut pas être vide"
+    "cartEmpty": "Le panier ne peut pas être vide",
+    "faqQuestionRequired": "La question est obligatoire",
+    "faqAnswerRequired": "La réponse est obligatoire"
   },
   "storefront": {
     "addToCart": "Ajouter au panier",
@@ -420,7 +423,9 @@
     "fullNamePlaceholder": "Votre nom",
     "minChars": "6 caractères minimum",
     "creatingAccount": "Création du compte...",
-    "alreadyHaveAccount": "Vous avez déjà un compte ?"
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "continueWithGoogle": "Continuer avec Google",
+    "or": "ou"
   },
   "domain": {
     "title": "Domaine personnalisé",
@@ -538,6 +543,40 @@
     "changesText": "Nous pouvons mettre à jour ces conditions de temps en temps. Nous vous informerons des changements importants par e-mail ou notification sur la plateforme. L'utilisation continue du service après les modifications constitue une acceptation.",
     "contactTitle": "Nous contacter",
     "contactText": "Si vous avez des questions concernant ces conditions d'utilisation, veuillez nous contacter à support@biostore.app."
+  },
+  "faqs": {
+    "title": "Gestion des FAQ",
+    "addFaq": "Ajouter une FAQ",
+    "editFaq": "Modifier la FAQ",
+    "columns": {
+      "question": "Question",
+      "answer": "Réponse",
+      "actions": "Actions"
+    },
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "empty": "Aucune FAQ",
+    "emptyHint": "Ajoutez des FAQ pour aider votre assistant IA à répondre aux questions courantes.",
+    "questionLabel": "Question",
+    "questionPlaceholder": "ex. Quelle est votre politique de retour ?",
+    "answerLabel": "Réponse",
+    "answerPlaceholder": "ex. Nous acceptons les retours dans les 14 jours suivant la livraison.",
+    "saving": "Enregistrement...",
+    "updateFaq": "Mettre à jour",
+    "faqUpdated": "FAQ mise à jour",
+    "faqCreated": "FAQ créée",
+    "faqDeleted": "FAQ supprimée",
+    "deleteTitle": "Supprimer la FAQ ?",
+    "deleteDescription": "Cette action est irréversible.",
+    "cancel": "Annuler"
+  },
+  "aiChat": {
+    "title": "Assistant d'aide",
+    "placeholder": "Demandez comment configurer votre boutique...",
+    "thinking": "Réflexion...",
+    "error": "Échec de la réponse. Veuillez réessayer.",
+    "clearChat": "Effacer le chat",
+    "greeting": "Bonjour ! Je suis votre assistant de configuration. Je peux vous aider à configurer votre boutique, ajouter des produits, gérer les commandes et plus encore. Comment puis-je vous aider ?"
   },
   "language": {
     "en": "English",

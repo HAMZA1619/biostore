@@ -273,3 +273,25 @@ CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Store FAQs (custom Q&A for AI assistant)
+CREATE TABLE store_faqs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_store_faqs_store ON store_faqs(store_id);
+
+ALTER TABLE store_faqs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Owners can view own faqs" ON store_faqs FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can insert faqs" ON store_faqs FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can update faqs" ON store_faqs FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can delete faqs" ON store_faqs FOR DELETE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));

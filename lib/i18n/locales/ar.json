@@ -13,7 +13,8 @@
     "logoutCancel": "إلغاء",
     "logoutConfirm": "تسجيل الخروج",
     "brandName": "BioStore",
-    "viewStore": "عرض المتجر"
+    "viewStore": "عرض المتجر",
+    "faqs": "الأسئلة الشائعة"
   },
   "dashboard": {
     "welcome": "مرحبا بك في BioStore",
@@ -353,7 +354,9 @@
     "phoneRequired": "رقم الهاتف مطلوب",
     "cityRequired": "المدينة مطلوبة",
     "addressRequired": "العنوان مطلوب",
-    "cartEmpty": "لا يمكن أن تكون السلة فارغة"
+    "cartEmpty": "لا يمكن أن تكون السلة فارغة",
+    "faqQuestionRequired": "السؤال مطلوب",
+    "faqAnswerRequired": "الإجابة مطلوبة"
   },
   "storefront": {
     "addToCart": "أضف إلى السلة",
@@ -420,7 +423,9 @@
     "fullNamePlaceholder": "اسمك",
     "minChars": "6 أحرف كحد أدنى",
     "creatingAccount": "جارٍ إنشاء الحساب...",
-    "alreadyHaveAccount": "لديك حساب بالفعل؟"
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "continueWithGoogle": "المتابعة مع Google",
+    "or": "أو"
   },
   "domain": {
     "title": "نطاق مخصص",
@@ -538,6 +543,40 @@
     "changesText": "قد نقوم بتحديث هذه الشروط من وقت لآخر. سنُعلمك بالتغييرات المهمة عبر البريد الإلكتروني أو إشعار على المنصة. يشكل الاستمرار في استخدام الخدمة بعد التغييرات قبولاً بها.",
     "contactTitle": "اتصل بنا",
     "contactText": "إذا كان لديك أي أسئلة حول شروط الخدمة هذه، يرجى الاتصال بنا على support@biostore.app."
+  },
+  "faqs": {
+    "title": "إدارة الأسئلة الشائعة",
+    "addFaq": "إضافة سؤال",
+    "editFaq": "تعديل السؤال",
+    "columns": {
+      "question": "السؤال",
+      "answer": "الإجابة",
+      "actions": "الإجراءات"
+    },
+    "edit": "تعديل",
+    "delete": "حذف",
+    "empty": "لا توجد أسئلة شائعة بعد",
+    "emptyHint": "أضف أسئلة شائعة لمساعدة المساعد الذكي في الإجابة على الأسئلة المتكررة.",
+    "questionLabel": "السؤال",
+    "questionPlaceholder": "مثال: ما هي سياسة الإرجاع؟",
+    "answerLabel": "الإجابة",
+    "answerPlaceholder": "مثال: نقبل الإرجاع خلال 14 يومًا من التسليم.",
+    "saving": "جاري الحفظ...",
+    "updateFaq": "تحديث",
+    "faqUpdated": "تم تحديث السؤال",
+    "faqCreated": "تم إنشاء السؤال",
+    "faqDeleted": "تم حذف السؤال",
+    "deleteTitle": "حذف السؤال؟",
+    "deleteDescription": "لا يمكن التراجع عن هذا الإجراء.",
+    "cancel": "إلغاء"
+  },
+  "aiChat": {
+    "title": "مساعد الإعداد",
+    "placeholder": "اسأل عن كيفية إعداد متجرك...",
+    "thinking": "جاري التفكير...",
+    "error": "فشل في الحصول على الرد. حاول مرة أخرى.",
+    "clearChat": "مسح المحادثة",
+    "greeting": "مرحبًا! أنا مساعد الإعداد الخاص بك. يمكنني مساعدتك في تهيئة متجرك، إضافة المنتجات، إدارة الطلبات والمزيد. كيف يمكنني مساعدتك؟"
   },
   "language": {
     "en": "English",

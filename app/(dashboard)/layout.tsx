@@ -2,6 +2,7 @@ import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
 import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
+import { AiChat } from "@/components/dashboard/ai-chat"
 
 export default function DashboardLayout({
   children,
@@ -18,6 +19,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <LanguageSwitcher />
+      <AiChat />
     </I18nProvider>
   )
 }
