@@ -1,5 +1,10 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
+import { I18nProvider } from "@/components/dashboard/i18n-provider"
+import { useTranslation } from "react-i18next"
 import {
   BarChart3,
   Globe,
@@ -11,67 +16,43 @@ import {
   Smartphone,
   Zap,
 } from "lucide-react"
+import "@/lib/i18n"
 
 const features = [
-  {
-    icon: Zap,
-    title: "Ready in 2 minutes",
-    description: "Create your store, add products, share the link. That simple.",
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile-first",
-    description: "Your store looks perfect on phones — where your customers are.",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Orders via COD",
-    description: "Cash on delivery. No online payment setup needed.",
-  },
-  {
-    icon: Palette,
-    title: "Full design control",
-    description: "Custom colors, fonts, themes, and layout. Make your store truly yours.",
-  },
-  {
-    icon: Layers,
-    title: "Collections & variants",
-    description: "Organize products into collections. Support sizes, colors, and more.",
-  },
-  {
-    icon: BarChart3,
-    title: "Built-in analytics",
-    description: "Track visitors, sales, conversion rate, and revenue — all in one dashboard.",
-  },
-  {
-    icon: Megaphone,
-    title: "Marketing pixels",
-    description: "Add Google Analytics and Facebook Pixel to track your ad performance.",
-  },
-  {
-    icon: Globe,
-    title: "Custom domains",
-    description: "Connect your own domain for a professional storefront.",
-  },
-  {
-    icon: Languages,
-    title: "Multi-language",
-    description: "Serve your customers in English, French, or Arabic with full RTL support.",
-  },
+  { icon: Zap, titleKey: "landing.featureReady", descKey: "landing.featureReadyDesc" },
+  { icon: Smartphone, titleKey: "landing.featureMobile", descKey: "landing.featureMobileDesc" },
+  { icon: ShoppingCart, titleKey: "landing.featureCod", descKey: "landing.featureCodDesc" },
+  { icon: Palette, titleKey: "landing.featureDesign", descKey: "landing.featureDesignDesc" },
+  { icon: Layers, titleKey: "landing.featureCollections", descKey: "landing.featureCollectionsDesc" },
+  { icon: BarChart3, titleKey: "landing.featureAnalytics", descKey: "landing.featureAnalyticsDesc" },
+  { icon: Megaphone, titleKey: "landing.featureMarketing", descKey: "landing.featureMarketingDesc" },
+  { icon: Globe, titleKey: "landing.featureDomain", descKey: "landing.featureDomainDesc" },
+  { icon: Languages, titleKey: "landing.featureLanguage", descKey: "landing.featureLanguageDesc" },
 ]
 
 export default function LandingPage() {
+  return (
+    <I18nProvider>
+      <LandingContent />
+      <LanguageSwitcher />
+    </I18nProvider>
+  )
+}
+
+function LandingContent() {
+  const { t } = useTranslation()
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
       <header className="flex h-14 items-center justify-between border-b px-6">
         <span className="text-lg font-bold">BioStore</span>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign in</Link>
+            <Link href="/login">{t("landing.signIn")}</Link>
           </Button>
           <Button asChild size="sm">
-            <Link href="/signup">Get started</Link>
+            <Link href="/signup">{t("landing.getStarted")}</Link>
           </Button>
         </div>
       </header>
@@ -79,16 +60,15 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-20 text-center">
         <h1 className="max-w-2xl text-4xl font-bold tracking-tight md:text-6xl">
-          Turn your Facebook page into a{" "}
-          <span className="text-primary">store</span>
+          {t("landing.heroTitle")}{" "}
+          <span className="text-primary">{t("landing.heroHighlight")}</span>
         </h1>
         <p className="max-w-lg text-lg text-muted-foreground">
-          Create a beautiful storefront in seconds. Share one link with your followers.
-          Receive orders directly. No coding needed.
+          {t("landing.heroDescription")}
         </p>
         <div className="flex gap-3">
           <Button asChild size="lg">
-            <Link href="/signup">Create your store — Free</Link>
+            <Link href="/signup">{t("landing.heroCta")}</Link>
           </Button>
         </div>
       </section>
@@ -97,17 +77,17 @@ export default function LandingPage() {
       <section className="border-t bg-muted/30 px-4 py-20">
         <div className="mx-auto max-w-5xl">
           <h2 className="mb-12 text-center text-2xl font-bold">
-            Everything you need to sell online
+            {t("landing.featuresTitle")}
           </h2>
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.title} className="space-y-3 text-center">
+              <div key={feature.titleKey} className="space-y-3 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                   <feature.icon className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-bold">{feature.title}</h3>
+                <h3 className="font-bold">{t(feature.titleKey)}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {feature.description}
+                  {t(feature.descKey)}
                 </p>
               </div>
             ))}
@@ -117,7 +97,12 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        <p>BioStore — The simplest way to sell online</p>
+        <p>{t("landing.footer")}</p>
+        <div className="mt-3 flex items-center justify-center gap-4">
+          <Link href="/privacy" className="hover:text-foreground">{t("landing.privacyPolicy")}</Link>
+          <span>·</span>
+          <Link href="/terms" className="hover:text-foreground">{t("landing.termsOfService")}</Link>
+        </div>
       </footer>
     </div>
   )

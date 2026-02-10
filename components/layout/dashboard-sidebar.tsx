@@ -11,24 +11,10 @@ import {
   FolderOpen,
   ShoppingCart,
   Settings,
-  LogOut,
   Menu,
 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useLanguageStore } from "@/lib/store/language-store"
@@ -44,9 +30,8 @@ const navItems = [
   { href: "/dashboard/settings", labelKey: "nav.settings", icon: Settings },
 ]
 
-function SidebarContent({ pathname, onLogout, onNavigate }: {
+function SidebarContent({ pathname, onNavigate }: {
   pathname: string
-  onLogout: () => void
   onNavigate?: () => void
 }) {
   const { t } = useTranslation()
@@ -76,46 +61,16 @@ function SidebarContent({ pathname, onLogout, onNavigate }: {
           </Link>
         ))}
       </nav>
-      <div className="border-t p-3">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              {t("nav.logout")}
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("nav.logoutTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("nav.logoutDescription")}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t("nav.logoutCancel")}</AlertDialogCancel>
-              <AlertDialogAction onClick={onLogout}>{t("nav.logoutConfirm")}</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
     </>
   )
 }
 
 export function DashboardSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push("/login")
-    router.refresh()
-  }
 
   return (
     <aside className="hidden h-screen w-64 flex-col border-e bg-muted/30 md:flex">
-      <SidebarContent pathname={pathname} onLogout={handleLogout} />
+      <SidebarContent pathname={pathname} />
     </aside>
   )
 }
@@ -125,14 +80,6 @@ export function MobileNav() {
   const language = useLanguageStore((s) => s.language)
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push("/login")
-    router.refresh()
-  }
 
   return (
     <div className="flex items-center md:hidden">
@@ -145,7 +92,6 @@ export function MobileNav() {
         <SheetContent side={language === "ar" ? "right" : "left"} className="flex w-64 flex-col p-0">
           <SidebarContent
             pathname={pathname}
-            onLogout={handleLogout}
             onNavigate={() => setOpen(false)}
           />
         </SheetContent>

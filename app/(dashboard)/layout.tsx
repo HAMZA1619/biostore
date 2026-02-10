@@ -1,6 +1,7 @@
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
+import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
           <main className="flex-1 overflow-y-auto p-4 md:px-16 md:py-8">{children}</main>
         </div>
       </div>
+      <LanguageSwitcher />
     </I18nProvider>
   )
 }

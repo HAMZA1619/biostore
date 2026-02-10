@@ -1,10 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { MobileNav } from "@/components/layout/dashboard-sidebar"
-import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
 import { T } from "@/components/dashboard/translated-text"
+import { ProfileDropdown } from "@/components/dashboard/profile-dropdown"
 
 export async function DashboardHeader() {
   const supabase = await createClient()
@@ -37,11 +36,8 @@ export async function DashboardHeader() {
         )}
       </div>
       <div className="flex items-center gap-2 md:gap-3">
-        <LanguageSwitcher />
         <span className="hidden text-sm text-muted-foreground sm:inline">{user?.email}</span>
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-        </Avatar>
+        <ProfileDropdown email={user?.email || ""} initials={initials} />
       </div>
     </header>
   )
