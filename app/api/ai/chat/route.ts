@@ -8,13 +8,6 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    if (!user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      })
-    }
-
     const { message, history } = await request.json()
 
     if (!message || typeof message !== "string") {
@@ -24,42 +17,45 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const { data: store } = await supabase
-      .from("stores")
-      .select("id, name, slug, currency, description")
-      .eq("owner_id", user.id)
-      .single()
+    let systemPrompt: string
 
-    if (!store) {
-      return new Response(JSON.stringify({ error: "No store found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      })
+    if (user) {
+      const { data: store } = await supabase
+        .from("stores")
+        .select("id, name, slug, currency, description")
+        .eq("owner_id", user.id)
+        .single()
+
+      if (store) {
+        const [productsRes, ordersRes, faqsRes] = await Promise.all([
+          supabase
+            .from("products")
+            .select("name, price, stock, status, is_available")
+            .eq("store_id", store.id)
+            .limit(50),
+          supabase
+            .from("orders")
+            .select("order_number, customer_name, status, total, created_at")
+            .eq("store_id", store.id)
+            .order("created_at", { ascending: false })
+            .limit(30),
+          supabase
+            .from("store_faqs")
+            .select("question, answer")
+            .eq("store_id", store.id),
+        ])
+
+        const products = productsRes.data || []
+        const orders = ordersRes.data || []
+        const faqs = faqsRes.data || []
+
+        systemPrompt = buildStorePrompt(store, products, orders, faqs)
+      } else {
+        systemPrompt = buildLandingPrompt()
+      }
+    } else {
+      systemPrompt = buildLandingPrompt()
     }
-
-    const [productsRes, ordersRes, faqsRes] = await Promise.all([
-      supabase
-        .from("products")
-        .select("name, price, stock, status, is_available")
-        .eq("store_id", store.id)
-        .limit(50),
-      supabase
-        .from("orders")
-        .select("order_number, customer_name, status, total, created_at")
-        .eq("store_id", store.id)
-        .order("created_at", { ascending: false })
-        .limit(30),
-      supabase
-        .from("store_faqs")
-        .select("question, answer")
-        .eq("store_id", store.id),
-    ])
-
-    const products = productsRes.data || []
-    const orders = ordersRes.data || []
-    const faqs = faqsRes.data || []
-
-    const systemPrompt = buildSystemPrompt(store, products, orders, faqs)
 
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) {
@@ -171,7 +167,43 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSystemPrompt(
+function buildLandingPrompt(): string {
+  return `You are a friendly support assistant for BioStore, an e-commerce platform that lets anyone create their own online store in minutes.
+
+ABOUT BIOSTORE:
+- BioStore is a multi-tenant e-commerce platform.
+- Users can sign up for free and create their own online store.
+- Each store gets a unique link they can share with customers.
+
+PLATFORM FEATURES:
+1. **Quick Store Setup** — Create a store in minutes with name, logo, description, and contact info.
+2. **Product Management** — Add products with images, prices, stock tracking, and availability toggles.
+3. **Collections** — Organize products into groups (e.g., "New Arrivals", "Sale Items").
+4. **Order Management** — Track orders from pending to delivered, view customer details.
+5. **Store Design** — Customize colors, banners, fonts, and layout to match your brand.
+6. **Mobile Responsive** — Stores look great on any device.
+7. **Cash on Delivery** — Support for COD payments.
+8. **Multi-Language** — Supports English, French, and Arabic (with RTL).
+9. **Custom Domain** — Connect your own domain name.
+10. **Analytics** — Track store views and performance.
+11. **Marketing Tools** — Google Analytics and Facebook Pixel integration.
+
+HOW TO GET STARTED:
+1. Click "Get Started" or go to /signup to create an account.
+2. After signing up, you'll be taken to the dashboard.
+3. Set up your store info at /dashboard/store.
+4. Add your first products at /dashboard/products.
+5. Share your store link with customers!
+
+Instructions:
+- Help visitors understand what BioStore is and how it works.
+- Answer questions about the platform features, pricing, and setup process.
+- Encourage visitors to sign up and try BioStore.
+- Be concise and friendly. Keep responses short (2-4 sentences) unless more detail is needed.
+- If asked about something you don't know, say so honestly.`
+}
+
+function buildStorePrompt(
   store: {
     name: string
     slug: string

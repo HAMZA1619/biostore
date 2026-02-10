@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
+import { AiChat } from "@/components/dashboard/ai-chat"
 import { useTranslation } from "react-i18next"
 import {
   BarChart3,
@@ -35,6 +36,7 @@ export default function LandingPage() {
     <I18nProvider>
       <LandingContent />
       <LanguageSwitcher />
+      <AiChat />
     </I18nProvider>
   )
 }
