@@ -4,96 +4,83 @@ import { APPS } from "@/lib/integrations/registry"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
-  const debug: string[] = []
   try {
     const body = await request.json()
-    debug.push(`body_keys: ${Object.keys(body).join(",")}`)
-    console.log("[WEBHOOK] Received body:", JSON.stringify(body).substring(0, 1500))
+    console.log("[WEBHOOK] body keys:", Object.keys(body))
 
-    // Supabase webhook sends { type, table, record, schema, old_record }
     const event = body.record
 
-    // Handle payload being a string (Supabase sometimes stringifies JSONB)
     if (event && typeof event.payload === "string") {
       try {
         event.payload = JSON.parse(event.payload)
       } catch {
-        debug.push("payload_parse_failed")
+        console.log("[WEBHOOK] payload parse failed")
       }
     }
 
-    debug.push(`record_keys: ${event ? Object.keys(event).join(",") : "null"}`)
-    debug.push(`event_type: ${event?.event_type || "missing"}`)
-    debug.push(`store_id: ${event?.store_id || "missing"}`)
-    debug.push(`event_id: ${event?.id || "missing"}`)
+    console.log("[WEBHOOK] event_type:", event?.event_type, "store_id:", event?.store_id, "id:", event?.id)
 
     if (!event?.id || !event?.store_id || !event?.event_type) {
-      debug.push("REJECTED: missing required fields")
-      console.log("[WEBHOOK] Invalid payload:", debug)
-      return NextResponse.json({ error: "Invalid payload", debug }, { status: 400 })
+      console.log("[WEBHOOK] REJECTED: missing required fields")
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
     }
 
     const supabase = createAdminClient()
+
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    console.log("[WEBHOOK] service_role_key:", serviceKey ? `SET (${serviceKey.substring(0, 10)}...)` : "NOT_SET")
 
     const { error: updateErr } = await supabase
       .from("integration_events")
       .update({ status: "processing" })
       .eq("id", event.id)
-
-    debug.push(`status_update_to_processing: ${updateErr ? updateErr.message : "ok"}`)
+    console.log("[WEBHOOK] status->processing:", updateErr ? updateErr.message : "ok")
 
     const { data: store, error: storeError } = await supabase
       .from("stores")
       .select("id, name, currency, language")
       .eq("id", event.store_id)
       .single()
-
-    debug.push(`store: ${store ? store.name : "NOT_FOUND"}`)
-    if (storeError) debug.push(`store_error: ${storeError.message}`)
+    console.log("[WEBHOOK] store:", store ? store.name : "NOT_FOUND", storeError?.message || "")
 
     if (!store) {
       await supabase
         .from("integration_events")
-        .update({
-          status: "failed",
-          error: "Store not found",
-          processed_at: new Date().toISOString(),
-        })
+        .update({ status: "failed", error: "Store not found", processed_at: new Date().toISOString() })
         .eq("id", event.id)
-      return NextResponse.json({ error: "Store not found", debug }, { status: 404 })
+      return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
-    const { data: integrations } = await supabase
+    // Query ALL integrations (no filter) to debug
+    const { data: allIntegrations, error: intError } = await supabase
       .from("store_integrations")
-      .select("integration_id, config")
+      .select("integration_id, is_enabled, config")
       .eq("store_id", event.store_id)
-      .eq("is_enabled", true)
 
-    debug.push(`integrations_found: ${integrations?.length || 0}`)
-    if (integrations) {
-      integrations.forEach((i) => {
-        debug.push(`integration: ${i.integration_id}, config: ${JSON.stringify(i.config).substring(0, 200)}`)
-      })
-    }
+    console.log("[WEBHOOK] all integrations for store:", allIntegrations?.length || 0, "error:", intError?.message || "none")
+    allIntegrations?.forEach((i) => {
+      console.log("[WEBHOOK]   ->", i.integration_id, "is_enabled:", i.is_enabled, "config:", JSON.stringify(i.config).substring(0, 200))
+    })
 
-    if (!integrations || integrations.length === 0) {
+    const integrations = allIntegrations?.filter((i) => i.is_enabled) || []
+    console.log("[WEBHOOK] enabled integrations:", integrations.length)
+
+    if (integrations.length === 0) {
       await supabase
         .from("integration_events")
-        .update({
-          status: "completed",
-          processed_at: new Date().toISOString(),
-        })
+        .update({ status: "completed", processed_at: new Date().toISOString() })
         .eq("id", event.id)
-      debug.push("RESULT: no_integrations_enabled")
-      return NextResponse.json({ ok: true, dispatched: 0, debug })
+      console.log("[WEBHOOK] DONE: no enabled integrations")
+      return NextResponse.json({ ok: true, dispatched: 0 })
     }
 
     const eligible = integrations.filter((i) => {
       const def = APPS[i.integration_id]
-      return def && def.events.includes(event.event_type)
+      const match = def && def.events.includes(event.event_type)
+      console.log("[WEBHOOK]   filter", i.integration_id, "def:", !!def, "match:", match)
+      return match
     })
-
-    debug.push(`eligible: ${eligible.length} (${eligible.map((e) => e.integration_id).join(",")})`)
+    console.log("[WEBHOOK] eligible:", eligible.length)
 
     let enrichedPayload = event.payload || {}
     if (event.event_type === "order.created" && enrichedPayload.order_id) {
@@ -104,21 +91,21 @@ export async function POST(request: Request) {
       if (items && items.length > 0) {
         enrichedPayload = { ...enrichedPayload, items }
       }
-      debug.push(`order_items: ${items?.length || 0}`)
+      console.log("[WEBHOOK] order items:", items?.length || 0)
     }
 
-    // Check Evolution API URL
-    debug.push(`EVOLUTION_API_URL: ${process.env.EVOLUTION_API_URL || "NOT_SET"}`)
-    debug.push(`EVOLUTION_API_KEY: ${process.env.EVOLUTION_API_KEY ? "SET" : "NOT_SET"}`)
-    debug.push(`GROQ_API_KEY: ${process.env.GROQ_API_KEY ? "SET" : "NOT_SET"}`)
+    console.log("[WEBHOOK] EVOLUTION_API_URL:", process.env.EVOLUTION_API_URL || "NOT_SET")
+    console.log("[WEBHOOK] EVOLUTION_API_KEY:", process.env.EVOLUTION_API_KEY ? "SET" : "NOT_SET")
+    console.log("[WEBHOOK] GROQ_API_KEY:", process.env.GROQ_API_KEY ? "SET" : "NOT_SET")
 
+    console.log("[WEBHOOK] dispatching to", eligible.length, "integrations...")
     const errors = await dispatchEvent(
       { event_type: event.event_type, payload: enrichedPayload },
       eligible,
       { name: store.name, currency: store.currency, language: store.language }
     )
 
-    debug.push(`dispatch_errors: ${errors.length > 0 ? errors.join("; ") : "none"}`)
+    console.log("[WEBHOOK] dispatch errors:", errors.length > 0 ? errors : "none")
 
     const finalStatus = errors.length > 0 ? "failed" : "completed"
     await supabase
@@ -130,21 +117,11 @@ export async function POST(request: Request) {
       })
       .eq("id", event.id)
 
-    debug.push(`RESULT: ${finalStatus}`)
-    console.log("[WEBHOOK] Debug:", debug)
+    console.log("[WEBHOOK] DONE:", finalStatus)
 
-    return NextResponse.json({
-      ok: true,
-      dispatched: eligible.length,
-      errors,
-      debug,
-    })
+    return NextResponse.json({ ok: true, dispatched: eligible.length, errors })
   } catch (err) {
-    debug.push(`UNCAUGHT: ${err instanceof Error ? err.message : String(err)}`)
-    console.error("[WEBHOOK] Uncaught error:", err, "debug:", debug)
-    return NextResponse.json(
-      { error: "Internal server error", debug },
-      { status: 500 }
-    )
+    console.error("[WEBHOOK] UNCAUGHT:", err)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

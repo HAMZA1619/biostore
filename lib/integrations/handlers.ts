@@ -25,6 +25,7 @@ export async function dispatchEvent(
 
   for (const integration of integrations) {
     try {
+      console.log("[DISPATCH] handling:", integration.integration_id)
       switch (integration.integration_id) {
         case "whatsapp":
           await handleWhatsApp(
@@ -35,14 +36,16 @@ export async function dispatchEvent(
             store.currency,
             store.language
           )
+          console.log("[DISPATCH] whatsapp handler completed")
           break
         default:
+          console.log("[DISPATCH] unknown integration:", integration.integration_id)
           break
       }
     } catch (err) {
-      errors.push(
-        `${integration.integration_id}: ${err instanceof Error ? err.message : "Unknown error"}`
-      )
+      const msg = `${integration.integration_id}: ${err instanceof Error ? err.message : "Unknown error"}`
+      console.log("[DISPATCH] ERROR:", msg)
+      errors.push(msg)
     }
   }
 
