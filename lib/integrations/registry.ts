@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 import { whatsappApp } from "@/lib/integrations/apps/whatsapp"
+import { metaCapiApp } from "@/lib/integrations/apps/meta-capi"
 
 export type IntegrationEventType = "order.created" | "order.status_changed"
 
@@ -15,6 +16,7 @@ export interface AppDefinition {
 
 export const APPS: Record<string, AppDefinition> = {
   whatsapp: whatsappApp,
+  "meta-capi": metaCapiApp,
 }
 
 export const APP_LIST = Object.values(APPS)

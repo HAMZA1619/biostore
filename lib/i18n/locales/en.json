@@ -607,7 +607,14 @@
     "whatsappSetupHint": "Connect your WhatsApp to send order notifications to customers automatically.",
     "disconnect": "Disconnect",
     "connectFailed": "Failed to connect",
-    "disconnectFailed": "Failed to disconnect"
+    "disconnectFailed": "Failed to disconnect",
+    "metaCapiSetupHint": "Conversions API is active. Purchase events are sent to Facebook.",
+    "metaCapiPixelId": "Pixel ID",
+    "metaCapiAccessToken": "Conversions API Access Token",
+    "metaCapiTestCode": "Test Event Code (optional)",
+    "metaCapiTestCodeHint": "Find this in Facebook Events Manager → Test Events. Remove it before going live.",
+    "metaCapiSaved": "Meta Conversions API saved",
+    "metaCapiSave": "Save"
   },
   "language": {
     "en": "English",

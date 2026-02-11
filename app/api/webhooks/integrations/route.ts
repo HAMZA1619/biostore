@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { dispatchEvent } from "@/lib/integrations/handlers"
+import { dispatchSingle } from "@/lib/integrations/handlers"
 import { APPS } from "@/lib/integrations/registry"
 import { NextResponse } from "next/server"
 
@@ -17,11 +17,6 @@ export async function POST(request: Request) {
     }
 
     const supabase = createAdminClient()
-
-    await supabase
-      .from("integration_events")
-      .update({ status: "processing" })
-      .eq("id", event.id)
 
     const { data: store } = await supabase
       .from("stores")
@@ -42,20 +37,18 @@ export async function POST(request: Request) {
       .select("integration_id, is_enabled, config")
       .eq("store_id", event.store_id)
 
-    const enabled = integrations?.filter((i) => i.is_enabled) || []
+    const eligible = (integrations?.filter((i) => i.is_enabled) || []).filter((i) => {
+      const def = APPS[i.integration_id]
+      return def && def.events.includes(event.event_type)
+    })
 
-    if (enabled.length === 0) {
+    if (eligible.length === 0) {
       await supabase
         .from("integration_events")
         .update({ status: "completed", processed_at: new Date().toISOString() })
         .eq("id", event.id)
       return NextResponse.json({ ok: true, dispatched: 0 })
     }
-
-    const eligible = enabled.filter((i) => {
-      const def = APPS[i.integration_id]
-      return def && def.events.includes(event.event_type)
-    })
 
     let enrichedPayload = event.payload || {}
     if (event.event_type === "order.created" && enrichedPayload.order_id) {
@@ -68,23 +61,62 @@ export async function POST(request: Request) {
       }
     }
 
-    const errors = await dispatchEvent(
-      { event_type: event.event_type, payload: enrichedPayload },
-      eligible,
-      { name: store.name, currency: store.currency, language: store.language }
-    )
-
-    const finalStatus = errors.length > 0 ? "failed" : "completed"
+    // Mark the trigger row as completed
     await supabase
       .from("integration_events")
-      .update({
-        status: finalStatus,
-        error: errors.length > 0 ? errors.join("; ") : null,
-        processed_at: new Date().toISOString(),
-      })
+      .update({ status: "completed", processed_at: new Date().toISOString() })
       .eq("id", event.id)
 
-    return NextResponse.json({ ok: true, dispatched: eligible.length, errors })
+    // Process each integration independently with its own event row
+    const results: { integration_id: string; status: string; error?: string }[] = []
+
+    await Promise.allSettled(
+      eligible.map(async (integration) => {
+        const { data: appEvent } = await supabase
+          .from("integration_events")
+          .insert({
+            store_id: event.store_id,
+            integration_id: integration.integration_id,
+            event_type: event.event_type,
+            payload: enrichedPayload,
+            status: "processing",
+          })
+          .select("id")
+          .single()
+
+        const appEventId = appEvent?.id
+
+        try {
+          await dispatchSingle(
+            { event_type: event.event_type, payload: enrichedPayload },
+            integration,
+            { name: store.name, currency: store.currency, language: store.language },
+          )
+
+          if (appEventId) {
+            await supabase
+              .from("integration_events")
+              .update({ status: "completed", processed_at: new Date().toISOString() })
+              .eq("id", appEventId)
+          }
+
+          results.push({ integration_id: integration.integration_id, status: "completed" })
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : "Unknown error"
+
+          if (appEventId) {
+            await supabase
+              .from("integration_events")
+              .update({ status: "failed", error: errorMsg, processed_at: new Date().toISOString() })
+              .eq("id", appEventId)
+          }
+
+          results.push({ integration_id: integration.integration_id, status: "failed", error: errorMsg })
+        }
+      })
+    )
+
+    return NextResponse.json({ ok: true, dispatched: eligible.length, results })
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

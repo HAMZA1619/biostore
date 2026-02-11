@@ -607,7 +607,14 @@
     "whatsappSetupHint": "Connectez votre WhatsApp pour envoyer automatiquement des notifications de commande aux clients.",
     "disconnect": "Déconnecter",
     "connectFailed": "Échec de la connexion",
-    "disconnectFailed": "Échec de la déconnexion"
+    "disconnectFailed": "Échec de la déconnexion",
+    "metaCapiSetupHint": "L'API Conversions est active. Les événements d'achat sont envoyés à Facebook.",
+    "metaCapiPixelId": "ID du Pixel",
+    "metaCapiAccessToken": "Token d'accès API Conversions",
+    "metaCapiTestCode": "Code d'événement test (optionnel)",
+    "metaCapiTestCodeHint": "Trouvez-le dans Facebook Events Manager → Événements test. Retirez-le avant la mise en production.",
+    "metaCapiSaved": "Meta Conversions API enregistré",
+    "metaCapiSave": "Enregistrer"
   },
   "language": {
     "en": "English",

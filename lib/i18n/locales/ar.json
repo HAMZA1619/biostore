@@ -607,7 +607,14 @@
     "whatsappSetupHint": "اربط واتساب لإرسال إشعارات الطلبات للعملاء تلقائياً.",
     "disconnect": "فصل",
     "connectFailed": "فشل الاتصال",
-    "disconnectFailed": "فشل الفصل"
+    "disconnectFailed": "فشل الفصل",
+    "metaCapiSetupHint": "واجهة التحويلات مفعّلة. يتم إرسال أحداث الشراء إلى فيسبوك.",
+    "metaCapiPixelId": "معرّف البكسل",
+    "metaCapiAccessToken": "رمز وصول واجهة التحويلات",
+    "metaCapiTestCode": "رمز حدث الاختبار (اختياري)",
+    "metaCapiTestCodeHint": "تجده في Facebook Events Manager ← أحداث الاختبار. احذفه قبل الإطلاق.",
+    "metaCapiSaved": "تم حفظ Meta Conversions API",
+    "metaCapiSave": "حفظ"
   },
   "language": {
     "en": "English",

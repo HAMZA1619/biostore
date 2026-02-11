@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog"
 import { Puzzle } from "lucide-react"
 import { WhatsAppSetup } from "@/components/dashboard/integrations/whatsapp-setup"
+import { MetaCapiSetup } from "@/components/dashboard/integrations/meta-capi-setup"
 
 interface InstalledIntegration {
   id: string
@@ -104,6 +105,17 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
           <WhatsAppSetup
             storeId={storeId}
             installed={installedMap.get("whatsapp") || null}
+            onDone={() => {
+              setSetupAppId(null)
+              router.refresh()
+            }}
+          />
+        )
+      case "meta-capi":
+        return (
+          <MetaCapiSetup
+            storeId={storeId}
+            installed={installedMap.get("meta-capi") || null}
             onDone={() => {
               setSetupAppId(null)
               router.refresh()

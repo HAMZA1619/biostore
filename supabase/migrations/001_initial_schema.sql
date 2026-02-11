@@ -324,6 +324,7 @@ CREATE POLICY "Owners can delete integrations" ON store_integrations FOR DELETE
 CREATE TABLE integration_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  integration_id TEXT,
   event_type TEXT NOT NULL,
   payload JSONB NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),

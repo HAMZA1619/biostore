@@ -1,4 +1,5 @@
 import { handleWhatsApp } from "@/lib/integrations/apps/whatsapp"
+import { handleMetaCAPI } from "@/lib/integrations/apps/meta-capi"
 
 interface IntegrationEvent {
   event_type: string
@@ -16,35 +17,32 @@ interface StoreInfo {
   language: string
 }
 
-export async function dispatchEvent(
+export async function dispatchSingle(
   event: IntegrationEvent,
-  integrations: StoreIntegration[],
-  store: StoreInfo
-): Promise<string[]> {
-  const errors: string[] = []
-
-  for (const integration of integrations) {
-    try {
-      switch (integration.integration_id) {
-        case "whatsapp":
-          await handleWhatsApp(
-            event.event_type,
-            event.payload as unknown as Parameters<typeof handleWhatsApp>[1],
-            integration.config as unknown as Parameters<typeof handleWhatsApp>[2],
-            store.name,
-            store.currency,
-            store.language
-          )
-          break
-        default:
-          break
-      }
-    } catch (err) {
-      errors.push(
-        `${integration.integration_id}: ${err instanceof Error ? err.message : "Unknown error"}`
+  integration: StoreIntegration,
+  store: StoreInfo,
+): Promise<void> {
+  switch (integration.integration_id) {
+    case "whatsapp":
+      await handleWhatsApp(
+        event.event_type,
+        event.payload as unknown as Parameters<typeof handleWhatsApp>[1],
+        integration.config as unknown as Parameters<typeof handleWhatsApp>[2],
+        store.name,
+        store.currency,
+        store.language,
       )
-    }
+      break
+    case "meta-capi":
+      await handleMetaCAPI(
+        event.event_type,
+        event.payload as unknown as Parameters<typeof handleMetaCAPI>[1],
+        integration.config as unknown as Parameters<typeof handleMetaCAPI>[2],
+        store.name,
+        store.currency,
+      )
+      break
+    default:
+      break
   }
-
-  return errors
 }
