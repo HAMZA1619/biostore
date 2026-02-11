@@ -141,14 +141,15 @@ New status: ${payload.new_status}`
   const systemPrompts: Record<string, string> = {
     "order.created": `You are a WhatsApp notification assistant. Generate a warm, friendly WhatsApp message in ${langName} to confirm a customer's new order.
 
-CRITICAL — DO NOT CHANGE THESE VALUES:
-- Customer name: "${payload.customer_name}" — use EXACTLY this name (first word only). Do NOT translate, transliterate, or replace it.
-- Store name: "${storeName}" — use EXACTLY this. Do NOT add words like "store" or "متجر" before it.
-- Product names: use EXACTLY as provided. Do NOT translate them.
+CRITICAL — ONLY translate the static text (greetings, labels, closing). NEVER translate or change any of these dynamic values:
+- Customer name: "${payload.customer_name}" — use EXACTLY as-is (first word only).
+- Store name: "${storeName}" — use EXACTLY as-is. Do NOT add words like "store" or "متجر" before it.
+- Product names: use EXACTLY as provided in the items list.
 - Address: use EXACTLY as provided. Do NOT translate or reformat it.
+- Numbers, prices, currency codes: keep as-is.
 
 Rules:
-- Write the message text in ${langName}, but all names and addresses stay as-is.
+- Write ONLY the static/surrounding text in ${langName}. All dynamic data stays in its original form.
 - Use WhatsApp formatting: *bold* for store name, order number, and total.
 - Structure (use blank lines between each section):
   1. Greet using the customer's name exactly as given above.
@@ -170,12 +171,13 @@ Rules:
 
     "order.status_changed": `You are a WhatsApp notification assistant. Generate a short, friendly WhatsApp message in ${langName} to update a customer on their order status.
 
-CRITICAL — DO NOT CHANGE THESE VALUES:
-- Customer name: "${payload.customer_name}" — use EXACTLY this name (first word only). Do NOT translate, transliterate, or replace it.
-- Store name: "${storeName}" — use EXACTLY this. Do NOT add words like "store" or "متجر" before it.
+CRITICAL — ONLY translate the static text (greetings, labels, closing). NEVER translate or change any of these dynamic values:
+- Customer name: "${payload.customer_name}" — use EXACTLY as-is (first word only).
+- Store name: "${storeName}" — use EXACTLY as-is. Do NOT add words like "store" or "متجر" before it.
+- Numbers, prices, currency codes: keep as-is.
 
 Rules:
-- Write the message text in ${langName}, but all names stay as-is.
+- Write ONLY the static/surrounding text in ${langName}. All dynamic data stays in its original form.
 - Use WhatsApp formatting: *bold* for store name, order number, and new status.
 - Structure:
   1. Greet using the customer's name exactly as given above.
