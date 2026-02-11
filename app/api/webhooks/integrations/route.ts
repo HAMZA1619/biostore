@@ -6,13 +6,10 @@ import { NextResponse } from "next/server"
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
     const event = body.record
 
     if (event && typeof event.payload === "string") {
-      try {
-        event.payload = JSON.parse(event.payload)
-      } catch {}
+      try { event.payload = JSON.parse(event.payload) } catch {}
     }
 
     if (!event?.id || !event?.store_id || !event?.event_type) {
@@ -42,11 +39,12 @@ export async function POST(request: Request) {
 
     const { data: integrations } = await supabase
       .from("store_integrations")
-      .select("integration_id, config")
+      .select("integration_id, is_enabled, config")
       .eq("store_id", event.store_id)
-      .eq("is_enabled", true)
 
-    if (!integrations || integrations.length === 0) {
+    const enabled = integrations?.filter((i) => i.is_enabled) || []
+
+    if (enabled.length === 0) {
       await supabase
         .from("integration_events")
         .update({ status: "completed", processed_at: new Date().toISOString() })
@@ -54,7 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, dispatched: 0 })
     }
 
-    const eligible = integrations.filter((i) => {
+    const eligible = enabled.filter((i) => {
       const def = APPS[i.integration_id]
       return def && def.events.includes(event.event_type)
     })

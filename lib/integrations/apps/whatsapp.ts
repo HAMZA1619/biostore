@@ -1,5 +1,6 @@
 import { MessageSquare } from "lucide-react"
 import type { AppDefinition } from "@/lib/integrations/registry"
+import { COUNTRIES } from "@/lib/constants"
 
 export const whatsappApp: AppDefinition = {
   id: "whatsapp",
@@ -27,12 +28,59 @@ interface EventPayload {
   order_number: number
   customer_name: string
   customer_phone: string
+  customer_country?: string
   total: number
   status?: string
   old_status?: string
   new_status?: string
   items?: OrderItem[]
   [key: string]: unknown
+}
+
+const COUNTRY_DIAL_CODES: Record<string, string> = {
+  MA: "212", DZ: "213", TN: "216", EG: "20", SA: "966", AE: "971",
+  US: "1", GB: "44", FR: "33", DE: "49", ES: "34", IT: "39",
+  TR: "90", IN: "91", PK: "92", BD: "880", NG: "234", KE: "254",
+  ZA: "27", BR: "55", MX: "52", CA: "1", AU: "61", JP: "81",
+  CN: "86", KR: "82", ID: "62", PH: "63", TH: "66", VN: "84",
+  RU: "7", PL: "48", NL: "31", BE: "32", SE: "46", NO: "47",
+  DK: "45", FI: "358", PT: "351", GR: "30", CZ: "420", RO: "40",
+  HU: "36", AT: "43", CH: "41", IE: "353", IL: "972", JO: "962",
+  LB: "961", IQ: "964", KW: "965", QA: "974", BH: "973", OM: "968",
+  LY: "218", SD: "249", ET: "251", GH: "233", CI: "225", SN: "221",
+  CM: "237", MR: "222", ML: "223",
+}
+
+const COUNTRY_NAME_TO_CODE: Record<string, string> = Object.fromEntries(
+  COUNTRIES.map((c) => [c.name.toLowerCase(), c.code])
+)
+
+function resolveCountryCode(country: string): string | undefined {
+  const upper = country.toUpperCase()
+  if (COUNTRY_DIAL_CODES[upper]) return upper
+  return COUNTRY_NAME_TO_CODE[country.toLowerCase()]
+}
+
+function normalizePhone(phone: string, country?: string): string {
+  let cleaned = phone.replace(/[^0-9+]/g, "")
+
+  if (cleaned.startsWith("+")) {
+    return cleaned.replace("+", "")
+  }
+
+  if (cleaned.startsWith("0") && country) {
+    const code = resolveCountryCode(country)
+    const dialCode = code ? COUNTRY_DIAL_CODES[code] : undefined
+    if (dialCode) {
+      return dialCode + cleaned.substring(1)
+    }
+  }
+
+  if (cleaned.startsWith("00")) {
+    return cleaned.substring(2)
+  }
+
+  return cleaned
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -82,6 +130,46 @@ New status: ${payload.new_status}`
     return null
   }
 
+  const systemPrompts: Record<string, string> = {
+    "order.created": `You are a WhatsApp notification assistant for *${storeName}*. Generate a warm, friendly WhatsApp message to confirm a customer's new order.
+
+Rules:
+- Write the ENTIRE message in ${langName}.
+- Use WhatsApp formatting: *bold* for the store name, order number, and total. Use _italic_ sparingly.
+- Structure the message like this:
+  1. A warm greeting using the customer's FIRST NAME only (extract from full name).
+  2. Confirm their order was received successfully.
+  3. A blank line, then the order details block:
+     - Order number
+     - Each item on its own line with quantity and price
+     - Total amount
+  4. A blank line, then a short closing (we'll get it ready, contact us if needed, etc.)
+- Keep it concise but not robotic — sound like a real person.
+- Each message should feel slightly different — vary your wording and tone naturally.
+- Do NOT include links, emojis, or placeholder text like [link] or [phone].
+- Do NOT start with "Dear" or "Hello Dear" — be casual and direct.
+- Output ONLY the message text, nothing else.`,
+
+    "order.status_changed": `You are a WhatsApp notification assistant for *${storeName}*. Generate a short, friendly WhatsApp message to update a customer on their order status.
+
+Rules:
+- Write the ENTIRE message in ${langName}.
+- Use WhatsApp formatting: *bold* for store name, order number, and new status.
+- Structure:
+  1. Greet the customer by their FIRST NAME (extract from full name).
+  2. Inform them their order status has changed.
+  3. Show: Order #, old status → new status.
+  4. A short encouraging line based on the new status (e.g., "shipped" = it's on its way!, "delivered" = enjoy!, "processing" = we're working on it!).
+- Keep it to 3-5 lines. Short and clear.
+- Vary your wording naturally — don't repeat the same template every time.
+- Do NOT include links, emojis, or placeholder text.
+- Do NOT start with "Dear" — be casual and direct.
+- Output ONLY the message text, nothing else.`,
+  }
+
+  const systemPrompt = systemPrompts[eventType]
+  if (!systemPrompt) return null
+
   try {
     const res = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
@@ -94,24 +182,11 @@ New status: ${payload.new_status}`
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages: [
-            {
-              role: "system",
-              content: `You are a WhatsApp notification assistant for an e-commerce store. Generate a friendly, concise WhatsApp message to send to the customer about their order.
-
-Rules:
-- Write the ENTIRE message in ${langName}.
-- Use WhatsApp formatting: *bold* for emphasis, _italic_ for subtle text.
-- Keep it short (4-8 lines max).
-- Include the order number, items ordered (if available), and total.
-- Be warm and professional — thank the customer.
-- Do NOT include any links, emojis, or placeholder text.
-- Do NOT include greetings like "Dear customer" — use their first name.
-- Output ONLY the message text, nothing else.`,
-            },
+            { role: "system", content: systemPrompt },
             { role: "user", content: context },
           ],
-          max_tokens: 300,
-          temperature: 0.7,
+          max_tokens: 400,
+          temperature: 0.9,
         }),
         signal: AbortSignal.timeout(10000),
       }
@@ -133,21 +208,45 @@ export function buildWhatsAppMessage(
   storeName: string,
   currency: string
 ): string {
+  const firstName = payload.customer_name.split(" ")[0]
+
   if (eventType === "order.created") {
-    return [
-      `*New Order #${payload.order_number}* on ${storeName}`,
-      `Customer: ${payload.customer_name}`,
-      `Phone: ${payload.customer_phone}`,
-      `Total: ${payload.total} ${currency}`,
-      `Status: Pending`,
-    ].join("\n")
+    const itemsBlock = payload.items?.length
+      ? payload.items
+          .map(
+            (i) =>
+              `  ${i.product_name}${i.variant_options ? ` (${Object.values(i.variant_options).join(", ")})` : ""} x${i.quantity} — ${i.product_price} ${currency}`
+          )
+          .join("\n")
+      : null
+
+    const lines = [
+      `Hey ${firstName}! Your order from *${storeName}* has been received.`,
+      ``,
+      `*Order #${payload.order_number}*`,
+    ]
+
+    if (itemsBlock) {
+      lines.push(itemsBlock)
+    }
+
+    lines.push(
+      `*Total: ${payload.total} ${currency}*`,
+      ``,
+      `We're on it! You'll hear from us when there's an update.`
+    )
+
+    return lines.join("\n")
   }
 
   if (eventType === "order.status_changed") {
     return [
-      `*Order #${payload.order_number}* status updated`,
-      `${payload.old_status} → ${payload.new_status}`,
-      `Customer: ${payload.customer_name}`,
+      `Hey ${firstName}! Quick update on your order from *${storeName}*:`,
+      ``,
+      `*Order #${payload.order_number}*`,
+      `Status: ${payload.old_status} → *${payload.new_status}*`,
+      ``,
+      `Thanks for your patience!`,
     ].join("\n")
   }
 
@@ -175,7 +274,7 @@ export async function handleWhatsApp(
     throw new Error("Evolution API not configured")
   }
 
-  const phone = payload.customer_phone.replace(/[^0-9+]/g, "")
+  const phone = normalizePhone(payload.customer_phone, payload.customer_country)
 
   const res = await fetch(
     `${evolutionUrl}/message/sendText/${config.instance_name}`,
