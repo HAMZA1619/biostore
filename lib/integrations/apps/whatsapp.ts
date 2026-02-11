@@ -29,6 +29,8 @@ interface EventPayload {
   customer_name: string
   customer_phone: string
   customer_country?: string
+  customer_city?: string
+  customer_address?: string
   total: number
   status?: string
   old_status?: string
@@ -112,18 +114,24 @@ async function generateAIMessage(
           .join("\n")
       : "Items not available"
 
+    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
+
     context = `Event: New order placed
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
+Address: ${address || "Not provided"}
 Total: ${payload.total} ${currency}
 Items ordered:
 ${itemsList}`
   } else if (eventType === "order.status_changed") {
+    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
+
     context = `Event: Order status updated
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
+Address: ${address || "Not provided"}
 Previous status: ${payload.old_status}
 New status: ${payload.new_status}`
   } else {
@@ -144,7 +152,7 @@ Rules:
 - Structure:
   1. Greet using the customer's name exactly as given above.
   2. Confirm their order was received.
-  3. Blank line, then order details (order number, items with quantity/price, total).
+  3. Blank line, then order details (order number, items with quantity/price, total, delivery address).
   4. Blank line, then a short closing.
 - Keep it concise — sound like a real person, not a robot.
 - Vary your wording naturally each time.
@@ -236,11 +244,15 @@ export function buildWhatsAppMessage(
       lines.push(itemsBlock)
     }
 
-    lines.push(
-      `*Total: ${payload.total} ${currency}*`,
-      ``,
-      `We're on it! You'll hear from us when there's an update.`
-    )
+    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
+
+    lines.push(`*Total: ${payload.total} ${currency}*`)
+
+    if (address) {
+      lines.push(`Delivery: ${address}`)
+    }
+
+    lines.push(``, `We're on it! You'll hear from us when there's an update.`)
 
     return lines.join("\n")
   }

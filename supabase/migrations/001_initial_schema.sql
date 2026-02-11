@@ -396,6 +396,8 @@ BEGIN
           'customer_name', NEW.customer_name,
           'customer_phone', NEW.customer_phone,
           'customer_country', NEW.customer_country,
+          'customer_city', NEW.customer_city,
+          'customer_address', NEW.customer_address,
           'old_status', OLD.status,
           'new_status', NEW.status,
           'total', NEW.total,
