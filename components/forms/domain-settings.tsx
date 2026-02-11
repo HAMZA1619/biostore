@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +21,13 @@ import { useTranslation } from "react-i18next"
 import { Globe, Copy, Trash2, CheckCircle, Clock, Loader2 } from "lucide-react"
 import "@/lib/i18n"
 
+interface VercelDomainConfig {
+  name?: string
+  apexName?: string
+  verified?: boolean
+  verification?: { type: string; domain: string; value: string }[]
+}
+
 interface DomainSettingsProps {
   currentDomain: string | null
   domainVerified: boolean
@@ -34,12 +41,27 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
   const [verifying, setVerifying] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [vercelConfig, setVercelConfig] = useState<VercelDomainConfig | null>(null)
 
-  const appHostname = typeof window !== "undefined"
-    ? new URL(process.env.NEXT_PUBLIC_APP_URL || window.location.origin).hostname
-    : ""
+  const fetchDomainConfig = useCallback(async () => {
+    try {
+      const res = await fetch("/api/store/domain")
+      const data = await res.json()
+      if (data.vercel) {
+        setVercelConfig(data.vercel)
+      }
+    } catch {
+      // Silently fail — DNS instructions will fall back to defaults
+    }
+  }, [])
 
-  const serverIp = process.env.NEXT_PUBLIC_APP_SERVER_IP || ""
+  useEffect(() => {
+    if (currentDomain && !domainVerified) {
+      fetchDomainConfig()
+    }
+  }, [currentDomain, domainVerified, fetchDomainConfig])
+
+  const isApex = currentDomain ? !currentDomain.includes(".") || currentDomain.split(".").length === 2 : false
 
   async function handleSave() {
     if (!domain.trim()) return
@@ -54,6 +76,9 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
       if (!res.ok) {
         toast.error(t(data.error) || t("domain.invalidDomain"))
         return
+      }
+      if (data.vercel) {
+        setVercelConfig(data.vercel)
       }
       toast.success(t("domain.domainSaved"))
       setDomain("")
@@ -74,6 +99,12 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
         toast.success(t("domain.verificationSuccess"))
         router.refresh()
       } else {
+        if (data.verification) {
+          setVercelConfig((prev) => ({
+            ...prev,
+            verification: data.verification,
+          }))
+        }
         toast.error(t("domain.verificationFailed"))
       }
     } catch {
@@ -92,6 +123,7 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
         return
       }
       toast.success(t("domain.domainRemoved"))
+      setVercelConfig(null)
       setDeleteOpen(false)
       router.refresh()
     } catch {
@@ -105,6 +137,18 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
     navigator.clipboard.writeText(text)
     toast.success(t("domain.copied"))
   }
+
+  const dnsRecords: { type: string; name: string; value: string }[] = []
+
+  if (currentDomain) {
+    if (isApex) {
+      dnsRecords.push({ type: "A", name: "@", value: "76.76.21.21" })
+    } else {
+      dnsRecords.push({ type: "CNAME", name: currentDomain.split(".")[0], value: "cname.vercel-dns.com" })
+    }
+  }
+
+  const txtRecords = vercelConfig?.verification ?? []
 
   return (
     <>
@@ -174,28 +218,28 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
                       </tr>
                     </thead>
                     <tbody>
-                      {serverIp && (
-                        <tr className="border-b last:border-0">
-                          <td className="px-4 py-2.5 font-medium">A</td>
+                      {dnsRecords.map((record) => (
+                        <tr key={record.type + record.name} className="border-b last:border-0">
+                          <td className="px-4 py-2.5 font-medium">{record.type}</td>
                           <td className="px-4 py-2.5">
-                            <CopyField value="@" onCopy={copyToClipboard} />
+                            <CopyField value={record.name} onCopy={copyToClipboard} />
                           </td>
                           <td className="px-4 py-2.5">
-                            <CopyField value={serverIp} onCopy={copyToClipboard} />
-                          </td>
-                        </tr>
-                      )}
-                      {appHostname && (
-                        <tr className="border-b last:border-0">
-                          <td className="px-4 py-2.5 font-medium">CNAME</td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value="www" onCopy={copyToClipboard} />
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value={appHostname} onCopy={copyToClipboard} />
+                            <CopyField value={record.value} onCopy={copyToClipboard} />
                           </td>
                         </tr>
-                      )}
+                      ))}
+                      {txtRecords.map((v) => (
+                        <tr key={v.domain} className="border-b last:border-0">
+                          <td className="px-4 py-2.5 font-medium">{v.type}</td>
+                          <td className="px-4 py-2.5">
+                            <CopyField value={v.domain} onCopy={copyToClipboard} />
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <CopyField value={v.value} onCopy={copyToClipboard} />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
