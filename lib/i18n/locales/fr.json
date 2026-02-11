@@ -14,7 +14,8 @@
     "logoutConfirm": "Se déconnecter",
     "brandName": "BioStore",
     "viewStore": "Voir la boutique",
-    "faqs": "FAQ"
+    "faqs": "FAQ",
+    "integrations": "Intégrations"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -577,6 +578,36 @@
     "error": "Échec de la réponse. Veuillez réessayer.",
     "clearChat": "Effacer le chat",
     "greeting": "Bonjour ! Je suis votre assistant de configuration. Je peux vous aider à configurer votre boutique, ajouter des produits, gérer les commandes et plus encore. Comment puis-je vous aider ?"
+  },
+  "integrations": {
+    "title": "Intégrations",
+    "empty": "Aucune intégration disponible pour le moment.",
+    "install": "Installer",
+    "configure": "Configurer",
+    "active": "Actif",
+    "paused": "En pause",
+    "installTitle": "Installer {{name}}",
+    "configureTitle": "Configurer {{name}}",
+    "uninstall": "Désinstaller",
+    "uninstallTitle": "Désinstaller l'intégration ?",
+    "uninstallDescription": "Cela supprimera l'intégration et sa configuration. Vous pourrez la réinstaller plus tard.",
+    "uninstalled": "Intégration désinstallée",
+    "cancel": "Annuler",
+    "enabled": "Intégration activée",
+    "disabled": "Intégration en pause",
+    "noSetup": "Aucune configuration disponible pour cette intégration.",
+    "connectWhatsApp": "Connecter WhatsApp",
+    "scanQrCode": "Scannez ce QR code avec WhatsApp sur votre téléphone",
+    "waitingForScan": "En attente de connexion...",
+    "refreshQr": "Actualiser le QR Code",
+    "whatsappConnected": "WhatsApp connecté avec succès !",
+    "whatsappDisconnected": "WhatsApp déconnecté",
+    "whatsappConnectedStatus": "WhatsApp connecté",
+    "whatsappConnectedHint": "Les notifications de commande seront envoyées via WhatsApp.",
+    "whatsappSetupHint": "Connectez votre WhatsApp pour envoyer automatiquement des notifications de commande aux clients.",
+    "disconnect": "Déconnecter",
+    "connectFailed": "Échec de la connexion",
+    "disconnectFailed": "Échec de la déconnexion"
   },
   "language": {
     "en": "English",

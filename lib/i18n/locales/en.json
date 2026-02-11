@@ -14,7 +14,8 @@
     "logoutConfirm": "Log out",
     "brandName": "BioStore",
     "viewStore": "View store",
-    "faqs": "FAQs"
+    "faqs": "FAQs",
+    "integrations": "Integrations"
   },
   "dashboard": {
     "welcome": "Welcome to BioStore",
@@ -577,6 +578,36 @@
     "error": "Failed to get response. Please try again.",
     "clearChat": "Clear chat",
     "greeting": "Hi! I'm your setup assistant. I can help you configure your store, add products, manage orders, and more. What do you need help with?"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "empty": "No integrations available yet.",
+    "install": "Install",
+    "configure": "Configure",
+    "active": "Active",
+    "paused": "Paused",
+    "installTitle": "Install {{name}}",
+    "configureTitle": "Configure {{name}}",
+    "uninstall": "Uninstall",
+    "uninstallTitle": "Uninstall integration?",
+    "uninstallDescription": "This will remove the integration and its configuration. You can reinstall it later.",
+    "uninstalled": "Integration uninstalled",
+    "cancel": "Cancel",
+    "enabled": "Integration enabled",
+    "disabled": "Integration paused",
+    "noSetup": "No setup available for this integration.",
+    "connectWhatsApp": "Connect WhatsApp",
+    "scanQrCode": "Scan this QR code with WhatsApp on your phone",
+    "waitingForScan": "Waiting for connection...",
+    "refreshQr": "Refresh QR Code",
+    "whatsappConnected": "WhatsApp connected successfully!",
+    "whatsappDisconnected": "WhatsApp disconnected",
+    "whatsappConnectedStatus": "WhatsApp Connected",
+    "whatsappConnectedHint": "Order notifications will be sent via WhatsApp.",
+    "whatsappSetupHint": "Connect your WhatsApp to send order notifications to customers automatically.",
+    "disconnect": "Disconnect",
+    "connectFailed": "Failed to connect",
+    "disconnectFailed": "Failed to disconnect"
   },
   "language": {
     "en": "English",

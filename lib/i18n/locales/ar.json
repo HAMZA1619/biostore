@@ -14,7 +14,8 @@
     "logoutConfirm": "تسجيل الخروج",
     "brandName": "BioStore",
     "viewStore": "عرض المتجر",
-    "faqs": "الأسئلة الشائعة"
+    "faqs": "الأسئلة الشائعة",
+    "integrations": "التكاملات"
   },
   "dashboard": {
     "welcome": "مرحبا بك في BioStore",
@@ -577,6 +578,36 @@
     "error": "فشل في الحصول على الرد. حاول مرة أخرى.",
     "clearChat": "مسح المحادثة",
     "greeting": "مرحبًا! أنا مساعد الإعداد الخاص بك. يمكنني مساعدتك في تهيئة متجرك، إضافة المنتجات، إدارة الطلبات والمزيد. كيف يمكنني مساعدتك؟"
+  },
+  "integrations": {
+    "title": "التكاملات",
+    "empty": "لا توجد تكاملات متاحة حالياً.",
+    "install": "تثبيت",
+    "configure": "إعداد",
+    "active": "نشط",
+    "paused": "متوقف",
+    "installTitle": "تثبيت {{name}}",
+    "configureTitle": "إعداد {{name}}",
+    "uninstall": "إزالة",
+    "uninstallTitle": "إزالة التكامل؟",
+    "uninstallDescription": "سيؤدي هذا إلى إزالة التكامل وإعداداته. يمكنك إعادة تثبيته لاحقاً.",
+    "uninstalled": "تم إزالة التكامل",
+    "cancel": "إلغاء",
+    "enabled": "تم تفعيل التكامل",
+    "disabled": "تم إيقاف التكامل",
+    "noSetup": "لا يوجد إعداد متاح لهذا التكامل.",
+    "connectWhatsApp": "ربط واتساب",
+    "scanQrCode": "امسح رمز QR باستخدام واتساب على هاتفك",
+    "waitingForScan": "في انتظار الاتصال...",
+    "refreshQr": "تحديث رمز QR",
+    "whatsappConnected": "تم ربط واتساب بنجاح!",
+    "whatsappDisconnected": "تم فصل واتساب",
+    "whatsappConnectedStatus": "واتساب متصل",
+    "whatsappConnectedHint": "سيتم إرسال إشعارات الطلبات عبر واتساب.",
+    "whatsappSetupHint": "اربط واتساب لإرسال إشعارات الطلبات للعملاء تلقائياً.",
+    "disconnect": "فصل",
+    "connectFailed": "فشل الاتصال",
+    "disconnectFailed": "فشل الفصل"
   },
   "language": {
     "en": "English",

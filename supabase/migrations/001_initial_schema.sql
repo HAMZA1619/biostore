@@ -295,3 +295,117 @@ CREATE POLICY "Owners can update faqs" ON store_faqs FOR UPDATE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete faqs" ON store_faqs FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Store Integrations (installed apps per store)
+CREATE TABLE store_integrations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  integration_id TEXT NOT NULL,
+  is_enabled BOOLEAN NOT NULL DEFAULT true,
+  config JSONB NOT NULL DEFAULT '{}',
+  installed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(store_id, integration_id)
+);
+CREATE INDEX idx_store_integrations_store ON store_integrations(store_id);
+CREATE INDEX idx_store_integrations_enabled ON store_integrations(store_id, is_enabled) WHERE is_enabled = true;
+
+ALTER TABLE store_integrations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Owners can view own integrations" ON store_integrations FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can insert integrations" ON store_integrations FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can update integrations" ON store_integrations FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can delete integrations" ON store_integrations FOR DELETE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Integration Events (event log for webhook dispatch)
+CREATE TABLE integration_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+  error TEXT,
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_integration_events_store ON integration_events(store_id);
+CREATE INDEX idx_integration_events_status ON integration_events(status) WHERE status = 'pending';
+
+ALTER TABLE integration_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Owners can view own events" ON integration_events FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = integration_events.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Trigger: log event when order is created
+CREATE OR REPLACE FUNCTION public.handle_order_created()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM public.store_integrations
+    WHERE store_id = NEW.store_id AND is_enabled = true
+  ) THEN
+    INSERT INTO public.integration_events (store_id, event_type, payload)
+    VALUES (
+      NEW.store_id,
+      'order.created',
+      jsonb_build_object(
+        'order_id', NEW.id,
+        'order_number', NEW.order_number,
+        'store_id', NEW.store_id,
+        'customer_name', NEW.customer_name,
+        'customer_phone', NEW.customer_phone,
+        'customer_email', NEW.customer_email,
+        'customer_city', NEW.customer_city,
+        'customer_address', NEW.customer_address,
+        'status', NEW.status,
+        'total', NEW.total,
+        'subtotal', NEW.subtotal,
+        'note', NEW.note,
+        'created_at', NEW.created_at
+      )
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE TRIGGER on_order_created
+  AFTER INSERT ON orders
+  FOR EACH ROW EXECUTE FUNCTION public.handle_order_created();
+
+-- Trigger: log event when order status changes
+CREATE OR REPLACE FUNCTION public.handle_order_status_changed()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.status IS DISTINCT FROM NEW.status THEN
+    IF EXISTS (
+      SELECT 1 FROM public.store_integrations
+      WHERE store_id = NEW.store_id AND is_enabled = true
+    ) THEN
+      INSERT INTO public.integration_events (store_id, event_type, payload)
+      VALUES (
+        NEW.store_id,
+        'order.status_changed',
+        jsonb_build_object(
+          'order_id', NEW.id,
+          'order_number', NEW.order_number,
+          'store_id', NEW.store_id,
+          'customer_name', NEW.customer_name,
+          'customer_phone', NEW.customer_phone,
+          'old_status', OLD.status,
+          'new_status', NEW.status,
+          'total', NEW.total,
+          'updated_at', now()
+        )
+      );
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE TRIGGER on_order_status_changed
+  AFTER UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION public.handle_order_status_changed();
