@@ -114,24 +114,32 @@ async function generateAIMessage(
           .join("\n")
       : "Items not available"
 
+    const addressParts = [
+      payload.customer_address ? `Address: ${payload.customer_address}` : null,
+      payload.customer_city ? `City: ${payload.customer_city}` : null,
+      payload.customer_country ? `Country: ${payload.customer_country}` : null,
+    ].filter(Boolean).join("\n")
+
     context = `Event: New order placed
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
-Address: ${payload.customer_address || "Not provided"}
-City: ${payload.customer_city || "Not provided"}
-Country: ${payload.customer_country || "Not provided"}
+${addressParts || "Address: Not provided"}
 Total: ${payload.total} ${currency}
 Items ordered:
 ${itemsList}`
   } else if (eventType === "order.status_changed") {
+    const addressParts = [
+      payload.customer_address ? `Address: ${payload.customer_address}` : null,
+      payload.customer_city ? `City: ${payload.customer_city}` : null,
+      payload.customer_country ? `Country: ${payload.customer_country}` : null,
+    ].filter(Boolean).join("\n")
+
     context = `Event: Order status updated
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
-Address: ${payload.customer_address || "Not provided"}
-City: ${payload.customer_city || "Not provided"}
-Country: ${payload.customer_country || "Not provided"}
+${addressParts || "Address: Not provided"}
 Previous status: ${payload.old_status}
 New status: ${payload.new_status}`
   } else {
@@ -160,7 +168,7 @@ Rules:
   6. Blank line.
   7. Total.
   8. Blank line.
-  9. Delivery details: address, city, and country each shown clearly.
+  9. Delivery details: address and country (include city only if provided).
   10. Blank line.
   11. A short closing.
 - Keep it concise — sound like a real person, not a robot.
@@ -244,7 +252,7 @@ export function buildWhatsAppMessage(
           .join("\n")
       : null
 
-    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
+    const addressLine = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
 
     const lines = [
       `Hey ${firstName}! Your order from *${storeName}* has been received.`,
@@ -259,8 +267,8 @@ export function buildWhatsAppMessage(
 
     lines.push(`*Total: ${payload.total} ${currency}*`)
 
-    if (address) {
-      lines.push(``, `Delivery: ${address}`)
+    if (addressLine) {
+      lines.push(``, `Delivery: ${addressLine}`)
     }
 
     lines.push(``, `We're on it! You'll hear from us when there's an update.`)
