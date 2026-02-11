@@ -162,56 +162,39 @@ export async function handleWhatsApp(
   currency: string,
   storeLanguage?: string
 ): Promise<void> {
-  console.log("[WHATSAPP] config.connected:", config.connected, "instance:", config.instance_name)
+  if (!config.connected || !config.instance_name) return
 
-  if (!config.connected || !config.instance_name) {
-    console.log("[WHATSAPP] SKIPPED — not connected or no instance_name")
-    return
-  }
-
-  console.log("[WHATSAPP] generating AI message...")
-  const aiMessage = await generateAIMessage(eventType, payload, storeName, currency, storeLanguage || "en")
-  console.log("[WHATSAPP] AI message:", aiMessage ? "generated" : "failed/null")
-
-  const message = aiMessage || buildWhatsAppMessage(eventType, payload, storeName, currency)
-  console.log("[WHATSAPP] final message length:", message.length)
-  if (!message) {
-    console.log("[WHATSAPP] SKIPPED — empty message")
-    return
-  }
+  const message =
+    (await generateAIMessage(eventType, payload, storeName, currency, storeLanguage || "en")) ||
+    buildWhatsAppMessage(eventType, payload, storeName, currency)
+  if (!message) return
 
   const evolutionUrl = process.env.EVOLUTION_API_URL?.replace(/\/+$/, "")
   const evolutionKey = process.env.EVOLUTION_API_KEY
-  console.log("[WHATSAPP] evolutionUrl:", evolutionUrl || "NOT_SET")
-
   if (!evolutionUrl || !evolutionKey) {
-    console.log("[WHATSAPP] FAILED — Evolution API not configured")
     throw new Error("Evolution API not configured")
   }
 
   const phone = payload.customer_phone.replace(/[^0-9+]/g, "")
-  const sendUrl = `${evolutionUrl}/message/sendText/${config.instance_name}`
-  console.log("[WHATSAPP] sending to phone:", phone, "url:", sendUrl)
 
-  const res = await fetch(sendUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: evolutionKey,
-    },
-    body: JSON.stringify({
-      number: phone,
-      text: message,
-    }),
-    signal: AbortSignal.timeout(15000),
-  })
-
-  const resBody = await res.text().catch(() => "")
-  console.log("[WHATSAPP] Evolution response:", res.status, resBody.substring(0, 500))
+  const res = await fetch(
+    `${evolutionUrl}/message/sendText/${config.instance_name}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: evolutionKey,
+      },
+      body: JSON.stringify({
+        number: phone,
+        text: message,
+      }),
+      signal: AbortSignal.timeout(15000),
+    }
+  )
 
   if (!res.ok) {
-    throw new Error(`WhatsApp API error ${res.status}: ${resBody}`)
+    const body = await res.text().catch(() => "")
+    throw new Error(`WhatsApp API error ${res.status}: ${body}`)
   }
-
-  console.log("[WHATSAPP] message sent successfully!")
 }
