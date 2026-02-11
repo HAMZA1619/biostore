@@ -11,7 +11,7 @@ export async function DashboardHeader() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("slug")
+    .select("slug, custom_domain, domain_verified")
     .eq("owner_id", user?.id)
     .single()
 
@@ -27,7 +27,7 @@ export async function DashboardHeader() {
         <MobileNav />
         {store?.slug && (
           <Link
-            href={`/${store.slug}`}
+            href={store.custom_domain && store.domain_verified ? `https://${store.custom_domain}` : `/${store.slug}`}
             target="_blank"
             className="hidden items-center gap-1 text-sm text-muted-foreground hover:text-foreground sm:flex"
           >

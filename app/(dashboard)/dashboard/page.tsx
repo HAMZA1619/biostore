@@ -22,7 +22,7 @@ export default async function DashboardPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, is_published, currency")
+    .select("id, name, slug, is_published, currency, custom_domain, domain_verified")
     .eq("owner_id", user.id)
     .single()
 
@@ -55,11 +55,13 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold"><T k="dashboard.overview" /></h1>
         {store.is_published && (
           <Link
-            href={`/${store.slug}`}
+            href={store.custom_domain && store.domain_verified ? `https://${store.custom_domain}` : `/${store.slug}`}
             target="_blank"
             className="text-sm text-primary underline"
           >
-            {process.env.NEXT_PUBLIC_APP_URL}/{store.slug}
+            {store.custom_domain && store.domain_verified
+              ? store.custom_domain
+              : `${process.env.NEXT_PUBLIC_APP_URL}/${store.slug}`}
           </Link>
         )}
       </div>

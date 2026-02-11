@@ -207,41 +207,43 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
 
             {!domainVerified && (
               <>
-                <div className="rounded-md border">
+                <div className="overflow-hidden rounded-md border">
                   <p className="px-4 pt-4 text-sm font-medium">{t("domain.dnsInstructions")}</p>
-                  <table className="mt-3 w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-muted-foreground">
-                        <th className="px-4 py-2 text-start font-medium">{t("domain.dnsType")}</th>
-                        <th className="px-4 py-2 text-start font-medium">{t("domain.dnsName")}</th>
-                        <th className="px-4 py-2 text-start font-medium">{t("domain.dnsValue")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dnsRecords.map((record) => (
-                        <tr key={record.type + record.name} className="border-b last:border-0">
-                          <td className="px-4 py-2.5 font-medium">{record.type}</td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value={record.name} onCopy={copyToClipboard} />
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value={record.value} onCopy={copyToClipboard} />
-                          </td>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-muted-foreground">
+                          <th className="w-16 px-4 py-2 text-start font-medium">{t("domain.dnsType")}</th>
+                          <th className="w-32 px-4 py-2 text-start font-medium">{t("domain.dnsName")}</th>
+                          <th className="px-4 py-2 text-start font-medium">{t("domain.dnsValue")}</th>
                         </tr>
-                      ))}
-                      {txtRecords.map((v) => (
-                        <tr key={v.domain} className="border-b last:border-0">
-                          <td className="px-4 py-2.5 font-medium">{v.type}</td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value={v.domain} onCopy={copyToClipboard} />
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <CopyField value={v.value} onCopy={copyToClipboard} />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {dnsRecords.map((record) => (
+                          <tr key={record.type + record.name} className="border-b last:border-0">
+                            <td className="px-4 py-2.5 font-medium">{record.type}</td>
+                            <td className="px-4 py-2.5">
+                              <CopyField value={record.name} onCopy={copyToClipboard} />
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <CopyField value={record.value} onCopy={copyToClipboard} />
+                            </td>
+                          </tr>
+                        ))}
+                        {txtRecords.map((v) => (
+                          <tr key={v.domain} className="border-b last:border-0">
+                            <td className="px-4 py-2.5 font-medium">{v.type}</td>
+                            <td className="px-4 py-2.5">
+                              <CopyField value={v.domain} onCopy={copyToClipboard} />
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <CopyField value={v.value} onCopy={copyToClipboard} truncate />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 <Button onClick={handleVerify} disabled={verifying} variant="outline">
@@ -280,15 +282,16 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
   )
 }
 
-function CopyField({ value, onCopy }: { value: string; onCopy: (v: string) => void }) {
+function CopyField({ value, onCopy, truncate }: { value: string; onCopy: (v: string) => void; truncate?: boolean }) {
   return (
     <button
       type="button"
       onClick={() => onCopy(value)}
-      className="group inline-flex items-center gap-1.5 rounded bg-muted px-2 py-0.5 font-mono text-xs transition-colors hover:bg-muted/80"
+      className={`group inline-flex items-center gap-1.5 rounded bg-muted px-2 py-0.5 font-mono text-xs transition-colors hover:bg-muted/80 ${truncate ? "max-w-48 sm:max-w-64" : ""}`}
+      title={value}
     >
-      {value}
-      <Copy className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      <span className={truncate ? "truncate" : ""}>{value}</span>
+      <Copy className="h-3 w-3 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
     </button>
   )
 }
