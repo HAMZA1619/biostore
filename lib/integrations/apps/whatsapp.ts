@@ -131,42 +131,46 @@ New status: ${payload.new_status}`
   }
 
   const systemPrompts: Record<string, string> = {
-    "order.created": `You are a WhatsApp notification assistant for *${storeName}*. Generate a warm, friendly WhatsApp message to confirm a customer's new order.
+    "order.created": `You are a WhatsApp notification assistant. Generate a warm, friendly WhatsApp message in ${langName} to confirm a customer's new order.
+
+CRITICAL — DO NOT CHANGE THESE VALUES:
+- Customer name: "${payload.customer_name}" — use EXACTLY this name (first word only). Do NOT translate, transliterate, or replace it.
+- Store name: "${storeName}" — use EXACTLY this. Do NOT add words like "store" or "متجر" before it.
+- Product names: use EXACTLY as provided. Do NOT translate them.
 
 Rules:
-- Write the ENTIRE message in ${langName}.
-- Use WhatsApp formatting: *bold* for the store name, order number, and total. Use _italic_ sparingly.
-- Structure the message like this:
-  1. A warm greeting using the customer's FIRST NAME only (extract from full name).
-  2. Confirm their order was received successfully.
-  3. A blank line, then the order details block:
-     - Order number
-     - Each item on its own line with quantity and price
-     - Total amount
-  4. A blank line, then a short closing (we'll get it ready, contact us if needed, etc.)
-- Keep it concise but not robotic — sound like a real person.
-- Each message should feel slightly different — vary your wording and tone naturally.
-- Do NOT translate customer names or product names — keep them exactly as provided.
-- Do NOT include links, emojis, or placeholder text like [link] or [phone].
-- Do NOT start with "Dear" or "Hello Dear" — be casual and direct.
-- Output ONLY the message text, nothing else.`,
-
-    "order.status_changed": `You are a WhatsApp notification assistant for *${storeName}*. Generate a short, friendly WhatsApp message to update a customer on their order status.
-
-Rules:
-- Write the ENTIRE message in ${langName}.
-- Use WhatsApp formatting: *bold* for store name, order number, and new status.
+- Write the message text in ${langName}, but all names stay as-is.
+- Use WhatsApp formatting: *bold* for store name, order number, and total.
 - Structure:
-  1. Greet the customer by their FIRST NAME (extract from full name).
-  2. Inform them their order status has changed.
-  3. Show: Order #, old status → new status.
-  4. A short encouraging line based on the new status (e.g., "shipped" = it's on its way!, "delivered" = enjoy!, "processing" = we're working on it!).
-- Keep it to 3-5 lines. Short and clear.
-- Do NOT translate customer names — keep them exactly as provided.
-- Vary your wording naturally — don't repeat the same template every time.
+  1. Greet using the customer's name exactly as given above.
+  2. Confirm their order was received.
+  3. Blank line, then order details (order number, items with quantity/price, total).
+  4. Blank line, then a short closing.
+- Keep it concise — sound like a real person, not a robot.
+- Vary your wording naturally each time.
 - Do NOT include links, emojis, or placeholder text.
 - Do NOT start with "Dear" — be casual and direct.
-- Output ONLY the message text, nothing else.`,
+- Output ONLY the message text.`,
+
+    "order.status_changed": `You are a WhatsApp notification assistant. Generate a short, friendly WhatsApp message in ${langName} to update a customer on their order status.
+
+CRITICAL — DO NOT CHANGE THESE VALUES:
+- Customer name: "${payload.customer_name}" — use EXACTLY this name (first word only). Do NOT translate, transliterate, or replace it.
+- Store name: "${storeName}" — use EXACTLY this. Do NOT add words like "store" or "متجر" before it.
+
+Rules:
+- Write the message text in ${langName}, but all names stay as-is.
+- Use WhatsApp formatting: *bold* for store name, order number, and new status.
+- Structure:
+  1. Greet using the customer's name exactly as given above.
+  2. Inform them their order status changed.
+  3. Show: Order #, old status → new status.
+  4. A short encouraging line based on the new status.
+- Keep it to 3-5 lines. Short and clear.
+- Vary your wording naturally each time.
+- Do NOT include links, emojis, or placeholder text.
+- Do NOT start with "Dear" — be casual and direct.
+- Output ONLY the message text.`,
   }
 
   const systemPrompt = systemPrompts[eventType]
