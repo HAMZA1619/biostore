@@ -146,6 +146,7 @@ Rules:
   4. A blank line, then a short closing (we'll get it ready, contact us if needed, etc.)
 - Keep it concise but not robotic — sound like a real person.
 - Each message should feel slightly different — vary your wording and tone naturally.
+- Do NOT translate customer names or product names — keep them exactly as provided.
 - Do NOT include links, emojis, or placeholder text like [link] or [phone].
 - Do NOT start with "Dear" or "Hello Dear" — be casual and direct.
 - Output ONLY the message text, nothing else.`,
@@ -161,6 +162,7 @@ Rules:
   3. Show: Order #, old status → new status.
   4. A short encouraging line based on the new status (e.g., "shipped" = it's on its way!, "delivered" = enjoy!, "processing" = we're working on it!).
 - Keep it to 3-5 lines. Short and clear.
+- Do NOT translate customer names — keep them exactly as provided.
 - Vary your wording naturally — don't repeat the same template every time.
 - Do NOT include links, emojis, or placeholder text.
 - Do NOT start with "Dear" — be casual and direct.
