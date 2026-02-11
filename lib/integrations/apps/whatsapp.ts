@@ -145,15 +145,23 @@ CRITICAL — DO NOT CHANGE THESE VALUES:
 - Customer name: "${payload.customer_name}" — use EXACTLY this name (first word only). Do NOT translate, transliterate, or replace it.
 - Store name: "${storeName}" — use EXACTLY this. Do NOT add words like "store" or "متجر" before it.
 - Product names: use EXACTLY as provided. Do NOT translate them.
+- Address: use EXACTLY as provided. Do NOT translate or reformat it.
 
 Rules:
-- Write the message text in ${langName}, but all names stay as-is.
+- Write the message text in ${langName}, but all names and addresses stay as-is.
 - Use WhatsApp formatting: *bold* for store name, order number, and total.
-- Structure:
+- Structure (use blank lines between each section):
   1. Greet using the customer's name exactly as given above.
-  2. Confirm their order was received.
-  3. Blank line, then order details (order number, items with quantity/price, total, delivery address).
-  4. Blank line, then a short closing.
+  2. Blank line.
+  3. Order number.
+  4. Blank line.
+  5. Each item on its own line with quantity and price.
+  6. Blank line.
+  7. Total.
+  8. Blank line.
+  9. Full delivery address on its own line (show the complete address as provided).
+  10. Blank line.
+  11. A short closing.
 - Keep it concise — sound like a real person, not a robot.
 - Vary your wording naturally each time.
 - Do NOT include links, emojis, or placeholder text.
@@ -234,22 +242,23 @@ export function buildWhatsAppMessage(
           .join("\n")
       : null
 
+    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
+
     const lines = [
       `Hey ${firstName}! Your order from *${storeName}* has been received.`,
       ``,
       `*Order #${payload.order_number}*`,
+      ``,
     ]
 
     if (itemsBlock) {
-      lines.push(itemsBlock)
+      lines.push(itemsBlock, ``)
     }
-
-    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
 
     lines.push(`*Total: ${payload.total} ${currency}*`)
 
     if (address) {
-      lines.push(`Delivery: ${address}`)
+      lines.push(``, `Delivery: ${address}`)
     }
 
     lines.push(``, `We're on it! You'll hear from us when there's an update.`)
