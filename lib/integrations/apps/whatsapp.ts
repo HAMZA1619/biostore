@@ -114,24 +114,24 @@ async function generateAIMessage(
           .join("\n")
       : "Items not available"
 
-    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
-
     context = `Event: New order placed
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
-Address: ${address || "Not provided"}
+Address: ${payload.customer_address || "Not provided"}
+City: ${payload.customer_city || "Not provided"}
+Country: ${payload.customer_country || "Not provided"}
 Total: ${payload.total} ${currency}
 Items ordered:
 ${itemsList}`
   } else if (eventType === "order.status_changed") {
-    const address = [payload.customer_address, payload.customer_city, payload.customer_country].filter(Boolean).join(", ")
-
     context = `Event: Order status updated
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
-Address: ${address || "Not provided"}
+Address: ${payload.customer_address || "Not provided"}
+City: ${payload.customer_city || "Not provided"}
+Country: ${payload.customer_country || "Not provided"}
 Previous status: ${payload.old_status}
 New status: ${payload.new_status}`
   } else {
@@ -160,7 +160,7 @@ Rules:
   6. Blank line.
   7. Total.
   8. Blank line.
-  9. Full delivery address on its own line (show the complete address as provided).
+  9. Delivery details: address, city, and country each shown clearly.
   10. Blank line.
   11. A short closing.
 - Keep it concise — sound like a real person, not a robot.
