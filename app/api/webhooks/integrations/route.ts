@@ -1,7 +1,19 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@supabase/supabase-js"
 import { dispatchEvent } from "@/lib/integrations/handlers"
 import { APPS } from "@/lib/integrations/registry"
 import { NextResponse } from "next/server"
+
+function createWebhookClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  console.log("[WEBHOOK] supabase url:", url)
+  console.log("[WEBHOOK] service_role_key:", serviceKey ? `SET (${serviceKey.substring(0, 15)}...)` : "NOT_SET — USING ANON KEY (RLS WILL BLOCK)")
+
+  // Use service role key to bypass RLS, fall back to anon key
+  return createClient(url, serviceKey || anonKey)
+}
 
 export async function POST(request: Request) {
   try {
@@ -25,10 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
     }
 
-    const supabase = createAdminClient()
-
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    console.log("[WEBHOOK] service_role_key:", serviceKey ? `SET (${serviceKey.substring(0, 10)}...)` : "NOT_SET")
+    const supabase = createWebhookClient()
 
     const { error: updateErr } = await supabase
       .from("integration_events")
@@ -51,7 +60,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
-    // Query ALL integrations (no filter) to debug
     const { data: allIntegrations, error: intError } = await supabase
       .from("store_integrations")
       .select("integration_id, is_enabled, config")
