@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (store) {
-        const [productsRes, ordersRes, faqsRes] = await Promise.all([
+        const [productsRes, ordersRes] = await Promise.all([
           supabase
             .from("products")
             .select("name, price, stock, status, is_available")
@@ -39,17 +39,12 @@ export async function POST(request: NextRequest) {
             .eq("store_id", store.id)
             .order("created_at", { ascending: false })
             .limit(30),
-          supabase
-            .from("store_faqs")
-            .select("question, answer")
-            .eq("store_id", store.id),
         ])
 
         const products = productsRes.data || []
         const orders = ordersRes.data || []
-        const faqs = faqsRes.data || []
 
-        systemPrompt = buildStorePrompt(store, products, orders, faqs)
+        systemPrompt = buildStorePrompt(store, products, orders)
       } else {
         systemPrompt = buildLandingPrompt()
       }
@@ -223,8 +218,7 @@ function buildStorePrompt(
     status: string
     total: number
     created_at: string
-  }[],
-  faqs: { question: string; answer: string }[]
+  }[]
 ): string {
   const productsSummary =
     products.length > 0
@@ -246,11 +240,6 @@ function buildStorePrompt(
           .join("\n")
       : "No orders yet."
 
-  const faqSection =
-    faqs.length > 0
-      ? faqs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")
-      : "No custom FAQs."
-
   return `You are a friendly onboarding and support assistant for BioStore, an e-commerce platform. You are helping the owner of the store "${store.name}".
 
 CURRENT STORE STATUS:
@@ -260,7 +249,6 @@ CURRENT STORE STATUS:
 - Currency: ${store.currency}
 - Products added: ${products.length}
 - Orders received: ${orders.length}
-- Custom FAQs: ${faqs.length}
 
 PLATFORM FEATURES & HOW TO USE THEM:
 
@@ -289,16 +277,9 @@ PLATFORM FEATURES & HOW TO USE THEM:
    - Update order status: pending → confirmed → shipped → delivered.
    - See customer details, items ordered, and total amount.
 
-6. **FAQs** (/dashboard/faqs):
-   - Add frequently asked questions and answers for your store.
-   - These help me (the AI assistant) answer customer questions more accurately.
-
-7. **Settings** (/dashboard/settings):
+6. **Settings** (/dashboard/settings):
    - Update your account information.
    - Manage your store preferences.
-
-CUSTOM FAQs (for reference):
-${faqSection}
 
 Instructions:
 - Guide the user on how to set up and use their store on this platform.

@@ -24,8 +24,9 @@ interface Order {
   created_at: string
 }
 
-interface StoreView {
-  viewed_at: string
+interface StoreViewDaily {
+  view_date: string
+  view_count: number
 }
 
 function formatDateShort(date: Date) {
@@ -88,8 +89,8 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
   })
   const [orders, setOrders] = useState<Order[]>([])
   const [prevOrders, setPrevOrders] = useState<Order[]>([])
-  const [views, setViews] = useState<StoreView[]>([])
-  const [prevViews, setPrevViews] = useState<StoreView[]>([])
+  const [views, setViews] = useState<StoreViewDaily[]>([])
+  const [prevViews, setPrevViews] = useState<StoreViewDaily[]>([])
   const [loading, setLoading] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
@@ -123,11 +124,11 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
           .lte("created_at", toDate.toISOString())
           .order("created_at", { ascending: false }),
         supabase
-          .from("store_views")
-          .select("viewed_at")
+          .from("store_views_daily")
+          .select("view_date, view_count")
           .eq("store_id", storeId)
-          .gte("viewed_at", fromDate.toISOString())
-          .lte("viewed_at", toDate.toISOString()),
+          .gte("view_date", fromDate.toISOString().split("T")[0])
+          .lte("view_date", toDate.toISOString().split("T")[0]),
         supabase
           .from("orders")
           .select("total, status, created_at")
@@ -135,18 +136,18 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
           .gte("created_at", prevFrom.toISOString())
           .lte("created_at", prevTo.toISOString()),
         supabase
-          .from("store_views")
-          .select("viewed_at")
+          .from("store_views_daily")
+          .select("view_date, view_count")
           .eq("store_id", storeId)
-          .gte("viewed_at", prevFrom.toISOString())
-          .lte("viewed_at", prevTo.toISOString()),
+          .gte("view_date", prevFrom.toISOString().split("T")[0])
+          .lte("view_date", prevTo.toISOString().split("T")[0]),
       ])
 
       const fetchedOrders = (ordersRes.data || []) as Order[]
       setOrders(fetchedOrders)
       setPrevOrders((prevOrdersRes.data || []) as Order[])
-      setViews((viewsRes.data || []) as StoreView[])
-      setPrevViews((prevViewsRes.data || []) as StoreView[])
+      setViews((viewsRes.data || []) as StoreViewDaily[])
+      setPrevViews((prevViewsRes.data || []) as StoreViewDaily[])
 
       setLoading(false)
     }
@@ -157,13 +158,13 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
   // Computed metrics
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total), 0)
   const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0
-  const totalVisitors = views.length
+  const totalVisitors = views.reduce((sum, v) => sum + v.view_count, 0)
   const conversionRate = totalVisitors > 0 ? (orders.length / totalVisitors) * 100 : 0
 
   // Previous period metrics
   const prevTotalRevenue = prevOrders.reduce((sum, o) => sum + Number(o.total), 0)
   const prevAvgOrderValue = prevOrders.length > 0 ? prevTotalRevenue / prevOrders.length : 0
-  const prevTotalVisitors = prevViews.length
+  const prevTotalVisitors = prevViews.reduce((sum, v) => sum + v.view_count, 0)
   const prevConversionRate = prevTotalVisitors > 0 ? (prevOrders.length / prevTotalVisitors) * 100 : 0
 
   function pctChange(current: number, previous: number): number {
@@ -176,8 +177,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
 
   const viewsByDay = new Map<string, number>()
   for (const v of views) {
-    const day = v.viewed_at.split("T")[0]
-    viewsByDay.set(day, (viewsByDay.get(day) || 0) + 1)
+    viewsByDay.set(v.view_date, (viewsByDay.get(v.view_date) || 0) + v.view_count)
   }
 
   const ordersByDay = new Map<string, number>()

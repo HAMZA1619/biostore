@@ -16,6 +16,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
     }
 
+    // Only process trigger rows (integration_id === '_trigger', status pending).
+    // Dispatch rows have a real integration_id and would re-trigger this
+    // webhook — skip them to prevent duplicate events.
+    if (event.integration_id !== "_trigger" || event.status !== "pending") {
+      return NextResponse.json({ ok: true, skipped: true })
+    }
+
     const supabase = createAdminClient()
 
     const { data: store } = await supabase
@@ -45,7 +52,7 @@ export async function POST(request: Request) {
     if (eligible.length === 0) {
       await supabase
         .from("integration_events")
-        .update({ status: "completed", processed_at: new Date().toISOString() })
+        .delete()
         .eq("id", event.id)
       return NextResponse.json({ ok: true, dispatched: 0 })
     }
@@ -61,10 +68,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Mark the trigger row as completed
+    // Remove the trigger row — per-integration rows below are the real records
     await supabase
       .from("integration_events")
-      .update({ status: "completed", processed_at: new Date().toISOString() })
+      .delete()
       .eq("id", event.id)
 
     // Process each integration independently with its own event row

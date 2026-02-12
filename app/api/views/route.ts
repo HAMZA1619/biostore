@@ -10,8 +10,12 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
+    const today = new Date().toISOString().split("T")[0]
 
-    const { error } = await supabase.from("store_views").insert({ store_id: storeId })
+    const { error } = await supabase.rpc("increment_store_view", {
+      p_store_id: storeId,
+      p_date: today,
+    })
 
     if (error) {
       return NextResponse.json({ error: "Failed to record view" }, { status: 500 })

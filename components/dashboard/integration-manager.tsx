@@ -26,7 +26,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Puzzle } from "lucide-react"
+import Link from "next/link"
+import { Activity, Puzzle } from "lucide-react"
 import { WhatsAppSetup } from "@/components/dashboard/integrations/whatsapp-setup"
 import { MetaCapiSetup } from "@/components/dashboard/integrations/meta-capi-setup"
 
@@ -179,6 +180,12 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
                     </Button>
                     {installed && (
                       <>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/dashboard/integrations/${app.id}/events`}>
+                            <Activity className="me-1.5 h-3.5 w-3.5" />
+                            {t("integrations.events.link")}
+                          </Link>
+                        </Button>
                         <Switch
                           checked={installed.is_enabled}
                           onCheckedChange={() => handleToggle(installed)}

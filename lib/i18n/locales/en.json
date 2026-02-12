@@ -614,7 +614,24 @@
     "metaCapiTestCode": "Test Event Code (optional)",
     "metaCapiTestCodeHint": "Find this in Facebook Events Manager → Test Events. Remove it before going live.",
     "metaCapiSaved": "Meta Conversions API saved",
-    "metaCapiSave": "Save"
+    "metaCapiSave": "Save",
+    "events": {
+      "link": "Events",
+      "title": "{{name}} Events",
+      "eventType": "Event",
+      "order": "Order",
+      "customer": "Customer",
+      "status": "Status",
+      "error": "Error",
+      "date": "Date",
+      "empty": "No events yet for this integration.",
+      "statuses": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "completed": "Completed",
+        "failed": "Failed"
+      }
+    }
   },
   "language": {
     "en": "English",

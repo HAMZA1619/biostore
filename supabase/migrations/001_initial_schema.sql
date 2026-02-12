@@ -140,14 +140,13 @@ CREATE TABLE order_items (
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 
--- Store Views (visitor tracking)
-CREATE TABLE store_views (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Store Views Daily (aggregated visitor tracking — one row per store per day)
+CREATE TABLE store_views_daily (
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  viewed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  view_count INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (store_id, view_date)
 );
-CREATE INDEX idx_store_views_store ON store_views(store_id);
-CREATE INDEX idx_store_views_date ON store_views(store_id, viewed_at);
 
 -- Store Images (central gallery)
 CREATE TABLE store_images (
@@ -159,6 +158,17 @@ CREATE TABLE store_images (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_store_images_store ON store_images(store_id);
+
+-- Increment store view (atomic upsert for daily counter)
+CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_date DATE)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO public.store_views_daily (store_id, view_date, view_count)
+  VALUES (p_store_id, p_date, 1)
+  ON CONFLICT (store_id, view_date)
+  DO UPDATE SET view_count = store_views_daily.view_count + 1;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 -- Auto-create profile on signup trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -258,12 +268,14 @@ CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
     WHERE orders.id = order_items.order_id AND stores.owner_id = (select auth.uid())
   ));
 
--- Store Views
-ALTER TABLE store_views ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert store views" ON store_views FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views.store_id AND stores.is_published = true));
-CREATE POLICY "Owners can view store views" ON store_views FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views.store_id AND stores.owner_id = (select auth.uid())));
+-- Store Views Daily
+ALTER TABLE store_views_daily ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can upsert store views" ON store_views_daily FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.is_published = true));
+CREATE POLICY "Anyone can update store views" ON store_views_daily FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.is_published = true));
+CREATE POLICY "Owners can view store views" ON store_views_daily FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Store Images
 ALTER TABLE store_images ENABLE ROW LEVEL SECURITY;
@@ -273,28 +285,6 @@ CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
-
--- Store FAQs (custom Q&A for AI assistant)
-CREATE TABLE store_faqs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  question TEXT NOT NULL,
-  answer TEXT NOT NULL,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX idx_store_faqs_store ON store_faqs(store_id);
-
-ALTER TABLE store_faqs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Owners can view own faqs" ON store_faqs FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
-CREATE POLICY "Owners can insert faqs" ON store_faqs FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
-CREATE POLICY "Owners can update faqs" ON store_faqs FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
-CREATE POLICY "Owners can delete faqs" ON store_faqs FOR DELETE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_faqs.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Store Integrations (installed apps per store)
 CREATE TABLE store_integrations (
@@ -324,7 +314,7 @@ CREATE POLICY "Owners can delete integrations" ON store_integrations FOR DELETE
 CREATE TABLE integration_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  integration_id TEXT,
+  integration_id TEXT NOT NULL,
   event_type TEXT NOT NULL,
   payload JSONB NOT NULL DEFAULT '{}',
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
@@ -347,9 +337,10 @@ BEGIN
     SELECT 1 FROM public.store_integrations
     WHERE store_id = NEW.store_id AND is_enabled = true
   ) THEN
-    INSERT INTO public.integration_events (store_id, event_type, payload)
+    INSERT INTO public.integration_events (store_id, integration_id, event_type, payload)
     VALUES (
       NEW.store_id,
+      '_trigger',
       'order.created',
       jsonb_build_object(
         'order_id', NEW.id,
@@ -386,9 +377,10 @@ BEGIN
       SELECT 1 FROM public.store_integrations
       WHERE store_id = NEW.store_id AND is_enabled = true
     ) THEN
-      INSERT INTO public.integration_events (store_id, event_type, payload)
+      INSERT INTO public.integration_events (store_id, integration_id, event_type, payload)
       VALUES (
         NEW.store_id,
+        '_trigger',
         'order.status_changed',
         jsonb_build_object(
           'order_id', NEW.id,

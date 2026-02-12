@@ -614,7 +614,24 @@
     "metaCapiTestCode": "رمز حدث الاختبار (اختياري)",
     "metaCapiTestCodeHint": "تجده في Facebook Events Manager ← أحداث الاختبار. احذفه قبل الإطلاق.",
     "metaCapiSaved": "تم حفظ Meta Conversions API",
-    "metaCapiSave": "حفظ"
+    "metaCapiSave": "حفظ",
+    "events": {
+      "link": "الأحداث",
+      "title": "أحداث {{name}}",
+      "eventType": "الحدث",
+      "order": "الطلب",
+      "customer": "العميل",
+      "status": "الحالة",
+      "error": "الخطأ",
+      "date": "التاريخ",
+      "empty": "لا توجد أحداث لهذا التكامل بعد.",
+      "statuses": {
+        "pending": "قيد الانتظار",
+        "processing": "جاري المعالجة",
+        "completed": "مكتمل",
+        "failed": "فشل"
+      }
+    }
   },
   "language": {
     "en": "English",

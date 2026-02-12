@@ -10,7 +10,6 @@ import {
   Package,
   FolderOpen,
   ShoppingCart,
-  MessageCircle,
   Puzzle,
   Settings,
   Menu,
@@ -29,7 +28,6 @@ const navItems = [
   { href: "/dashboard/products", labelKey: "nav.products", icon: Package },
   { href: "/dashboard/collections", labelKey: "nav.collections", icon: FolderOpen },
   { href: "/dashboard/orders", labelKey: "nav.orders", icon: ShoppingCart },
-  { href: "/dashboard/faqs", labelKey: "nav.faqs", icon: MessageCircle },
   { href: "/dashboard/integrations", labelKey: "nav.integrations", icon: Puzzle },
   { href: "/dashboard/settings", labelKey: "nav.settings", icon: Settings },
 ]
