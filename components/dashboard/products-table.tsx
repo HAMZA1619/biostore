@@ -17,7 +17,7 @@ interface Product {
   sku: string | null
   price: number
   status: string
-  collections: { name: string } | null
+  collections: { name: string }[] | { name: string } | null
   product_variants: { id: string }[] | null
 }
 
@@ -90,7 +90,7 @@ export function ProductsTable({ initialProducts, currency, hasMore: initialHasMo
                 <TableCell className="text-muted-foreground">{product.sku || "—"}</TableCell>
                 <TableCell>{formatPrice(product.price, currency)}</TableCell>
                 <TableCell>
-                  {(product.collections as { name: string } | null)?.name || "—"}
+                  {(Array.isArray(product.collections) ? product.collections[0]?.name : product.collections?.name) || "—"}
                 </TableCell>
                 <TableCell>
                   <ProductStatusSelect productId={product.id} status={product.status || "active"} />
