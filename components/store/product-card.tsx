@@ -3,6 +3,7 @@
 import { formatPriceSymbol } from "@/lib/utils"
 import { useCartStore } from "@/lib/store/cart-store"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
+import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, ShoppingCart } from "lucide-react"
 import Link from "next/link"
@@ -28,6 +29,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const currency = useStoreCurrency()
+  const buttonStyle = useButtonStyle()
   const hasVariants = product.options && product.options.length > 0
   const inStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
 
@@ -53,9 +55,9 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const displayPrice = hasVariants && minVariantPrice != null ? minVariantPrice : product.price
 
   return (
-    <div className="store-card group overflow-hidden" style={{ borderRadius: "var(--store-radius)" }}>
+    <div className="store-card group overflow-hidden" style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
       <Link href={`/${storeSlug}/products/${product.id}`}>
-        <div className="aspect-square overflow-hidden bg-muted">
+        <div className="overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
           {product.image_urls[0] ? (
             <img
               src={product.image_urls[0]}
@@ -69,9 +71,9 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
           )}
         </div>
       </Link>
-      <div className="p-3">
+      <div style={{ padding: "var(--store-card-padding)" }}>
         <Link href={`/${storeSlug}/products/${product.id}`}>
-          <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight">{product.name}</h3>
+          <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight" style={{ fontFamily: "var(--store-heading-font)" }}>{product.name}</h3>
         </Link>
         <div className="mt-1 flex items-center gap-2">
           <span className="font-bold" style={{ color: "var(--store-primary)" }}>
@@ -89,7 +91,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             asChild
             size="sm"
             className="mt-2 w-full"
-            style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
+            style={getButtonStyleProps(buttonStyle)}
           >
             <Link href={`/${storeSlug}/products/${product.id}`}>
               {t("storefront.chooseOptions")}
@@ -101,7 +103,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             size="sm"
             className="mt-2 w-full"
             disabled={!inStock}
-            style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
+            style={getButtonStyleProps(buttonStyle)}
           >
             <ShoppingCart className="me-2 h-3 w-3" />
             {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}

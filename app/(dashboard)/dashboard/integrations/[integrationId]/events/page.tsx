@@ -3,6 +3,8 @@ import { redirect, notFound } from "next/navigation"
 import { APPS } from "@/lib/integrations/registry"
 import { IntegrationEventsTable } from "@/components/dashboard/integration-events-table"
 
+const PAGE_SIZE = 20
+
 export default async function IntegrationEventsPage({
   params,
 }: {
@@ -30,11 +32,14 @@ export default async function IntegrationEventsPage({
     .eq("store_id", store.id)
     .eq("integration_id", integrationId)
     .order("created_at", { ascending: false })
+    .range(0, PAGE_SIZE - 1)
 
   return (
     <IntegrationEventsTable
       appName={app.name}
-      events={events || []}
+      integrationId={integrationId}
+      initialEvents={events || []}
+      hasMore={(events?.length || 0) === PAGE_SIZE}
     />
   )
 }

@@ -97,7 +97,7 @@ export function ProductGrid({ initialProducts, storeId, storeSlug, collectionId,
 
   return (
     <>
-      <div className="product-grid grid grid-cols-2 gap-3">
+      <div className="product-grid grid grid-cols-2" style={{ gap: "var(--store-grid-gap, 0.75rem)" }}>
         {products.map((product) => (
           <ProductCard key={product.id} product={product} storeSlug={storeSlug} />
         ))}

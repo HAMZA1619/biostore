@@ -18,6 +18,7 @@ import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
 import { usePixel } from "@/lib/hooks/use-pixel"
+import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import Script from "next/script"
 import "@/lib/i18n"
 
@@ -32,6 +33,7 @@ export default function CartPage() {
   const clearCart = useCartStore((s) => s.clearCart)
   const getTotal = useCartStore((s) => s.getTotal)
   const track = usePixel()
+  const buttonStyle = useButtonStyle()
   const router = useRouter()
 
   const [form, setForm] = useState({
@@ -336,7 +338,7 @@ export default function CartPage() {
           className="w-full"
           size="lg"
           disabled={loading}
-          style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
+          style={getButtonStyleProps(buttonStyle)}
         >
           {loading ? t("storefront.placingOrder") : t("storefront.orderNow")}
         </Button>

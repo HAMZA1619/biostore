@@ -44,11 +44,7 @@
       "status": "Status",
       "actions": "Actions"
     },
-    "pagination": {
-      "page": "Page {{current}} of {{total}}",
-      "previous": "Previous",
-      "next": "Next"
-    },
+    "loadMore": "Load more",
     "emptySearch": "No products match your search.",
     "empty": "No products yet. Add your first product to get started.",
     "statusActive": "Active",
@@ -123,7 +119,8 @@
     "statusCanceled": "Canceled",
     "failedUpdateStatus": "Failed to update status",
     "updateStatus": "Update status:",
-    "statusUpdatedTo": "Status updated to {{status}}"
+    "statusUpdatedTo": "Status updated to {{status}}",
+    "loadMore": "Load more"
   },
   "orderDetail": {
     "items": "Items",
@@ -193,7 +190,13 @@
     "storeCreated": "Store created",
     "slugTaken": "This slug is already taken",
     "storePublished": "Store published",
-    "storeUnpublished": "Store unpublished"
+    "storeUnpublished": "Store unpublished",
+    "generalTitle": "General",
+    "generalDescription": "Basic information about your store",
+    "currencyTitle": "Currency",
+    "currencyDescription": "Set the currency used for product pricing",
+    "published": "Published",
+    "draft": "Draft"
   },
   "settings": {
     "title": "Account Settings",
@@ -226,6 +229,7 @@
     "title": "Design",
     "saving": "Saving...",
     "saveChanges": "Save changes",
+    "cancel": "Cancel",
     "designSaved": "Design saved",
     "logo": "Logo",
     "logoSize": "512x512px",
@@ -257,10 +261,18 @@
     "thankYouPage": "Thank You Page",
     "customMessage": "Custom message",
     "thankYouPlaceholder": "Thank you for your order! We've received it and will confirm it shortly.",
+    "branding": "Branding",
+    "colors": "Colors",
+    "typography": "Typography",
+    "layoutStyle": "Layout & Style",
+    "preferences": "Settings",
+    "checkout": "Checkout",
+    "thankYou": "Thank You",
     "colorPresets": "Color Theme",
     "colorPresetsHint": "Click a color to customize it",
     "shuffle": "Shuffle",
     "customTheme": "Custom",
+    "customColors": "Custom Colors",
     "presetClassicStore": "Classic Store",
     "presetTrustGreen": "Trust Green",
     "presetSoftRose": "Soft Rose",
@@ -281,10 +293,28 @@
     "presetDeepNavy": "Deep Navy",
     "presetPeachSoft": "Peach Soft",
     "presetCharcoalEdge": "Charcoal Edge",
+    "buttonStyle": "Button Style",
+    "buttonStyleFilled": "Filled",
+    "buttonStyleOutline": "Outline",
+    "buttonStylePill": "Pill",
+    "cardShadow": "Card Shadow",
+    "headingFont": "Heading Font",
+    "headingFontPlaceholder": "Same as body font",
+    "productImageRatio": "Image Ratio",
+    "ratioSquare": "Square",
+    "ratioPortrait": "Portrait",
+    "ratioLandscape": "Landscape",
+    "layoutSpacing": "Spacing",
+    "spacingCompact": "Compact",
+    "spacingNormal": "Normal",
+    "spacingSpacious": "Spacious",
     "floatingCart": "Floating cart button",
     "floatingCartHint": "Show a sticky cart button on the storefront",
     "searchInput": "Search input",
-    "searchInputHint": "Show a search bar on the storefront"
+    "searchInputHint": "Show a search bar on the storefront",
+    "customCss": "Custom CSS",
+    "customCssHint": "Add custom CSS to your storefront. The AI can also write CSS here for advanced styles.",
+    "customCssPlaceholder": ".store-card { }\nheader { }\nmain { }"
   },
   "designPreview": {
     "tabStore": "Store",
@@ -579,6 +609,21 @@
     "clearChat": "Clear chat",
     "greeting": "Hi! I'm your setup assistant. I can help you configure your store, add products, manage orders, and more. What do you need help with?"
   },
+  "aiDesignChat": {
+    "title": "Design Assistant",
+    "placeholder": "Describe how you want your store to look...",
+    "thinking": "Designing...",
+    "error": "Failed to generate design. Please try again.",
+    "clearChat": "Clear chat",
+    "greeting": "Describe the look you want and I'll suggest style changes you can preview instantly.",
+    "apply": "Apply Changes",
+    "applied": "Applied",
+    "applySuccess": "Design changes applied!",
+    "suggestion1": "Dark theme with gold accents",
+    "suggestion2": "Minimal clean look",
+    "suggestion3": "Warm coffee shop theme",
+    "suggestion4": "Modern with purple tones"
+  },
   "integrations": {
     "title": "Integrations",
     "empty": "No integrations available yet.",
@@ -634,6 +679,7 @@
       "error": "Error",
       "date": "Date",
       "empty": "No events yet for this integration.",
+      "loadMore": "Load more",
       "statuses": {
         "pending": "Pending",
         "processing": "Processing",

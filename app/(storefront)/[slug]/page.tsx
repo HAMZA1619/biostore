@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { parseDesignSettings } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import { CollectionTabs } from "@/components/store/collection-tabs"
 import { SearchInput } from "@/components/store/search-input"
@@ -20,7 +21,7 @@ export default async function StorePage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, description, show_search")
+    .select("id, description, design_settings")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
@@ -76,7 +77,7 @@ export default async function StorePage({
         <p className="text-muted-foreground">{store.description}</p>
       )}
 
-      {(store.show_search ?? true) && <SearchInput storeSlug={slug} />}
+      {parseDesignSettings((store.design_settings || {}) as Record<string, unknown>).showSearch && <SearchInput storeSlug={slug} />}
 
       {!search && <CollectionTabs storeSlug={slug} collections={collections || []} />}
 

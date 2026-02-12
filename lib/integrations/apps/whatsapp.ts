@@ -1,4 +1,4 @@
-import { MessageSquare } from "lucide-react"
+import { WhatsAppIcon } from "@/components/icons/whatsapp"
 import type { AppDefinition } from "@/lib/integrations/registry"
 import { COUNTRIES } from "@/lib/constants"
 
@@ -6,7 +6,8 @@ export const whatsappApp: AppDefinition = {
   id: "whatsapp",
   name: "WhatsApp",
   description: "Send order confirmations to customers via WhatsApp when orders are placed.",
-  icon: MessageSquare,
+  icon: WhatsAppIcon,
+  iconColor: "#25D366",
   category: "notifications",
   events: ["order.created", "order.status_changed"],
   hasCustomSetup: true,

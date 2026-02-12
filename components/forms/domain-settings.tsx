@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { Globe, Copy, Trash2, CheckCircle, Clock, Loader2 } from "lucide-react"
+import { Copy, Trash2, CheckCircle, Clock, Loader2 } from "lucide-react"
 import "@/lib/i18n"
 
 interface VercelDomainConfig {
@@ -153,14 +153,6 @@ export function DomainSettings({ currentDomain, domainVerified }: DomainSettings
   return (
     <>
       <div className="space-y-4">
-        <div className="space-y-1">
-          <Label className="flex items-center gap-1.5">
-            <Globe className="h-4 w-4" />
-            {t("domain.title")}
-          </Label>
-          <p className="text-xs text-muted-foreground">{t("domain.description")}</p>
-        </div>
-
         {!currentDomain ? (
           <div className="space-y-2">
             <Label htmlFor="domain">{t("domain.domainLabel")}</Label>

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { CURRENCIES } from "@/lib/constants"
+import type { DesignState } from "@/components/dashboard/design-preview"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -44,4 +45,34 @@ export function slugify(text: string) {
     .replace(/[^\w\s-]/g, "")
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
+}
+
+export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignState {
+  return {
+    logoUrl: (raw.logoUrl as string) || null,
+    bannerUrl: (raw.bannerUrl as string) || null,
+    primaryColor: (raw.primaryColor as string) || "#000000",
+    accentColor: (raw.accentColor as string) || "#3B82F6",
+    backgroundColor: (raw.backgroundColor as string) || "#ffffff",
+    textColor: (raw.textColor as string) || "#111111",
+    buttonTextColor: (raw.buttonTextColor as string) || "#ffffff",
+    fontFamily: (raw.fontFamily as string) || "Inter",
+    borderRadius: (raw.borderRadius as DesignState["borderRadius"]) || "md",
+    theme: (raw.theme as DesignState["theme"]) || "default",
+    buttonStyle: (raw.buttonStyle as DesignState["buttonStyle"]) || "filled",
+    cardShadow: (raw.cardShadow as DesignState["cardShadow"]) || "none",
+    headingFont: (raw.headingFont as string) || null,
+    productImageRatio: (raw.productImageRatio as DesignState["productImageRatio"]) || "square",
+    layoutSpacing: (raw.layoutSpacing as DesignState["layoutSpacing"]) || "normal",
+    customCss: (raw.customCss as string) || "",
+    language: (raw.language as DesignState["language"]) || "en",
+    showBranding: typeof raw.showBranding === "boolean" ? raw.showBranding : true,
+    showFloatingCart: typeof raw.showFloatingCart === "boolean" ? raw.showFloatingCart : true,
+    showSearch: typeof raw.showSearch === "boolean" ? raw.showSearch : true,
+    checkoutShowEmail: typeof raw.checkoutShowEmail === "boolean" ? raw.checkoutShowEmail : true,
+    checkoutShowCountry: typeof raw.checkoutShowCountry === "boolean" ? raw.checkoutShowCountry : true,
+    checkoutShowCity: typeof raw.checkoutShowCity === "boolean" ? raw.checkoutShowCity : true,
+    checkoutShowNote: typeof raw.checkoutShowNote === "boolean" ? raw.checkoutShowNote : true,
+    thankYouMessage: (raw.thankYouMessage as string) || "",
+  }
 }

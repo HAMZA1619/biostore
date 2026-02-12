@@ -3,6 +3,7 @@
 import { useCartStore } from "@/lib/store/cart-store"
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
+import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { ShoppingCart } from "lucide-react"
 import { useParams, usePathname } from "next/navigation"
 import Link from "next/link"
@@ -17,6 +18,7 @@ export function FloatingCartButton() {
   const pathname = usePathname()
   const baseHref = useBaseHref()
   const currency = useStoreCurrency()
+  const buttonStyle = useButtonStyle()
   const items = useCartStore((s) => s.items)
   const getTotal = useCartStore((s) => s.getTotal)
   const getItemCount = useCartStore((s) => s.getItemCount)
@@ -39,7 +41,7 @@ export function FloatingCartButton() {
       <Link
         href={`${baseHref}/cart`}
         className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5"
-        style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)", borderRadius: "var(--store-radius)" }}
+        style={getButtonStyleProps(buttonStyle)}
       >
         <div className="relative">
           <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />

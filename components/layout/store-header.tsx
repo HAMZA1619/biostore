@@ -32,7 +32,7 @@ export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps
           {logoUrl && (
             <img src={logoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
           )}
-          <span className="text-lg font-bold" style={{ color: "var(--store-primary)" }}>
+          <span className="text-lg font-bold" style={{ color: "var(--store-primary)", fontFamily: "var(--store-heading-font)" }}>
             {name}
           </span>
         </Link>

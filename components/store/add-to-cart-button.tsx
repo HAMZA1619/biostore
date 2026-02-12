@@ -3,6 +3,7 @@
 import { useCartStore } from "@/lib/store/cart-store"
 import { usePixel } from "@/lib/hooks/use-pixel"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
+import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -24,6 +25,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   const addItem = useCartStore((s) => s.addItem)
   const track = usePixel()
   const currency = useStoreCurrency()
+  const buttonStyle = useButtonStyle()
 
   function handleAdd() {
     if (!product.isAvailable) return
@@ -53,7 +55,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
       size="lg"
       className="w-full"
       disabled={!product.isAvailable}
-      style={{ backgroundColor: "var(--store-accent)", color: "var(--store-btn-text)" }}
+      style={getButtonStyleProps(buttonStyle)}
     >
       <ShoppingCart className="me-2 h-4 w-4" />
       {product.isAvailable ? t("storefront.addToCart") : t("storefront.soldOut")}

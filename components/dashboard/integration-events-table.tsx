@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -11,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { RelativeDate } from "@/components/dashboard/relative-date"
-import { ArrowLeft, Activity } from "lucide-react"
+import { ArrowLeft, Activity, Loader2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -28,7 +30,9 @@ interface IntegrationEvent {
 
 interface Props {
   appName: string
-  events: IntegrationEvent[]
+  integrationId: string
+  initialEvents: IntegrationEvent[]
+  hasMore: boolean
 }
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -38,8 +42,31 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
   failed: "destructive",
 }
 
-export function IntegrationEventsTable({ appName, events }: Props) {
+export function IntegrationEventsTable({ appName, integrationId, initialEvents, hasMore: initialHasMore }: Props) {
   const { t } = useTranslation()
+  const [events, setEvents] = useState(initialEvents)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+
+  async function loadMore() {
+    if (loading || !hasMore) return
+    setLoading(true)
+
+    try {
+      const res = await fetch(`/api/integrations/events?integration_id=${integrationId}&page=${page}`)
+      if (!res.ok) {
+        setHasMore(false)
+        return
+      }
+      const data = await res.json()
+      setEvents((prev) => [...prev, ...data.events])
+      setHasMore(data.hasMore)
+      setPage((p) => p + 1)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -56,47 +83,58 @@ export function IntegrationEventsTable({ appName, events }: Props) {
       </div>
 
       {events.length > 0 ? (
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("integrations.events.eventType")}</TableHead>
-                <TableHead>{t("integrations.events.order")}</TableHead>
-                <TableHead>{t("integrations.events.customer")}</TableHead>
-                <TableHead>{t("integrations.events.status")}</TableHead>
-                <TableHead>{t("integrations.events.error")}</TableHead>
-                <TableHead>{t("integrations.events.date")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell className="font-medium">
-                    {event.event_type}
-                  </TableCell>
-                  <TableCell>
-                    {event.payload.order_number
-                      ? `#${event.payload.order_number}`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {(event.payload.customer_name as string) || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_VARIANT[event.status] || "secondary"}>
-                      {t(`integrations.events.statuses.${event.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm text-red-600">
-                    {event.error || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <RelativeDate date={event.created_at} />
-                  </TableCell>
+        <div className="space-y-4">
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("integrations.events.eventType")}</TableHead>
+                  <TableHead>{t("integrations.events.order")}</TableHead>
+                  <TableHead>{t("integrations.events.customer")}</TableHead>
+                  <TableHead>{t("integrations.events.status")}</TableHead>
+                  <TableHead>{t("integrations.events.error")}</TableHead>
+                  <TableHead>{t("integrations.events.date")}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {events.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell className="font-medium">
+                      {event.event_type}
+                    </TableCell>
+                    <TableCell>
+                      {event.payload.order_number
+                        ? `#${event.payload.order_number}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {(event.payload.customer_name as string) || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_VARIANT[event.status] || "secondary"}>
+                        {t(`integrations.events.statuses.${event.status}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate text-sm text-red-600">
+                      {event.error || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <RelativeDate date={event.created_at} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {hasMore && (
+            <div className="flex justify-center">
+              <Button variant="outline" onClick={loadMore} disabled={loading}>
+                {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {t("integrations.events.loadMore")}
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">

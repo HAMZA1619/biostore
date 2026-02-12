@@ -9,7 +9,7 @@ export default async function DesignPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, currency, language, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, show_floating_cart, show_search, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message")
+    .select("id, name, slug, currency, design_settings")
     .eq("owner_id", user.id)
     .single()
 

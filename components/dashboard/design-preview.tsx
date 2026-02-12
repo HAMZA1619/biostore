@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CheckCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
-import { BORDER_RADIUS_OPTIONS } from "@/lib/constants"
+import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
@@ -21,6 +21,13 @@ export interface DesignState {
   fontFamily: string
   borderRadius: "none" | "sm" | "md" | "lg" | "xl"
   theme: "default" | "modern" | "minimal" | "single"
+  buttonStyle: "filled" | "outline" | "pill"
+  cardShadow: "none" | "sm" | "md" | "lg"
+  headingFont: string | null
+  productImageRatio: "square" | "portrait" | "landscape"
+  layoutSpacing: "compact" | "normal" | "spacious"
+  customCss: string
+  language: "en" | "fr" | "ar"
   showBranding: boolean
   showFloatingCart: boolean
   showSearch: boolean
@@ -35,7 +42,6 @@ interface DesignPreviewProps {
   state: DesignState
   storeName: string
   currency: string
-  storeLang: string
   previewTab: PreviewTab
   onTabChange: (tab: PreviewTab) => void
 }
@@ -79,8 +85,46 @@ function pickImages(storeName: string): [string, string] {
 
 const DEFAULT_THANK_YOU = "Thank you for your order! We've received it and will confirm it shortly."
 
+function sanitizeCss(css: string): string {
+  return css.replace(/<\/style>/gi, "").replace(/<script/gi, "").replace(/javascript:/gi, "").replace(/expression\s*\(/gi, "")
+}
+
+function scopeCss(css: string, scope: string): string {
+  const sanitized = sanitizeCss(css)
+  // Prefix every selector with the scope class
+  // Matches: selector { ... } blocks, handling commas and nested braces
+  return sanitized.replace(
+    /([^{}]+)\{/g,
+    (_, selectors: string) => {
+      const scoped = selectors
+        .split(",")
+        .map((s: string) => {
+          const trimmed = s.trim()
+          if (!trimmed) return s
+          // Skip @-rules like @media, @keyframes
+          if (trimmed.startsWith("@")) return s
+          return `${scope} ${trimmed}`
+        })
+        .join(", ")
+      return `${scoped} {`
+    }
+  )
+}
+
 function getRadiusCss(radius: string) {
   return BORDER_RADIUS_OPTIONS.find((r) => r.value === radius)?.css || "8px"
+}
+
+function getShadowCss(shadow: string) {
+  return CARD_SHADOW_OPTIONS.find((s) => s.value === shadow)?.css || "none"
+}
+
+function getImageRatioCss(ratio: string) {
+  return PRODUCT_IMAGE_RATIO_OPTIONS.find((r) => r.value === ratio)?.css || "1/1"
+}
+
+function getSpacing(spacing: string) {
+  return LAYOUT_SPACING_OPTIONS.find((s) => s.value === spacing) || LAYOUT_SPACING_OPTIONS[1]
 }
 
 const tabs: { value: PreviewTab; labelKey: string }[] = [
@@ -89,11 +133,11 @@ const tabs: { value: PreviewTab; labelKey: string }[] = [
   { value: "thankyou", labelKey: "designPreview.tabThankYou" },
 ]
 
-export function DesignPreview({ state, storeName, currency, storeLang, previewTab, onTabChange }: DesignPreviewProps) {
+export function DesignPreview({ state, storeName, currency, previewTab, onTabChange }: DesignPreviewProps) {
   const { t, i18n } = useTranslation()
-  const st = i18n.getFixedT(storeLang)
+  const st = i18n.getFixedT(state.language)
   const radiusCss = getRadiusCss(state.borderRadius)
-  const isRtl = RTL_LANGS.has(storeLang)
+  const isRtl = RTL_LANGS.has(state.language)
 
   const [cart, setCart] = useState<Record<string, PreviewCartItem>>({})
 
@@ -158,17 +202,30 @@ export function DesignPreview({ state, storeName, currency, storeLang, previewTa
         {/* Screen */}
         <div
           dir={isRtl ? "rtl" : "ltr"}
-          className="h-[580px] overflow-y-auto rounded-[2rem] p-1.5"
+          className="store-preview-scope h-[580px] overflow-y-auto rounded-[2rem] p-1.5"
           style={
             {
               "--store-primary": state.primaryColor,
               "--store-accent": state.accentColor,
+              "--store-bg": state.backgroundColor,
+              "--store-text": state.textColor,
+              "--store-btn-text": state.buttonTextColor,
+              "--store-radius": radiusCss,
+              "--store-font": `'${state.fontFamily}', sans-serif`,
+              "--store-heading-font": state.headingFont ? `'${state.headingFont}', sans-serif` : `'${state.fontFamily}', sans-serif`,
+              "--store-card-shadow": getShadowCss(state.cardShadow),
+              "--store-image-ratio": getImageRatioCss(state.productImageRatio),
+              "--store-grid-gap": getSpacing(state.layoutSpacing).gap,
+              "--store-card-padding": getSpacing(state.layoutSpacing).padding,
               backgroundColor: state.backgroundColor,
               color: state.textColor,
               fontFamily: `'${state.fontFamily}', sans-serif`,
             } as React.CSSProperties
           }
         >
+          {state.customCss && (
+            <style dangerouslySetInnerHTML={{ __html: scopeCss(state.customCss, ".store-preview-scope") }} />
+          )}
           {previewTab === "store" && (
             <StorePreview
               state={state}
@@ -245,7 +302,7 @@ function StorePreview({
           <img src={state.bannerUrl} alt="" className="w-full" style={{ borderRadius: radiusCss }} />
         </div>
       )}
-      <div className="p-2">
+      <main className="p-2">
         {state.showSearch && (
           <div className="relative mb-1.5">
             <div className="flex h-6 w-full items-center rounded-md border border-current/10 bg-current/5 ps-6 text-[8px] opacity-50" style={{ borderRadius: radiusCss }}>
@@ -254,11 +311,11 @@ function StorePreview({
             <svg className="absolute start-1.5 top-1/2 h-2.5 w-2.5 -translate-y-1/2 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </div>
         )}
-        <div className={cn("grid gap-1.5", state.theme === "single" ? "grid-cols-1" : "grid-cols-2")}>
+        <div className={cn("product-grid grid", state.theme === "single" ? "grid-cols-1" : "grid-cols-2")} style={{ gap: getSpacing(state.layoutSpacing).gap }}>
           <PreviewProductCard state={state} name={st("designPreview.sampleProduct")} price={99} currency={currency} radiusCss={radiusCss} st={st} onAdd={onAddToCart} imageUrl={img1} />
           <PreviewProductCard state={state} name={st("designPreview.anotherItem")} price={149} currency={currency} radiusCss={radiusCss} st={st} onAdd={onAddToCart} imageUrl={img2} />
         </div>
-      </div>
+      </main>
       <div className="border-t px-2 py-2 text-center text-[10px] opacity-50">
         <p>&copy; {new Date().getFullYear()} {storeName}</p>
       </div>
@@ -270,9 +327,10 @@ function StorePreview({
             onClick={onGoToCheckout}
             className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex w-full items-center justify-center gap-1.5 px-3 py-1.5 text-[9px] font-medium shadow-lg transition-transform hover:scale-105 active:scale-95"
             style={{
-              backgroundColor: "var(--store-accent)",
-              color: state.buttonTextColor,
-              borderRadius: radiusCss,
+              backgroundColor: state.buttonStyle === "outline" ? "transparent" : "var(--store-accent)",
+              color: state.buttonStyle === "outline" ? "var(--store-accent)" : state.buttonTextColor,
+              borderRadius: state.buttonStyle === "pill" ? "9999px" : radiusCss,
+              border: state.buttonStyle === "outline" ? "1.5px solid var(--store-accent)" : "none",
             }}
           >
             <div className="relative">
@@ -405,9 +463,10 @@ function CheckoutPreview({
               onClick={onPlaceOrder}
               className="mt-1 w-full py-1.5 text-[9px] font-medium"
               style={{
-                backgroundColor: "var(--store-accent)",
-                color: state.buttonTextColor,
-                borderRadius: radiusCss,
+                backgroundColor: state.buttonStyle === "outline" ? "transparent" : "var(--store-accent)",
+                color: state.buttonStyle === "outline" ? "var(--store-accent)" : state.buttonTextColor,
+                borderRadius: state.buttonStyle === "pill" ? "9999px" : radiusCss,
+                border: state.buttonStyle === "outline" ? "1.5px solid var(--store-accent)" : "none",
               }}
             >
               {st("designPreview.orderNow")}
@@ -475,7 +534,7 @@ function PreviewHeader({
   onCartClick?: () => void
 }) {
   return (
-    <div
+    <header
       className="sticky top-0 z-10 border-b backdrop-blur"
       style={{ backgroundColor: `${state.backgroundColor}f2` }}
     >
@@ -490,7 +549,7 @@ function PreviewHeader({
           )}
           <span
             className="text-xs font-bold"
-            style={{ color: "var(--store-primary)" }}
+            style={{ color: "var(--store-primary)", fontFamily: "var(--store-heading-font)" }}
           >
             {storeName}
           </span>
@@ -507,7 +566,7 @@ function PreviewHeader({
           )}
         </button>
       </div>
-    </div>
+    </header>
   )
 }
 
@@ -552,12 +611,17 @@ function PreviewProductCard({
     setTimeout(() => setAdded(false), 600)
   }
 
+  const shadowCss = getShadowCss(state.cardShadow)
+  const imageRatio = getImageRatioCss(state.productImageRatio)
+  const pillRadius = state.buttonStyle === "pill" ? "9999px" : radiusCss
+  const isOutline = state.buttonStyle === "outline"
+
   return (
     <div
-      className={`overflow-hidden ${themeCard[state.theme]}`}
-      style={{ borderRadius: radiusCss, backgroundColor: state.backgroundColor }}
+      className={`store-card overflow-hidden ${themeCard[state.theme]}`}
+      style={{ borderRadius: radiusCss, backgroundColor: state.backgroundColor, boxShadow: shadowCss }}
     >
-      <div className="aspect-square overflow-hidden bg-gray-100" style={{ borderRadius: `${radiusCss} ${radiusCss} 0 0` }}>
+      <div className="overflow-hidden bg-gray-100" style={{ borderRadius: `${radiusCss} ${radiusCss} 0 0`, aspectRatio: imageRatio }}>
         <img
           src={imageUrl}
           alt=""
@@ -565,7 +629,7 @@ function PreviewProductCard({
         />
       </div>
       <div className="p-1.5">
-        <p className="text-[10px] font-medium leading-tight">{name}</p>
+        <p className="text-[10px] font-medium leading-tight" style={{ fontFamily: "var(--store-heading-font)" }}>{name}</p>
         <p
           className="mt-0.5 text-[10px] font-bold"
           style={{ color: "var(--store-primary)" }}
@@ -580,9 +644,10 @@ function PreviewProductCard({
             added && "scale-95"
           )}
           style={{
-            backgroundColor: "var(--store-accent)",
-            color: state.buttonTextColor,
-            borderRadius: radiusCss,
+            backgroundColor: isOutline ? "transparent" : "var(--store-accent)",
+            color: isOutline ? "var(--store-accent)" : state.buttonTextColor,
+            borderRadius: pillRadius,
+            border: isOutline ? "1.5px solid var(--store-accent)" : "none",
           }}
         >
           {added ? "✓" : st("designPreview.addToCart")}

@@ -80,6 +80,31 @@ export const BORDER_RADIUS_OPTIONS = [
   { value: "xl", label: "Extra Large", css: "16px" },
 ] as const
 
+export const BUTTON_STYLE_OPTIONS = [
+  { value: "filled", label: "Filled" },
+  { value: "outline", label: "Outline" },
+  { value: "pill", label: "Pill" },
+] as const
+
+export const CARD_SHADOW_OPTIONS = [
+  { value: "none", label: "None", css: "none" },
+  { value: "sm", label: "Small", css: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+  { value: "md", label: "Medium", css: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+  { value: "lg", label: "Large", css: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
+] as const
+
+export const PRODUCT_IMAGE_RATIO_OPTIONS = [
+  { value: "square", label: "Square", css: "1/1" },
+  { value: "portrait", label: "Portrait", css: "3/4" },
+  { value: "landscape", label: "Landscape", css: "4/3" },
+] as const
+
+export const LAYOUT_SPACING_OPTIONS = [
+  { value: "compact", label: "Compact", gap: "0.5rem", padding: "0.5rem" },
+  { value: "normal", label: "Normal", gap: "0.75rem", padding: "0.75rem" },
+  { value: "spacious", label: "Spacious", gap: "1.25rem", padding: "1rem" },
+] as const
+
 export const COLOR_THEME_PRESETS = [
   {
     id: "classic-store",

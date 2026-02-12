@@ -6,7 +6,8 @@ import { StoreFooter } from "@/components/layout/store-footer"
 import { FloatingCartButton } from "@/components/store/floating-cart-button"
 import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { TrackingScripts } from "@/components/store/tracking-scripts"
-import { BORDER_RADIUS_OPTIONS } from "@/lib/constants"
+import { parseDesignSettings } from "@/lib/utils"
+import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -43,7 +44,7 @@ export default async function StoreLayout({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, language, currency, logo_url, banner_url, primary_color, accent_color, background_color, text_color, button_text_color, font_family, border_radius, theme, show_branding, show_floating_cart, show_search, checkout_show_email, checkout_show_country, checkout_show_city, checkout_show_note, thank_you_message, ga_measurement_id")
+    .select("id, name, slug, language, currency, design_settings, ga_measurement_id")
     .eq("slug", slug)
     .eq("is_published", true)
     .single()
@@ -63,17 +64,23 @@ export default async function StoreLayout({
   const isCustomDomain = headersList.get("x-custom-domain") === "true"
   const baseHref = isCustomDomain ? "" : `/${slug}`
 
-  const storeLang = store.language || "en"
+  const ds = parseDesignSettings((store.design_settings || {}) as Record<string, unknown>)
+  const storeLang = ds.language || store.language || "en"
   const isRtl = storeLang === "ar"
-  const fontFamily = store.font_family || "Inter"
-  const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === (store.border_radius || "md"))?.css || "8px"
-  const fontHref = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;500;600;700&display=swap`
+  const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === ds.borderRadius)?.css || "8px"
+  const shadowCss = CARD_SHADOW_OPTIONS.find((s) => s.value === ds.cardShadow)?.css || "none"
+  const imageRatioCss = PRODUCT_IMAGE_RATIO_OPTIONS.find((r) => r.value === ds.productImageRatio)?.css || "1/1"
+  const spacing = LAYOUT_SPACING_OPTIONS.find((s) => s.value === ds.layoutSpacing) || LAYOUT_SPACING_OPTIONS[1]
+  const fontFamilies = ds.headingFont && ds.headingFont !== ds.fontFamily
+    ? `${ds.fontFamily.replace(/ /g, "+")}:wght@400;500;600;700&family=${ds.headingFont.replace(/ /g, "+")}:wght@400;500;600;700`
+    : `${ds.fontFamily.replace(/ /g, "+")}:wght@400;500;600;700`
+  const fontHref = `https://fonts.googleapis.com/css2?family=${fontFamilies}&display=swap`
 
-  const bg = store.background_color || "#ffffff"
-  const text = store.text_color || "#111111"
-  const primary = store.primary_color || "#000000"
-  const accent = store.accent_color || "#3B82F6"
-  const btnText = store.button_text_color || "#ffffff"
+  const bg = ds.backgroundColor
+  const text = ds.textColor
+  const primary = ds.primaryColor
+  const accent = ds.accentColor
+  const btnText = ds.buttonTextColor
 
   return (
     <div
@@ -82,12 +89,13 @@ export default async function StoreLayout({
       lang={storeLang}
       data-base-href={baseHref}
       data-currency={store.currency || "MAD"}
-      data-theme={store.theme || "default"}
-      data-show-email={store.checkout_show_email ?? true}
-      data-show-country={store.checkout_show_country ?? true}
-      data-show-city={store.checkout_show_city ?? true}
-      data-show-note={store.checkout_show_note ?? true}
-      data-thank-you-message={store.thank_you_message || ""}
+      data-theme={ds.theme}
+      data-button-style={ds.buttonStyle}
+      data-show-email={ds.checkoutShowEmail}
+      data-show-country={ds.checkoutShowCountry}
+      data-show-city={ds.checkoutShowCity}
+      data-show-note={ds.checkoutShowNote}
+      data-thank-you-message={ds.thankYouMessage}
       style={
         {
           "--store-primary": primary,
@@ -96,7 +104,12 @@ export default async function StoreLayout({
           "--store-text": text,
           "--store-btn-text": btnText,
           "--store-radius": radiusCss,
-          "--store-font": `'${fontFamily}', sans-serif`,
+          "--store-font": `'${ds.fontFamily}', sans-serif`,
+          "--store-heading-font": ds.headingFont ? `'${ds.headingFont}', sans-serif` : `'${ds.fontFamily}', sans-serif`,
+          "--store-card-shadow": shadowCss,
+          "--store-image-ratio": imageRatioCss,
+          "--store-grid-gap": spacing.gap,
+          "--store-card-padding": spacing.padding,
           "--background": bg,
           "--foreground": text,
           "--card": bg,
@@ -116,7 +129,7 @@ export default async function StoreLayout({
           "--ring": primary,
           backgroundColor: bg,
           color: text,
-          fontFamily: `'${fontFamily}', sans-serif`,
+          fontFamily: `'${ds.fontFamily}', sans-serif`,
         } as React.CSSProperties
       }
     >
@@ -142,12 +155,15 @@ export default async function StoreLayout({
         }
       `}} />
       <link rel="stylesheet" href={fontHref} />
+      {ds.customCss && (
+        <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "") }} />
+      )}
       <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={fbPixelId} />
       <StorefrontI18nProvider lang={storeLang}>
-        <StoreHeader slug={store.slug} name={store.name} logoUrl={store.logo_url} bannerUrl={store.banner_url} />
+        <StoreHeader slug={store.slug} name={store.name} logoUrl={ds.logoUrl} bannerUrl={ds.bannerUrl} />
         <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
         <StoreFooter storeName={store.name} />
-        {(store.show_floating_cart ?? true) && <FloatingCartButton />}
+        {ds.showFloatingCart && <FloatingCartButton />}
       </StorefrontI18nProvider>
     </div>
   )

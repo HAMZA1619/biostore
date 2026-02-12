@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     // Get store
     const { data: store, error: storeError } = await supabase
       .from("stores")
-      .select("id, name, phone, currency, owner_id")
+      .select("id, name, currency, owner_id")
       .eq("slug", slug)
       .eq("is_published", true)
       .single()
@@ -207,7 +207,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       order_id: order.id,
       order_number: order.order_number,
-      store_phone: store.phone,
       store_name: store.name,
       currency: store.currency,
       items: orderItems,

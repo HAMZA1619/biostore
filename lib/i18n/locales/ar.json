@@ -44,11 +44,7 @@
       "status": "الحالة",
       "actions": "الإجراءات"
     },
-    "pagination": {
-      "page": "صفحة {{current}} من {{total}}",
-      "previous": "السابق",
-      "next": "التالي"
-    },
+    "loadMore": "تحميل المزيد",
     "emptySearch": "لا توجد منتجات تطابق بحثك.",
     "empty": "لا توجد منتجات بعد. أضف أول منتج لك للبدء.",
     "statusActive": "نشط",
@@ -123,7 +119,8 @@
     "statusCanceled": "ملغي",
     "failedUpdateStatus": "فشل تحديث الحالة",
     "updateStatus": "تحديث الحالة:",
-    "statusUpdatedTo": "تم تحديث الحالة إلى {{status}}"
+    "statusUpdatedTo": "تم تحديث الحالة إلى {{status}}",
+    "loadMore": "تحميل المزيد"
   },
   "orderDetail": {
     "items": "العناصر",
@@ -193,7 +190,13 @@
     "storeCreated": "تم إنشاء المتجر",
     "slugTaken": "هذا الرابط مستخدم بالفعل",
     "storePublished": "تم نشر المتجر",
-    "storeUnpublished": "تم إلغاء نشر المتجر"
+    "storeUnpublished": "تم إلغاء نشر المتجر",
+    "generalTitle": "معلومات عامة",
+    "generalDescription": "المعلومات الأساسية عن متجرك",
+    "currencyTitle": "العملة",
+    "currencyDescription": "حدد العملة المستخدمة لتسعير المنتجات",
+    "published": "منشور",
+    "draft": "مسودة"
   },
   "settings": {
     "title": "إعدادات الحساب",
@@ -226,6 +229,7 @@
     "title": "التصميم",
     "saving": "جارٍ الحفظ...",
     "saveChanges": "حفظ التغييرات",
+    "cancel": "إلغاء",
     "designSaved": "تم حفظ التصميم",
     "logo": "الشعار",
     "logoSize": "512x512px",
@@ -257,10 +261,18 @@
     "thankYouPage": "صفحة الشكر",
     "customMessage": "رسالة مخصصة",
     "thankYouPlaceholder": "شكراً لطلبك! لقد استلمناه وسنقوم بتأكيده قريباً.",
+    "branding": "الهوية البصرية",
+    "colors": "الألوان",
+    "typography": "الخطوط",
+    "layoutStyle": "التخطيط والأسلوب",
+    "preferences": "الإعدادات",
+    "checkout": "الدفع",
+    "thankYou": "شكراً",
     "colorPresets": "نمط الألوان",
     "colorPresetsHint": "انقر على لون لتخصيصه",
     "shuffle": "تبديل",
     "customTheme": "مخصص",
+    "customColors": "ألوان مخصصة",
     "presetClassicStore": "متجر كلاسيكي",
     "presetTrustGreen": "أخضر موثوق",
     "presetSoftRose": "وردي ناعم",
@@ -281,10 +293,28 @@
     "presetDeepNavy": "أزرق داكن",
     "presetPeachSoft": "خوخي ناعم",
     "presetCharcoalEdge": "فحم عصري",
+    "buttonStyle": "شكل الأزرار",
+    "buttonStyleFilled": "ممتلئ",
+    "buttonStyleOutline": "محيط",
+    "buttonStylePill": "كبسولة",
+    "cardShadow": "ظل البطاقة",
+    "headingFont": "خط العناوين",
+    "headingFontPlaceholder": "نفس خط النص",
+    "productImageRatio": "نسبة الصورة",
+    "ratioSquare": "مربع",
+    "ratioPortrait": "عمودي",
+    "ratioLandscape": "أفقي",
+    "layoutSpacing": "التباعد",
+    "spacingCompact": "مضغوط",
+    "spacingNormal": "عادي",
+    "spacingSpacious": "واسع",
     "floatingCart": "زر السلة العائم",
     "floatingCartHint": "عرض زر سلة ثابت في المتجر",
     "searchInput": "شريط البحث",
-    "searchInputHint": "عرض شريط بحث في المتجر"
+    "searchInputHint": "عرض شريط بحث في المتجر",
+    "customCss": "CSS مخصص",
+    "customCssHint": "أضف CSS مخصص لمتجرك. يمكن للذكاء الاصطناعي أيضاً كتابة CSS هنا للأنماط المتقدمة.",
+    "customCssPlaceholder": ".store-card { }\nheader { }\nmain { }"
   },
   "designPreview": {
     "tabStore": "المتجر",
@@ -579,6 +609,21 @@
     "clearChat": "مسح المحادثة",
     "greeting": "مرحبًا! أنا مساعد الإعداد الخاص بك. يمكنني مساعدتك في تهيئة متجرك، إضافة المنتجات، إدارة الطلبات والمزيد. كيف يمكنني مساعدتك؟"
   },
+  "aiDesignChat": {
+    "title": "مساعد التصميم",
+    "placeholder": "صف كيف تريد أن يبدو متجرك...",
+    "thinking": "جاري التصميم...",
+    "error": "فشل في إنشاء التصميم. حاول مرة أخرى.",
+    "clearChat": "مسح المحادثة",
+    "greeting": "صف المظهر الذي تريده وسأقترح تغييرات يمكنك معاينتها فورًا.",
+    "apply": "تطبيق التغييرات",
+    "applied": "تم التطبيق",
+    "applySuccess": "تم تطبيق تغييرات التصميم!",
+    "suggestion1": "ثيم داكن مع لمسات ذهبية",
+    "suggestion2": "مظهر بسيط ونظيف",
+    "suggestion3": "ثيم مقهى دافئ",
+    "suggestion4": "عصري بألوان بنفسجية"
+  },
   "integrations": {
     "title": "التكاملات",
     "empty": "لا توجد تكاملات متاحة حالياً.",
@@ -634,6 +679,7 @@
       "error": "الخطأ",
       "date": "التاريخ",
       "empty": "لا توجد أحداث لهذا التكامل بعد.",
+      "loadMore": "تحميل المزيد",
       "statuses": {
         "pending": "قيد الانتظار",
         "processing": "جاري المعالجة",

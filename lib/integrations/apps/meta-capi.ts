@@ -1,5 +1,5 @@
 import { createHash } from "crypto"
-import { Activity } from "lucide-react"
+import { MetaIcon } from "@/components/icons/meta"
 import type { AppDefinition } from "@/lib/integrations/registry"
 import { COUNTRIES } from "@/lib/constants"
 
@@ -7,7 +7,8 @@ export const metaCapiApp: AppDefinition = {
   id: "meta-capi",
   name: "Meta Conversions API",
   description: "Send server-side Purchase events to Facebook for accurate ad conversion tracking.",
-  icon: Activity,
+  icon: MetaIcon,
+  iconColor: "#0081FB",
   category: "analytics",
   events: ["order.created"],
   hasCustomSetup: true,

@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react"
 import { whatsappApp } from "@/lib/integrations/apps/whatsapp"
 import { metaCapiApp } from "@/lib/integrations/apps/meta-capi"
 
@@ -8,7 +7,8 @@ export interface AppDefinition {
   id: string
   name: string
   description: string
-  icon: LucideIcon
+  icon: React.ComponentType<{ className?: string }>
+  iconColor?: string
   category: "notifications" | "shipping" | "analytics"
   events: IntegrationEventType[]
   hasCustomSetup: boolean

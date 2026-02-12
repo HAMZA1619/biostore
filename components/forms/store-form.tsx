@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { createClient } from "@/lib/supabase/client"
@@ -16,7 +18,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { slugify, cn } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Store, Globe, BarChart3 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { MarketingSettings } from "@/components/forms/marketing-settings"
 import "@/lib/i18n"
@@ -30,12 +32,9 @@ interface StoreFormProps {
     name: string
     slug: string
     description: string | null
-    city: string | null
     language: string
     currency: string
     payment_methods: ("cod")[]
-    primary_color: string | null
-    accent_color: string | null
     is_published: boolean
     ga_measurement_id: string | null
   } | null
@@ -60,12 +59,9 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
       name: initialData?.name || "",
       slug: initialData?.slug || "",
       description: initialData?.description || "",
-      city: initialData?.city || "",
       language: (initialData?.language as "en" | "fr" | "ar") || "en",
       currency: initialData?.currency || "MAD",
       payment_methods: ["cod"] as const,
-      primary_color: initialData?.primary_color || "#000000",
-      accent_color: initialData?.accent_color || "#3B82F6",
       ga_measurement_id: initialData?.ga_measurement_id || "",
     },
   })
@@ -131,9 +127,21 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t(title)}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">{t(title)}</h1>
+          {initialData && (
+            <Badge
+              variant={initialData.is_published ? "default" : "secondary"}
+              className={initialData.is_published ? "bg-green-600" : ""}
+            >
+              {initialData.is_published
+                ? t("storeForm.published")
+                : t("storeForm.draft")}
+            </Badge>
+          )}
+        </div>
         <div className="flex gap-3">
           {initialData && (
             <Button type="button" variant="outline" onClick={togglePublish}>
@@ -150,51 +158,62 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-      <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">{t("storeForm.storeName")}</Label>
-        <Input
-          id="name"
-          {...register("name")}
-          onBlur={autoSlug}
-          placeholder={t("storeForm.storeNamePlaceholder")}
-        />
-        {errors.name && (
-          <p className="text-sm text-red-600">{t(errors.name.message!)}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="slug">{t("storeForm.storeUrl")}</Label>
-        <div className="flex items-center gap-1">
-          <span className="text-sm text-muted-foreground">
-            {process.env.NEXT_PUBLIC_APP_URL}/
-          </span>
-          <Input
-            id="slug"
-            {...register("slug")}
-            placeholder={t("storeForm.storeUrlPlaceholder")}
-            disabled={!!initialData}
-          />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Store className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium">{t("storeForm.generalTitle")}</h2>
         </div>
-        {errors.slug && (
-          <p className="text-sm text-red-600">{t(errors.slug.message!)}</p>
-        )}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">{t("storeForm.storeName")}</Label>
+            <Input
+              id="name"
+              {...register("name")}
+              onBlur={autoSlug}
+              placeholder={t("storeForm.storeNamePlaceholder")}
+            />
+            {errors.name && (
+              <p className="text-sm text-red-600">{t(errors.name.message!)}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="slug">{t("storeForm.storeUrl")}</Label>
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground">
+                {process.env.NEXT_PUBLIC_APP_URL}/
+              </span>
+              <Input
+                id="slug"
+                {...register("slug")}
+                placeholder={t("storeForm.storeUrlPlaceholder")}
+                disabled={!!initialData}
+              />
+            </div>
+            {errors.slug && (
+              <p className="text-sm text-red-600">{t(errors.slug.message!)}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">{t("storeForm.description")}</Label>
+            <Textarea
+              id="description"
+              {...register("description")}
+              placeholder={t("storeForm.descriptionPlaceholder")}
+              rows={3}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">{t("storeForm.description")}</Label>
-        <Textarea
-          id="description"
-          {...register("description")}
-          placeholder={t("storeForm.descriptionPlaceholder")}
-          rows={3}
-        />
-      </div>
+      <Separator />
 
-      <div className="space-y-2">
-        <Label>{t("storeForm.currency")}</Label>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium">{t("storeForm.currencyTitle")}</h2>
+        </div>
         <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -247,29 +266,31 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label>{t("storefront.storefrontLanguage")}</Label>
-        <p className="text-xs text-muted-foreground">{t("storefront.storefrontLanguageHint")}</p>
-        <div className="flex gap-2">
-          {(["en", "fr", "ar"] as const).map((lang) => (
-            <Button
-              key={lang}
-              type="button"
-              variant={watch("language") === lang ? "default" : "outline"}
-              size="sm"
-              onClick={() => setValue("language", lang, { shouldDirty: true })}
-            >
-              {t(`language.${lang}`)}
-            </Button>
-          ))}
-        </div>
-      </div>
-      </div>
-      <div className="space-y-8">
-        {children}
-        {initialData && <MarketingSettings register={register as unknown as (name: string) => ReturnType<typeof register>} />}
-      </div>
-      </div>
+      {initialData && children && (
+        <>
+          <Separator />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-medium">{t("domain.title")}</h2>
+            </div>
+            {children}
+          </div>
+        </>
+      )}
+
+      {initialData && (
+        <>
+          <Separator />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-medium">{t("marketing.title")}</h2>
+            </div>
+            <MarketingSettings register={register as unknown as (name: string) => ReturnType<typeof register>} />
+          </div>
+        </>
+      )}
     </form>
   )
 }

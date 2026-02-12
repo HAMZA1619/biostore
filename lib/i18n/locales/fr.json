@@ -44,11 +44,7 @@
       "status": "Statut",
       "actions": "Actions"
     },
-    "pagination": {
-      "page": "Page {{current}} sur {{total}}",
-      "previous": "Précédent",
-      "next": "Suivant"
-    },
+    "loadMore": "Charger plus",
     "emptySearch": "Aucun produit ne correspond à votre recherche.",
     "empty": "Aucun produit pour le moment. Ajoutez votre premier produit pour commencer.",
     "statusActive": "Actif",
@@ -123,7 +119,8 @@
     "statusCanceled": "Annulée",
     "failedUpdateStatus": "Échec de la mise à jour du statut",
     "updateStatus": "Mettre à jour le statut :",
-    "statusUpdatedTo": "Statut mis à jour : {{status}}"
+    "statusUpdatedTo": "Statut mis à jour : {{status}}",
+    "loadMore": "Charger plus"
   },
   "orderDetail": {
     "items": "Articles",
@@ -193,7 +190,13 @@
     "storeCreated": "Boutique créée",
     "slugTaken": "Cette URL est déjà prise",
     "storePublished": "Boutique publiée",
-    "storeUnpublished": "Boutique dépubliée"
+    "storeUnpublished": "Boutique dépubliée",
+    "generalTitle": "Général",
+    "generalDescription": "Informations de base sur votre boutique",
+    "currencyTitle": "Devise",
+    "currencyDescription": "Définissez la devise utilisée pour le prix des produits",
+    "published": "Publiée",
+    "draft": "Brouillon"
   },
   "settings": {
     "title": "Paramètres du compte",
@@ -226,6 +229,7 @@
     "title": "Design",
     "saving": "Enregistrement...",
     "saveChanges": "Enregistrer",
+    "cancel": "Annuler",
     "designSaved": "Design enregistré",
     "logo": "Logo",
     "logoSize": "512x512px",
@@ -257,10 +261,18 @@
     "thankYouPage": "Page de remerciement",
     "customMessage": "Message personnalisé",
     "thankYouPlaceholder": "Merci pour votre commande ! Nous l'avons bien reçue et la confirmerons sous peu.",
+    "branding": "Image de marque",
+    "colors": "Couleurs",
+    "typography": "Typographie",
+    "layoutStyle": "Mise en page & Style",
+    "preferences": "Paramètres",
+    "checkout": "Paiement",
+    "thankYou": "Merci",
     "colorPresets": "Thème de couleurs",
     "colorPresetsHint": "Cliquez sur une couleur pour la personnaliser",
     "shuffle": "Mélanger",
     "customTheme": "Personnalisé",
+    "customColors": "Couleurs personnalisées",
     "presetClassicStore": "Boutique Classique",
     "presetTrustGreen": "Vert Confiance",
     "presetSoftRose": "Rose Doux",
@@ -281,10 +293,28 @@
     "presetDeepNavy": "Bleu Nuit",
     "presetPeachSoft": "Pêche Douce",
     "presetCharcoalEdge": "Charbon Moderne",
+    "buttonStyle": "Style des boutons",
+    "buttonStyleFilled": "Rempli",
+    "buttonStyleOutline": "Contour",
+    "buttonStylePill": "Pilule",
+    "cardShadow": "Ombre des cartes",
+    "headingFont": "Police des titres",
+    "headingFontPlaceholder": "Même que le corps",
+    "productImageRatio": "Ratio d'image",
+    "ratioSquare": "Carré",
+    "ratioPortrait": "Portrait",
+    "ratioLandscape": "Paysage",
+    "layoutSpacing": "Espacement",
+    "spacingCompact": "Compact",
+    "spacingNormal": "Normal",
+    "spacingSpacious": "Aéré",
     "floatingCart": "Bouton panier flottant",
     "floatingCartHint": "Afficher un bouton panier fixe sur la boutique",
     "searchInput": "Barre de recherche",
-    "searchInputHint": "Afficher une barre de recherche sur la boutique"
+    "searchInputHint": "Afficher une barre de recherche sur la boutique",
+    "customCss": "CSS personnalisé",
+    "customCssHint": "Ajoutez du CSS personnalisé à votre boutique. L'IA peut aussi écrire du CSS ici pour des styles avancés.",
+    "customCssPlaceholder": ".store-card { }\nheader { }\nmain { }"
   },
   "designPreview": {
     "tabStore": "Boutique",
@@ -579,6 +609,21 @@
     "clearChat": "Effacer le chat",
     "greeting": "Bonjour ! Je suis votre assistant de configuration. Je peux vous aider à configurer votre boutique, ajouter des produits, gérer les commandes et plus encore. Comment puis-je vous aider ?"
   },
+  "aiDesignChat": {
+    "title": "Assistant Design",
+    "placeholder": "Décrivez le look souhaité pour votre boutique...",
+    "thinking": "Conception en cours...",
+    "error": "Échec de la génération du design. Veuillez réessayer.",
+    "clearChat": "Effacer le chat",
+    "greeting": "Décrivez le look souhaité et je vous proposerai des changements de style que vous pourrez prévisualiser instantanément.",
+    "apply": "Appliquer",
+    "applied": "Appliqué",
+    "applySuccess": "Modifications de design appliquées !",
+    "suggestion1": "Thème sombre avec accents dorés",
+    "suggestion2": "Look minimal et épuré",
+    "suggestion3": "Thème café chaleureux",
+    "suggestion4": "Moderne avec des tons violets"
+  },
   "integrations": {
     "title": "Intégrations",
     "empty": "Aucune intégration disponible pour le moment.",
@@ -634,6 +679,7 @@
       "error": "Erreur",
       "date": "Date",
       "empty": "Aucun événement pour cette intégration.",
+      "loadMore": "Charger plus",
       "statuses": {
         "pending": "En attente",
         "processing": "En cours",

@@ -147,8 +147,8 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
             return (
               <Card key={app.id}>
                 <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <Icon className="h-5 w-5" style={app.iconColor ? { color: app.iconColor } : undefined} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
