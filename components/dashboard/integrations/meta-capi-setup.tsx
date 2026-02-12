@@ -44,10 +44,11 @@ export function MetaCapiSetup({ storeId, installed, onDone }: Props) {
 
     setSaving(true)
     try {
+      const hasTestCode = !!testEventCode.trim()
       const newConfig = {
         pixel_id: pixelId.trim(),
         access_token: accessToken.trim(),
-        ...(testEventCode.trim() ? { test_event_code: testEventCode.trim() } : {}),
+        ...(hasTestCode ? { test_event_code: testEventCode.trim(), test_mode: true } : { test_mode: false }),
       }
 
       if (installed) {

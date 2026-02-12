@@ -32,8 +32,9 @@ components/
   marketing/       # Landing page components
 lib/
   supabase/        # Supabase clients (client, server, admin, middleware)
+  integrations/    # Integration registry, handlers, and app definitions
   store/           # Zustand stores
-  hooks/           # Custom React hooks
+  hooks/           # Custom React hooks (use-pixel, use-store-currency, etc.)
   validations/     # Zod schemas
   constants.ts     # App-wide constants (cities, currencies, etc.)
   utils.ts         # Utility functions (cn, formatPrice, slugify, etc.)
@@ -101,6 +102,54 @@ When a database schema change is needed:
 1. **Update the single schema file** — edit `supabase/migrations/001_initial_schema.sql` to reflect the new state (add columns, tables, policies, etc. inline).
 2. **Provide an ALTER SQL block** — after updating the schema file, always output a separate SQL snippet (ALTER TABLE, DROP/CREATE POLICY, etc.) that the user can copy-paste and run in the Supabase SQL Editor to apply the change to the live database.
 3. **Never create new migration files** — all schema lives in `001_initial_schema.sql`.
+
+## Integrations System
+
+Third-party integrations are managed via the `store_integrations` table and a registry pattern.
+
+### Architecture
+
+```
+lib/integrations/
+  registry.ts        # AppDefinition interface + APPS registry
+  handlers.ts        # Event dispatcher (e.g. order.created → handler)
+  apps/
+    whatsapp.ts      # WhatsApp notification app definition + handler
+    meta-capi.ts     # Meta Conversions API app definition + handler
+components/dashboard/
+  integration-manager.tsx              # Install/uninstall + toggle UI
+  integrations/
+    whatsapp-setup.tsx                 # WhatsApp config dialog
+    meta-capi-setup.tsx                # Meta CAPI config dialog
+app/api/integrations/
+  route.ts                             # CRUD for store_integrations
+  whatsapp/connect/route.ts            # WhatsApp OAuth connect
+  whatsapp/disconnect/route.ts         # WhatsApp disconnect
+  whatsapp/status/route.ts             # WhatsApp status check
+```
+
+### Adding a New Integration
+
+1. Create an app definition in `lib/integrations/apps/<name>.ts` implementing `AppDefinition`.
+2. Register it in `lib/integrations/registry.ts` → `APPS`.
+3. If `hasCustomSetup: true`, create a setup component in `components/dashboard/integrations/`.
+4. Add event handler logic in `lib/integrations/handlers.ts` if it reacts to events.
+
+### Meta CAPI / Facebook Pixel
+
+- **Pixel ID lives in `store_integrations` config** (not the `stores` table).
+- The storefront layout (`app/(storefront)/[slug]/layout.tsx`) queries `store_integrations` for `meta-capi` config to load the pixel.
+- Config shape: `{ pixel_id, access_token, test_event_code?, test_mode }`.
+- `test_mode` is auto-set to `true` when `test_event_code` is provided on save, `false` when removed.
+
+### Client-Side Pixel Tracking
+
+- `lib/hooks/use-pixel.ts` — `usePixel()` hook returns a `track(eventName, data)` function that safely calls `window.fbq()`.
+- Supported client-side events:
+  - **ViewContent** — fired on product page load (`components/store/pixel-view-content.tsx`)
+  - **AddToCart** — fired in `add-to-cart-button.tsx` and `variant-selector.tsx`
+  - **InitiateCheckout** — fired on cart page load (`app/(storefront)/[slug]/cart/page.tsx`)
+- **Purchase** — server-side only via Meta Conversions API (`lib/integrations/apps/meta-capi.ts`), triggered by `order.created` event.
 
 ## Don'ts
 

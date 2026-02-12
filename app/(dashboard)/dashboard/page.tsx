@@ -51,13 +51,13 @@ export default async function DashboardPage() {
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold"><T k="dashboard.overview" /></h1>
         {store.is_published && (
           <Link
             href={store.custom_domain && store.domain_verified ? `https://${store.custom_domain}` : `/${store.slug}`}
             target="_blank"
-            className="text-sm text-primary underline"
+            className="max-w-full truncate text-sm text-primary underline"
           >
             {store.custom_domain && store.domain_verified
               ? store.custom_domain
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium"><T k="dashboard.products" /></CardTitle>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{totalRevenue.toFixed(2)} {store.currency}</p>
+            <p className="truncate text-2xl font-bold">{totalRevenue.toFixed(2)} {store.currency}</p>
           </CardContent>
         </Card>
       </div>

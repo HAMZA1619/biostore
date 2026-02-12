@@ -263,7 +263,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
       ) : (
         <>
           {/* Metric cards grid */}
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             <MetricCard
               title={t("analytics.visitors")}
               value={totalVisitors.toString()}
@@ -289,7 +289,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             <MetricCard
               title={t("analytics.conversionRate")}
               value={`${conversionRate.toFixed(2)}%`}
@@ -370,7 +370,7 @@ function MetricCard({
     <Card>
       <CardContent className="pt-4 pb-3 px-4">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="mt-1 text-2xl font-bold">{value}</p>
+        <p className="mt-1 truncate text-2xl font-bold">{value}</p>
         <div className="mt-1 flex items-center gap-1 text-xs">
           {isPositive ? (
             <TrendingUp className="h-3 w-3 text-emerald-500" />
