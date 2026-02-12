@@ -37,18 +37,6 @@ export function MarketingSettings({ register }: MarketingSettingsProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-semibold">{t("marketing.fb")}</Label>
-        <p className="text-xs text-muted-foreground">{t("marketing.fbDescription")}</p>
-        <div className="space-y-1">
-          <Label htmlFor="fb_pixel_id" className="text-xs">{t("marketing.fbLabel")}</Label>
-          <Input
-            id="fb_pixel_id"
-            placeholder={t("marketing.fbPlaceholder")}
-            {...register("fb_pixel_id")}
-          />
-        </div>
-      </div>
     </div>
   )
 }

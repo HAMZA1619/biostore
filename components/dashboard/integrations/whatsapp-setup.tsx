@@ -11,7 +11,6 @@ interface InstalledIntegration {
   id: string
   store_id: string
   integration_id: string
-  is_enabled: boolean
   config: Record<string, unknown>
 }
 

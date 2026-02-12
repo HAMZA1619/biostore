@@ -16,10 +16,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
     }
 
-    // Only process trigger rows (integration_id === '_trigger', status pending).
+    // Only process trigger rows (integration_id is null or '_trigger', status pending).
     // Dispatch rows have a real integration_id and would re-trigger this
     // webhook — skip them to prevent duplicate events.
-    if (event.integration_id !== "_trigger" || event.status !== "pending") {
+    const isTriggerRow = !event.integration_id || event.integration_id === "_trigger"
+    if (!isTriggerRow || event.status !== "pending") {
       return NextResponse.json({ ok: true, skipped: true })
     }
 
@@ -41,10 +42,10 @@ export async function POST(request: Request) {
 
     const { data: integrations } = await supabase
       .from("store_integrations")
-      .select("integration_id, is_enabled, config")
+      .select("integration_id, config")
       .eq("store_id", event.store_id)
 
-    const eligible = (integrations?.filter((i) => i.is_enabled) || []).filter((i) => {
+    const eligible = (integrations || []).filter((i) => {
       const def = APPS[i.integration_id]
       return def && def.events.includes(event.event_type)
     })

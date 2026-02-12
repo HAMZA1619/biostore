@@ -46,7 +46,6 @@ CREATE TABLE stores (
   custom_domain TEXT UNIQUE,
   domain_verified BOOLEAN NOT NULL DEFAULT false,
   ga_measurement_id TEXT,
-  fb_pixel_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -291,14 +290,12 @@ CREATE TABLE store_integrations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   integration_id TEXT NOT NULL,
-  is_enabled BOOLEAN NOT NULL DEFAULT true,
   config JSONB NOT NULL DEFAULT '{}',
   installed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(store_id, integration_id)
 );
 CREATE INDEX idx_store_integrations_store ON store_integrations(store_id);
-CREATE INDEX idx_store_integrations_enabled ON store_integrations(store_id, is_enabled) WHERE is_enabled = true;
 
 ALTER TABLE store_integrations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners can view own integrations" ON store_integrations FOR SELECT
@@ -335,7 +332,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM public.store_integrations
-    WHERE store_id = NEW.store_id AND is_enabled = true
+    WHERE store_id = NEW.store_id
   ) THEN
     INSERT INTO public.integration_events (store_id, integration_id, event_type, payload)
     VALUES (
@@ -375,7 +372,7 @@ BEGIN
   IF OLD.status IS DISTINCT FROM NEW.status THEN
     IF EXISTS (
       SELECT 1 FROM public.store_integrations
-      WHERE store_id = NEW.store_id AND is_enabled = true
+      WHERE store_id = NEW.store_id
     ) THEN
       INSERT INTO public.integration_events (store_id, integration_id, event_type, payload)
       VALUES (

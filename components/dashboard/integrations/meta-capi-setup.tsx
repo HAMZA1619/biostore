@@ -7,13 +7,19 @@ import "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Save, CheckCircle2 } from "lucide-react"
+import { Loader2, Save, CheckCircle2, Monitor, Server, ChevronDown } from "lucide-react"
+
+const SUPPORTED_EVENTS = [
+  { name: "ViewContent", descKey: "metaCapiEventViewContentDesc", type: "pixel" as const },
+  { name: "AddToCart", descKey: "metaCapiEventAddToCartDesc", type: "pixel" as const },
+  { name: "InitiateCheckout", descKey: "metaCapiEventInitiateCheckoutDesc", type: "pixel" as const },
+  { name: "Purchase", descKey: "metaCapiEventPurchaseDesc", type: "server" as const },
+]
 
 interface InstalledIntegration {
   id: string
   store_id: string
   integration_id: string
-  is_enabled: boolean
   config: Record<string, unknown>
 }
 
@@ -31,6 +37,7 @@ export function MetaCapiSetup({ storeId, installed, onDone }: Props) {
   const [accessToken, setAccessToken] = useState((config.access_token as string) || "")
   const [testEventCode, setTestEventCode] = useState((config.test_event_code as string) || "")
   const [saving, setSaving] = useState(false)
+  const [showEvents, setShowEvents] = useState(false)
 
   async function handleSave() {
     if (!pixelId.trim() || !accessToken.trim()) return
@@ -89,6 +96,41 @@ export function MetaCapiSetup({ storeId, installed, onDone }: Props) {
         </div>
       )}
 
+      <div className="rounded-lg border">
+        <button
+          type="button"
+          onClick={() => setShowEvents((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium hover:bg-muted/50 transition-colors"
+        >
+          {t("integrations.metaCapiSupportedEvents")}
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showEvents ? "rotate-180" : ""}`} />
+        </button>
+        {showEvents && (
+          <div className="divide-y border-t">
+            {SUPPORTED_EVENTS.map((evt) => (
+              <div key={evt.name} className="flex items-center gap-3 px-3 py-2.5">
+                {evt.type === "pixel" ? (
+                  <Monitor className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+                ) : (
+                  <Server className="h-3.5 w-3.5 shrink-0 text-violet-500" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-none">{evt.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t(`integrations.${evt.descKey}`)}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  evt.type === "pixel"
+                    ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+                    : "bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400"
+                }`}>
+                  {evt.type}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="pixel_id">{t("integrations.metaCapiPixelId")}</Label>
         <Input
@@ -118,9 +160,6 @@ export function MetaCapiSetup({ storeId, installed, onDone }: Props) {
           value={testEventCode}
           onChange={(e) => setTestEventCode(e.target.value)}
         />
-        <p className="text-xs text-muted-foreground">
-          {t("integrations.metaCapiTestCodeHint")}
-        </p>
       </div>
 
       <Button

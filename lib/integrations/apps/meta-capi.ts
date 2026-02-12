@@ -17,6 +17,7 @@ interface MetaCapiConfig {
   pixel_id: string
   access_token: string
   test_event_code?: string
+  test_mode?: boolean
 }
 
 interface OrderItem {
@@ -117,7 +118,7 @@ export async function handleMetaCAPI(
     data: [eventData],
   }
 
-  if (config.test_event_code) {
+  if (config.test_mode && config.test_event_code) {
     body.test_event_code = config.test_event_code
   }
 

@@ -64,7 +64,6 @@ export async function POST(request: Request) {
       .from("store_integrations")
       .update({
         config: { instance_name: null, connected: false },
-        is_enabled: false,
         updated_at: new Date().toISOString(),
       })
       .eq("store_id", store_id)

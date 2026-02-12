@@ -38,7 +38,6 @@ interface StoreFormProps {
     accent_color: string | null
     is_published: boolean
     ga_measurement_id: string | null
-    fb_pixel_id: string | null
   } | null
 }
 
@@ -68,7 +67,6 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
       primary_color: initialData?.primary_color || "#000000",
       accent_color: initialData?.accent_color || "#3B82F6",
       ga_measurement_id: initialData?.ga_measurement_id || "",
-      fb_pixel_id: initialData?.fb_pixel_id || "",
     },
   })
 

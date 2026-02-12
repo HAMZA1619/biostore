@@ -90,7 +90,6 @@ export async function POST(request: Request) {
         {
           store_id,
           integration_id: "whatsapp",
-          is_enabled: true,
           config: {
             instance_name: instanceName,
             connected: false,

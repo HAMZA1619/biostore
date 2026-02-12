@@ -17,6 +17,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
+import { usePixel } from "@/lib/hooks/use-pixel"
 import Script from "next/script"
 import "@/lib/i18n"
 
@@ -30,6 +31,7 @@ export default function CartPage() {
   const removeItem = useCartStore((s) => s.removeItem)
   const clearCart = useCartStore((s) => s.clearCart)
   const getTotal = useCartStore((s) => s.getTotal)
+  const track = usePixel()
   const router = useRouter()
 
   const [form, setForm] = useState({
@@ -71,6 +73,16 @@ export default function CartPage() {
       note: el.getAttribute("data-show-note") !== "false",
     })
   }, [])
+
+  useEffect(() => {
+    if (items.length === 0) return
+    track("InitiateCheckout", {
+      content_ids: items.map((i) => i.productId),
+      num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+      value: getTotal(),
+      currency: currency.toUpperCase(),
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pre-fill country from IP address
   useEffect(() => {

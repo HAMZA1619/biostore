@@ -1,6 +1,8 @@
 "use client"
 
 import { useCartStore } from "@/lib/store/cart-store"
+import { usePixel } from "@/lib/hooks/use-pixel"
+import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -20,6 +22,8 @@ interface AddToCartButtonProps {
 export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
+  const track = usePixel()
+  const currency = useStoreCurrency()
 
   function handleAdd() {
     if (!product.isAvailable) return
@@ -34,6 +38,13 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
       },
       storeSlug
     )
+    track("AddToCart", {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product",
+      value: product.price,
+      currency: currency.toUpperCase(),
+    })
   }
 
   return (

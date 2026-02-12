@@ -1,6 +1,7 @@
 "use client"
 
 import { useCartStore } from "@/lib/store/cart-store"
+import { usePixel } from "@/lib/hooks/use-pixel"
 import { Button } from "@/components/ui/button"
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
@@ -39,6 +40,7 @@ interface VariantSelectorProps {
 export function VariantSelector({ product, options, variants, storeSlug }: VariantSelectorProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
+  const track = usePixel()
   const currency = useStoreCurrency()
   const [selected, setSelected] = useState<Record<string, string>>({})
 
@@ -90,6 +92,13 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
       },
       storeSlug
     )
+    track("AddToCart", {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: "product_group",
+      value: matchedVariant.price,
+      currency: currency.toUpperCase(),
+    })
   }
 
   return (

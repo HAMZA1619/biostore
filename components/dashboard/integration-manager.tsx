@@ -35,7 +35,6 @@ interface InstalledIntegration {
   id: string
   store_id: string
   integration_id: string
-  is_enabled: boolean
   config: Record<string, unknown>
   installed_at: string
   updated_at: string
@@ -56,20 +55,21 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
     installedIntegrations.map((i) => [i.integration_id, i])
   )
 
-  async function handleToggle(installed: InstalledIntegration) {
+  async function handleTestModeToggle(installed: InstalledIntegration) {
+    const currentTestMode = !!(installed.config as Record<string, unknown>).test_mode
     const res = await fetch("/api/integrations", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: installed.id,
-        is_enabled: !installed.is_enabled,
+        config: { ...installed.config, test_mode: !currentTestMode },
       }),
     })
     if (res.ok) {
       toast.success(
-        installed.is_enabled
-          ? t("integrations.disabled")
-          : t("integrations.enabled")
+        currentTestMode
+          ? t("integrations.liveMode")
+          : t("integrations.testMode")
       )
       router.refresh()
     }
@@ -141,33 +141,44 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
           {APP_LIST.map((app) => {
             const installed = installedMap.get(app.id)
             const Icon = app.icon
+            const config = (installed?.config || {}) as Record<string, unknown>
+            const hasTestCode = app.id === "meta-capi" && !!config.test_event_code
+            const isTestMode = hasTestCode && !!config.test_mode
             return (
               <Card key={app.id}>
-                <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+                <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-base">{app.name}</CardTitle>
-                      {installed && (
-                        <Badge
-                          variant={
-                            installed.is_enabled ? "default" : "secondary"
-                          }
-                        >
-                          {installed.is_enabled
-                            ? t("integrations.active")
-                            : t("integrations.paused")}
-                        </Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-base truncate">{app.name}</CardTitle>
+                      {installed && hasTestCode && (
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={isTestMode
+                              ? "border-amber-500/50 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                              : "border-emerald-500/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                            }
+                          >
+                            {isTestMode
+                              ? t("integrations.test")
+                              : t("integrations.live")}
+                          </Badge>
+                          <Switch
+                            checked={!isTestMode}
+                            onCheckedChange={() => handleTestModeToggle(installed)}
+                          />
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                       {app.description}
                     </p>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-0">
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
@@ -186,14 +197,10 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
                             {t("integrations.events.link")}
                           </Link>
                         </Button>
-                        <Switch
-                          checked={installed.is_enabled}
-                          onCheckedChange={() => handleToggle(installed)}
-                        />
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-red-600 hover:text-red-700"
+                          className="ms-auto text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-950"
                           onClick={() => setUninstallId(installed.id)}
                         >
                           {t("integrations.uninstall")}

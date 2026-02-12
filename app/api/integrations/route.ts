@@ -38,7 +38,6 @@ export async function POST(request: Request) {
           store_id,
           integration_id,
           config: body.config || {},
-          is_enabled: true,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "store_id,integration_id" }
@@ -69,7 +68,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = await request.json()
-    const { id, is_enabled, config } = body
+    const { id, config } = body
 
     if (!id) {
       return NextResponse.json(
@@ -81,7 +80,6 @@ export async function PATCH(request: Request) {
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }
-    if (typeof is_enabled === "boolean") updates.is_enabled = is_enabled
     if (config) updates.config = config
 
     const { data, error } = await supabase
