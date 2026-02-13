@@ -24,11 +24,12 @@ interface Product {
 interface ProductsTableProps {
   initialProducts: Product[]
   currency: string
+  storeId?: string
   hasMore: boolean
   search?: string
 }
 
-export function ProductsTable({ initialProducts, currency, hasMore: initialHasMore, search }: ProductsTableProps) {
+export function ProductsTable({ initialProducts, currency, storeId, hasMore: initialHasMore, search }: ProductsTableProps) {
   const { t } = useTranslation()
   const [products, setProducts] = useState(initialProducts)
   const [page, setPage] = useState(1)
@@ -96,7 +97,7 @@ export function ProductsTable({ initialProducts, currency, hasMore: initialHasMo
                   <ProductStatusSelect productId={product.id} status={product.status || "active"} />
                 </TableCell>
                 <TableCell className="text-end">
-                  <ProductActions productId={product.id} />
+                  <ProductActions productId={product.id} storeId={storeId} />
                 </TableCell>
               </TableRow>
             ))}

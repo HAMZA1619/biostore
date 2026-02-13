@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { CheckCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { cn } from "@/lib/utils"
+import { cn, getImageUrl } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import "@/lib/i18n"
@@ -11,8 +11,8 @@ import "@/lib/i18n"
 export type PreviewTab = "store" | "checkout" | "thankyou"
 
 export interface DesignState {
-  logoUrl: string | null
-  bannerUrl: string | null
+  logoPath: string | null
+  bannerPath: string | null
   primaryColor: string
   accentColor: string
   backgroundColor: string
@@ -297,9 +297,9 @@ function StorePreview({
   return (
     <>
       <PreviewHeader state={state} storeName={storeName} cartCount={cartCount} onCartClick={onGoToCheckout} />
-      {state.bannerUrl && (
+      {state.bannerPath && (
         <div className="px-2 pt-2">
-          <img src={state.bannerUrl} alt="" className="w-full" style={{ borderRadius: radiusCss }} />
+          <img src={getImageUrl(state.bannerPath)!} alt="" className="w-full" style={{ borderRadius: radiusCss }} />
         </div>
       )}
       <main className="p-2">
@@ -540,9 +540,9 @@ function PreviewHeader({
     >
       <div className="flex h-8 items-center justify-between px-2">
         <div className="flex items-center gap-1">
-          {state.logoUrl && (
+          {state.logoPath && (
             <img
-              src={state.logoUrl}
+              src={getImageUrl(state.logoPath)!}
               alt=""
               className="h-5 w-5 rounded-full object-cover"
             />

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { revalidateTag } from "next/cache"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    revalidateTag(`integrations:${store_id}`, "max")
     return NextResponse.json(data)
   } catch {
     return NextResponse.json(
@@ -80,7 +82,22 @@ export async function PATCH(request: Request) {
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }
-    if (config) updates.config = config
+
+    if (config) {
+      // Merge incoming config with existing to avoid overwriting
+      // server-refreshed tokens with stale client-side values
+      const { data: existing } = await supabase
+        .from("store_integrations")
+        .select("config")
+        .eq("id", id)
+        .single()
+
+      if (existing?.config && typeof existing.config === "object") {
+        updates.config = { ...(existing.config as Record<string, unknown>), ...config }
+      } else {
+        updates.config = config
+      }
+    }
 
     const { data, error } = await supabase
       .from("store_integrations")
@@ -93,6 +110,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    if (data?.store_id) revalidateTag(`integrations:${data.store_id}`, "max")
     return NextResponse.json(data)
   } catch {
     return NextResponse.json(
@@ -121,6 +139,12 @@ export async function DELETE(request: Request) {
       )
     }
 
+    const { data: integration } = await supabase
+      .from("store_integrations")
+      .select("store_id")
+      .eq("id", id)
+      .single()
+
     const { error } = await supabase
       .from("store_integrations")
       .delete()
@@ -130,6 +154,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    if (integration?.store_id) revalidateTag(`integrations:${integration.store_id}`, "max")
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json(

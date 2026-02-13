@@ -1,5 +1,6 @@
 import { handleWhatsApp } from "@/lib/integrations/apps/whatsapp"
 import { handleMetaCAPI } from "@/lib/integrations/apps/meta-capi"
+import { handleGoogleSheets } from "@/lib/integrations/apps/google-sheets.server"
 
 interface IntegrationEvent {
   event_type: string
@@ -12,6 +13,7 @@ interface StoreIntegration {
 }
 
 interface StoreInfo {
+  id: string
   name: string
   currency: string
   language: string
@@ -38,6 +40,16 @@ export async function dispatchSingle(
         event.event_type,
         event.payload as unknown as Parameters<typeof handleMetaCAPI>[1],
         integration.config as unknown as Parameters<typeof handleMetaCAPI>[2],
+        store.name,
+        store.currency,
+      )
+      break
+    case "google-sheets":
+      await handleGoogleSheets(
+        event.event_type,
+        event.payload as unknown as Parameters<typeof handleGoogleSheets>[1],
+        integration.config as unknown as Parameters<typeof handleGoogleSheets>[2],
+        store.id,
         store.name,
         store.currency,
       )

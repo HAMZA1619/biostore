@@ -1,6 +1,7 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
+import { revalidateStoreCache } from "@/lib/actions/revalidate"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -250,6 +251,7 @@ export function CollectionsManager({
 
     setLoading(false)
     setDialogOpen(false)
+    await revalidateStoreCache([`collections:${storeId}`, `products:${storeId}`])
     router.refresh()
   }
 
@@ -263,6 +265,7 @@ export function CollectionsManager({
     }
     toast.success(t("collections.collectionDeleted"))
     setDeleteId(null)
+    await revalidateStoreCache([`collections:${storeId}`, `products:${storeId}`])
     router.refresh()
   }
 

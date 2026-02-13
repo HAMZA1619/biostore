@@ -47,10 +47,16 @@ export function slugify(text: string) {
     .replace(/^-+|-+$/g, "")
 }
 
+export function getImageUrl(storagePath: string | null | undefined): string | null {
+  if (!storagePath) return null
+  if (storagePath.startsWith("http")) return storagePath
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images/${storagePath}`
+}
+
 export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignState {
   return {
-    logoUrl: (raw.logoUrl as string) || null,
-    bannerUrl: (raw.bannerUrl as string) || null,
+    logoPath: (raw.logoPath as string) || (raw.logoUrl as string) || null,
+    bannerPath: (raw.bannerPath as string) || (raw.bannerUrl as string) || null,
     primaryColor: (raw.primaryColor as string) || "#000000",
     accentColor: (raw.accentColor as string) || "#3B82F6",
     backgroundColor: (raw.backgroundColor as string) || "#ffffff",

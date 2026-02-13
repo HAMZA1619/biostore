@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { getImageUrl } from "@/lib/utils"
 import { NextResponse } from "next/server"
 
 async function detectCountryFromIP(request: Request): Promise<string> {
@@ -140,8 +141,8 @@ export async function POST(request: Request) {
     const allImageIds = products.flatMap((p) => p.image_urls?.slice(0, 1) || [])
     const imageMap = new Map<string, string>()
     if (allImageIds.length > 0) {
-      const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", allImageIds)
-      for (const img of imgs || []) imageMap.set(img.id, img.url)
+      const { data: imgs } = await supabase.from("store_images").select("id, storage_path").in("id", allImageIds)
+      for (const img of imgs || []) imageMap.set(img.id, getImageUrl(img.storage_path)!)
     }
 
     // Calculate totals

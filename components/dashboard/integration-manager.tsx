@@ -87,6 +87,14 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
       })
     }
 
+    if (installed?.integration_id === "google-sheets") {
+      await fetch("/api/integrations/google-sheets/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ store_id: storeId }),
+      })
+    }
+
     const res = await fetch(`/api/integrations?id=${uninstallId}`, {
       method: "DELETE",
     })
@@ -183,7 +191,13 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
                     <Button
                       size="sm"
                       variant={installed ? "outline" : "default"}
-                      onClick={() => setSetupAppId(app.id)}
+                      onClick={() => {
+                        if (app.id === "google-sheets") {
+                          router.push("/dashboard/integrations/google-sheets")
+                        } else {
+                          setSetupAppId(app.id)
+                        }
+                      }}
                     >
                       {installed
                         ? t("integrations.configure")

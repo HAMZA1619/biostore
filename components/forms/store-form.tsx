@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { createClient } from "@/lib/supabase/client"
+import { revalidateStoreCache } from "@/lib/actions/revalidate"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -89,6 +90,7 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
         return
       }
       toast.success(t("storeForm.storeUpdated"))
+      await revalidateStoreCache([`store:${initialData.slug}`])
     } else {
       const { error } = await supabase.from("stores").insert({
         ...data,
@@ -123,6 +125,7 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
       return
     }
     toast.success(initialData.is_published ? t("storeForm.storeUnpublished") : t("storeForm.storePublished"))
+    await revalidateStoreCache([`store:${initialData.slug}`])
     router.refresh()
   }
 

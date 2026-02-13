@@ -258,7 +258,7 @@ CUSTOM CSS:
   Examples: gradient backgrounds, text shadows, hover animations, border effects, custom scrollbar styles.
   IMPORTANT: Only output valid CSS. No HTML tags, no <script>, no JavaScript. Max 5000 characters.
 
-You CANNOT change: logoUrl, bannerUrl, or any component HTML/layout structure.
+You CANNOT change: logoPath, bannerPath, or any component HTML/layout structure.
 
 AVAILABLE COLOR PRESETS (use these when the user asks for a named theme):
 ${presetList}

@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { BiostoreLogo } from "@/components/icons/biostore-logo"
 import { useLanguageStore } from "@/lib/store/language-store"
 import "@/lib/i18n"
 
@@ -41,8 +42,8 @@ function SidebarContent({ pathname, onNavigate }: {
   return (
     <>
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/dashboard" className="text-lg font-bold" onClick={onNavigate}>
-          {t("nav.brandName")}
+        <Link href="/dashboard" onClick={onNavigate}>
+          <BiostoreLogo className="h-6" />
         </Link>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -98,8 +99,8 @@ export function MobileNav() {
           />
         </SheetContent>
       </Sheet>
-      <Link href="/dashboard" className="ms-2 text-lg font-bold">
-        {t("nav.brandName")}
+      <Link href="/dashboard" className="ms-2">
+        <BiostoreLogo className="h-6" />
       </Link>
     </div>
   )

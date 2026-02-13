@@ -16,6 +16,7 @@ import type { ImageItem } from "@/components/dashboard/image-upload"
 import { OptionValuesInput } from "@/components/forms/option-values-input"
 import { getCurrencySymbol } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { revalidateStoreCache } from "@/lib/actions/revalidate"
 import { useRouter } from "next/navigation"
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
@@ -343,6 +344,9 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
     }
 
     toast.success(initialData ? t("productForm.productUpdated") : t("productForm.productAdded"))
+    const tags = [`products:${storeId}`]
+    if (initialData) tags.push(`product:${initialData.id}`)
+    await revalidateStoreCache(tags)
     setLoading(false)
     router.push("/dashboard/products")
   }

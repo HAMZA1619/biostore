@@ -1,11 +1,54 @@
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
-import { formatPriceSymbol } from "@/lib/utils"
+import { formatPriceSymbol, getImageUrl } from "@/lib/utils"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { ProductImageGallery } from "@/components/store/product-image-gallery"
 import { VariantSelector } from "@/components/store/variant-selector"
 import { PixelViewContent } from "@/components/store/pixel-view-content"
 import { getT } from "@/lib/i18n/storefront"
+import { getStoreBySlug, getProduct, getProductVariants, resolveImageUrls } from "@/lib/storefront/cache"
+import type { Metadata } from "next"
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string; productId: string }>
+}): Promise<Metadata> {
+  const { slug, productId } = await params
+  const store = await getStoreBySlug(slug, "id, name, currency")
+  if (!store) return {}
+
+  const product = await getProduct(productId, store.id)
+  if (!product) return {}
+
+  const imageIds: string[] = product.image_urls || []
+  let ogImage: string | undefined
+  if (imageIds.length > 0) {
+    const imgMap = await resolveImageUrls(imageIds.slice(0, 1))
+    ogImage = imgMap.get(imageIds[0]) || undefined
+  }
+
+  const title = `${product.name} — ${store.name}`
+  const description = product.description
+    ? product.description.slice(0, 160)
+    : `${product.name} — ${formatPriceSymbol(product.price, store.currency)}`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+  }
+}
 
 export default async function ProductPage({
   params,
@@ -13,23 +56,12 @@ export default async function ProductPage({
   params: Promise<{ slug: string; productId: string }>
 }) {
   const { slug, productId } = await params
-  const supabase = await createClient()
 
-  const { data: store } = await supabase
-    .from("stores")
-    .select("id, language, currency")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .single()
+  const store = await getStoreBySlug(slug, "id, language, currency")
 
   if (!store) notFound()
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*, collections(name)")
-    .eq("id", productId)
-    .eq("store_id", store.id)
-    .single()
+  const product = await getProduct(productId, store.id)
 
   if (!product) notFound()
 
@@ -37,8 +69,7 @@ export default async function ProductPage({
   const imageIds: string[] = product.image_urls || []
   let resolvedImageUrls: string[] = []
   if (imageIds.length > 0) {
-    const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", imageIds)
-    const imgMap = new Map((imgs || []).map((i: { id: string; url: string }) => [i.id, i.url]))
+    const imgMap = await resolveImageUrls(imageIds)
     resolvedImageUrls = imageIds.map((id) => imgMap.get(id)).filter(Boolean) as string[]
   }
 
@@ -46,11 +77,7 @@ export default async function ProductPage({
 
   let variants: { id: string; options: Record<string, string>; price: number; compare_at_price: number | null; sku: string | null; stock: number | null; is_available: boolean }[] = []
   if (hasOptions) {
-    const { data } = await supabase
-      .from("product_variants")
-      .select("id, options, price, compare_at_price, sku, stock, is_available")
-      .eq("product_id", productId)
-      .order("sort_order")
+    const data = await getProductVariants(productId)
 
     variants = (data || []).map((v) => ({
       id: v.id,

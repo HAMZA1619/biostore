@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { headers } from "next/headers"
 import { StoreHeader } from "@/components/layout/store-header"
@@ -6,8 +5,9 @@ import { StoreFooter } from "@/components/layout/store-footer"
 import { FloatingCartButton } from "@/components/store/floating-cart-button"
 import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { TrackingScripts } from "@/components/store/tracking-scripts"
-import { parseDesignSettings } from "@/lib/utils"
+import { parseDesignSettings, getImageUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
+import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess } from "@/lib/storefront/cache"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -16,19 +16,32 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: store } = await supabase
-    .from("stores")
-    .select("name, description")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .single()
+  const store = await getStoreBySlug(slug, "name, description, design_settings")
 
   if (!store) return {}
 
+  const title = store.name
+  const description = store.description || `Shop at ${store.name}`
+
+  const ds = parseDesignSettings((store.design_settings || {}) as Record<string, unknown>)
+  const logoUrl = ds.logoPath ? getImageUrl(ds.logoPath) : null
+
   return {
-    title: store.name,
-    description: store.description || `Shop at ${store.name}`,
+    title,
+    description,
+    ...(logoUrl ? { icons: { icon: logoUrl, apple: logoUrl } } : {}),
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      ...(logoUrl ? { images: [{ url: logoUrl }] } : {}),
+    },
+    twitter: {
+      card: logoUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(logoUrl ? { images: [logoUrl] } : {}),
+    },
   }
 }
 
@@ -40,23 +53,25 @@ export default async function StoreLayout({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
 
-  const { data: store } = await supabase
-    .from("stores")
-    .select("id, name, slug, language, currency, design_settings, ga_measurement_id")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .single()
+  const store = await getStoreBySlug(slug, "id, name, slug, language, currency, design_settings, ga_measurement_id")
 
   if (!store) notFound()
 
-  const { data: metaCapi } = await supabase
-    .from("store_integrations")
-    .select("config")
-    .eq("store_id", store.id)
-    .eq("integration_id", "meta-capi")
-    .single()
+  const ownerHasAccess = await getStoreOwnerAccess(store.id)
+
+  if (!ownerHasAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold">Store Unavailable</h1>
+          <p className="text-muted-foreground text-sm">This store is temporarily unavailable. Please check back later.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const metaCapi = await getStoreIntegration(store.id, "meta-capi")
 
   const fbPixelId = (metaCapi?.config as Record<string, unknown>)?.pixel_id as string | undefined
 
@@ -160,7 +175,7 @@ export default async function StoreLayout({
       )}
       <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={fbPixelId} />
       <StorefrontI18nProvider lang={storeLang}>
-        <StoreHeader slug={store.slug} name={store.name} logoUrl={ds.logoUrl} bannerUrl={ds.bannerUrl} />
+        <StoreHeader slug={store.slug} name={store.name} logoPath={ds.logoPath} bannerPath={ds.bannerPath} />
         <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
         <StoreFooter storeName={store.name} />
         {ds.showFloatingCart && <FloatingCartButton />}

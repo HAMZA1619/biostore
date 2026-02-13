@@ -98,7 +98,7 @@ export async function POST(request: Request) {
           await dispatchSingle(
             { event_type: event.event_type, payload: enrichedPayload },
             integration,
-            { name: store.name, currency: store.currency, language: store.language },
+            { id: store.id, name: store.name, currency: store.currency, language: store.language },
           )
 
           if (appEventId) {

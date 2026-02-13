@@ -7,20 +7,23 @@ import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
 import { useEffect, useState } from "react"
+import { getImageUrl } from "@/lib/utils"
 
 interface StoreHeaderProps {
   slug: string
   name: string
-  logoUrl?: string | null
-  bannerUrl?: string | null
+  logoPath?: string | null
+  bannerPath?: string | null
 }
 
-export function StoreHeader({ slug, name, logoUrl, bannerUrl }: StoreHeaderProps) {
+export function StoreHeader({ slug, name, logoPath, bannerPath }: StoreHeaderProps) {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const baseHref = useBaseHref()
   const itemCount = useCartStore((s) => s.getItemCount())
   const isHomePage = pathname === `/${slug}` || pathname === "/"
+  const logoUrl = getImageUrl(logoPath)
+  const bannerUrl = getImageUrl(bannerPath)
 
   useEffect(() => setMounted(true), [])
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
+import { revalidateStoreCache } from "@/lib/actions/revalidate"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
-export function ProductActions({ productId }: { productId: string }) {
+export function ProductActions({ productId, storeId }: { productId: string; storeId?: string }) {
   const { t } = useTranslation()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -43,6 +44,7 @@ export function ProductActions({ productId }: { productId: string }) {
       return
     }
     toast.success(t("products.deleted"))
+    if (storeId) await revalidateStoreCache([`products:${storeId}`])
     setDeleteOpen(false)
     router.refresh()
   }

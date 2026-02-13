@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
+import { resolveImageUrls } from "@/lib/storefront/cache"
 
 const PAGE_SIZE = 12
 
@@ -41,11 +42,7 @@ export async function GET(request: NextRequest) {
 
     // Resolve image IDs to URLs
     const allImageIds = (rawProducts || []).flatMap((p) => p.image_urls || [])
-    const imageMap = new Map<string, string>()
-    if (allImageIds.length > 0) {
-      const { data: imgs } = await supabase.from("store_images").select("id, url").in("id", allImageIds)
-      for (const img of imgs || []) imageMap.set(img.id, img.url)
-    }
+    const imageMap = await resolveImageUrls(allImageIds)
     const products = (rawProducts || []).map((p) => ({
       ...p,
       image_urls: (p.image_urls || []).map((id: string) => imageMap.get(id)).filter(Boolean) as string[],

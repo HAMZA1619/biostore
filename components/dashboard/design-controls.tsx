@@ -136,8 +136,8 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   <div className="h-[120px]">
                     <SingleImageUpload
                       storeId={storeId}
-                      value={state.logoUrl}
-                      onChange={(url) => onChange({ logoUrl: url })}
+                      value={state.logoPath}
+                      onChange={(path) => onChange({ logoPath: path })}
                       aspect="square"
                     />
                   </div>
@@ -149,8 +149,8 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   <div className="h-[120px]">
                     <SingleImageUpload
                       storeId={storeId}
-                      value={state.bannerUrl}
-                      onChange={(url) => onChange({ bannerUrl: url })}
+                      value={state.bannerPath}
+                      onChange={(path) => onChange({ bannerPath: path })}
                       aspect="wide"
                     />
                   </div>

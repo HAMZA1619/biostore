@@ -24,10 +24,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
-    const { data: orders, error } = await supabase
+    const search = searchParams.get("search")?.trim() || ""
+
+    let query = supabase
       .from("orders")
       .select("id, order_number, customer_name, customer_phone, customer_country, total, status, created_at")
       .eq("store_id", store.id)
+
+    if (search) {
+      const orderNum = parseInt(search.replace(/^#/, ""), 10)
+      if (!isNaN(orderNum)) {
+        query = query.eq("order_number", orderNum)
+      } else {
+        query = query.or(`customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`)
+      }
+    }
+
+    const { data: orders, error } = await query
       .order("created_at", { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 

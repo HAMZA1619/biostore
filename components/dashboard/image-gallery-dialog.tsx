@@ -1,6 +1,7 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
+import { getImageUrl } from "@/lib/utils"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -24,7 +25,7 @@ interface ImageGalleryDialogProps {
   storeId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelect: (images: { id: string; url: string }[]) => void
+  onSelect: (images: { id: string; url: string; storage_path: string }[]) => void
   multiple?: boolean
 }
 
@@ -120,7 +121,7 @@ export function ImageGalleryDialog({
   function handleConfirm() {
     const result = images
       .filter((img) => selected.has(img.id))
-      .map((img) => ({ id: img.id, url: img.url }))
+      .map((img) => ({ id: img.id, url: img.url, storage_path: img.storage_path }))
     onSelect(result)
     onOpenChange(false)
   }
@@ -245,7 +246,7 @@ export function ImageGalleryDialog({
                               isSelected ? "border-primary" : "border-transparent hover:border-muted-foreground/30"
                             }`}
                           >
-                            <img src={img.url} alt="" className="h-full w-full object-cover" />
+                            <img src={getImageUrl(img.storage_path)!} alt="" className="h-full w-full object-cover" />
                             {isSelected && (
                               <div className="absolute inset-0 bg-primary/10">
                                 <div className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">

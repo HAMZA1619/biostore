@@ -1,10 +1,10 @@
 import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/server"
 import { parseDesignSettings } from "@/lib/utils"
 import Link from "next/link"
 import { headers } from "next/headers"
 import { getT } from "@/lib/i18n/storefront"
+import { getStoreBySlug } from "@/lib/storefront/cache"
 
 export default async function OrderConfirmedPage({
   params,
@@ -16,13 +16,7 @@ export default async function OrderConfirmedPage({
   const { slug } = await params
   const { order } = await searchParams
 
-  const supabase = await createClient()
-  const { data: store } = await supabase
-    .from("stores")
-    .select("design_settings")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .single()
+  const store = await getStoreBySlug(slug, "design_settings")
 
   const headersList = await headers()
   const isCustomDomain = headersList.get("x-custom-domain") === "true"

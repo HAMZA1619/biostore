@@ -8,6 +8,7 @@ CREATE TABLE profiles (
   subscription_tier TEXT NOT NULL DEFAULT 'free' CHECK (subscription_tier IN ('free', 'pro')),
   subscription_status TEXT DEFAULT 'inactive',
   polar_subscription_id TEXT,
+  trial_ends_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -154,11 +155,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO public.profiles (id, email, full_name, subscription_status, trial_ends_at)
   VALUES (
     NEW.id,
     NEW.email,
-    NEW.raw_user_meta_data->>'full_name'
+    NEW.raw_user_meta_data->>'full_name',
+    'trialing',
+    now() + interval '3 days'
   );
   RETURN NEW;
 END;
@@ -261,6 +264,8 @@ CREATE POLICY "Owners can view store views" ON store_views_daily FOR SELECT
 ALTER TABLE store_images ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners can view own store images" ON store_images FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Public can view images of published stores" ON store_images FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.is_published = true));
 CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
@@ -281,6 +286,8 @@ CREATE INDEX idx_store_integrations_store ON store_integrations(store_id);
 ALTER TABLE store_integrations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners can view own integrations" ON store_integrations FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Public can view integrations of published stores" ON store_integrations FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.is_published = true));
 CREATE POLICY "Owners can insert integrations" ON store_integrations FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update integrations" ON store_integrations FOR UPDATE

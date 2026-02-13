@@ -13,10 +13,33 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://biostore.app"
+
 export const metadata: Metadata = {
-  title: "BioStore - Create Your Online Store in Seconds",
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "BioStore — Turn Your Social Media Into a Store",
+    template: "%s | BioStore",
+  },
   description:
-    "Turn your Facebook page into a store. Share one link, receive orders. No coding needed.",
+    "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+  openGraph: {
+    type: "website",
+    siteName: "BioStore",
+    title: "BioStore — Turn Your Social Media Into a Store",
+    description:
+      "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BioStore — Turn Your Social Media Into a Store",
+    description:
+      "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({

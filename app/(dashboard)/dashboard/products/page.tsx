@@ -58,6 +58,7 @@ export default async function ProductsPage({
       <ProductsTable
         initialProducts={products || []}
         currency={store.currency}
+        storeId={store.id}
         hasMore={(products?.length || 0) === PAGE_SIZE}
         search={q}
       />
