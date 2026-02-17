@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+export const maxDuration = 60
+
 function extractMeta(html: string, property: string): string | null {
   const regex = new RegExp(
     `<meta[^>]*(?:property|name)=["']${property}["'][^>]*content=["']([^"']*)["']|` +

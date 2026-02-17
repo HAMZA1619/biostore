@@ -36,6 +36,9 @@ interface EventPayload {
   customer_country?: string
   customer_city?: string
   total: number
+  discount_id?: string | null
+  discount_amount?: number
+  ip_address?: string | null
   items?: OrderItem[]
   [key: string]: unknown
 }

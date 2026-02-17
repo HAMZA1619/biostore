@@ -2,9 +2,17 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
+import dynamic from "next/dynamic"
+
+const LanguageSwitcher = dynamic(
+  () => import("@/components/dashboard/language-switcher").then((m) => m.LanguageSwitcher),
+  { ssr: false }
+)
+const AiChat = dynamic(
+  () => import("@/components/dashboard/ai-chat").then((m) => m.AiChat),
+  { ssr: false }
+)
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
-import { AiChat } from "@/components/dashboard/ai-chat"
 import { BiostoreLogo } from "@/components/icons/biostore-logo"
 import { useTranslation } from "react-i18next"
 import {

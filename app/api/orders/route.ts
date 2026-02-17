@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js"
 import { getImageUrl } from "@/lib/utils"
 import { NextResponse } from "next/server"
 
+export const maxDuration = 60
+
 async function detectCountryFromIP(request: Request): Promise<string> {
   try {
     const forwarded = request.headers.get("x-forwarded-for")
@@ -9,7 +11,7 @@ async function detectCountryFromIP(request: Request): Promise<string> {
     if (!ip || ip === "127.0.0.1" || ip === "::1") return "Unknown"
 
     const res = await fetch(`https://ipapi.co/${ip}/country_name/`, {
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(60000),
     })
     if (!res.ok) return "Unknown"
     const country = await res.text()
@@ -26,6 +28,7 @@ async function verifyCaptcha(token: string): Promise<boolean> {
     const res = await fetch("https://api.hcaptcha.com/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      signal: AbortSignal.timeout(60000),
       body: `response=${encodeURIComponent(token)}&secret=${encodeURIComponent(secret)}`,
     })
     const data = await res.json()
@@ -49,6 +52,7 @@ export async function POST(request: Request) {
       note,
       captcha_token,
       items,
+      discount_code,
     } = body
 
     if (!slug || !customer_name || !customer_phone || !customer_address || !items?.length) {
@@ -165,9 +169,93 @@ export async function POST(request: Request) {
       }
     })
 
-    const total = subtotal
+    // Apply discount
+    let discountId: string | null = null
+    let discountAmount = 0
 
-    // Detect country from IP if not provided
+    if (discount_code) {
+      const { data: discount } = await supabase
+        .from("discounts")
+        .select("*")
+        .eq("store_id", store.id)
+        .eq("type", "code")
+        .ilike("code", discount_code.trim())
+        .eq("is_active", true)
+        .single()
+
+      if (discount) {
+        const now = new Date()
+        const valid =
+          (!discount.starts_at || new Date(discount.starts_at) <= now) &&
+          (!discount.ends_at || new Date(discount.ends_at) >= now) &&
+          (!discount.max_uses || discount.times_used < discount.max_uses) &&
+          (!discount.minimum_order_amount || subtotal >= discount.minimum_order_amount)
+
+        if (valid) {
+          if (discount.max_uses_per_customer && customer_phone) {
+            const { count } = await supabase
+              .from("orders")
+              .select("id", { count: "exact", head: true })
+              .eq("discount_id", discount.id)
+              .eq("customer_phone", customer_phone)
+
+            if (!count || count < discount.max_uses_per_customer) {
+              discountId = discount.id
+            }
+          } else {
+            discountId = discount.id
+          }
+
+          if (discountId) {
+            if (discount.discount_type === "percentage") {
+              discountAmount = Math.round(subtotal * discount.discount_value / 100 * 100) / 100
+            } else {
+              discountAmount = discount.discount_value
+            }
+            discountAmount = Math.min(discountAmount, subtotal)
+          }
+        }
+      }
+    } else {
+      // Check for automatic discounts
+      const nowStr = new Date().toISOString()
+      const { data: autoDiscounts } = await supabase
+        .from("discounts")
+        .select("*")
+        .eq("store_id", store.id)
+        .eq("type", "automatic")
+        .eq("is_active", true)
+
+      if (autoDiscounts) {
+        let bestAmount = 0
+        for (const d of autoDiscounts) {
+          if (d.starts_at && d.starts_at > nowStr) continue
+          if (d.ends_at && d.ends_at < nowStr) continue
+          if (d.max_uses && d.times_used >= d.max_uses) continue
+          if (d.minimum_order_amount && subtotal < d.minimum_order_amount) continue
+
+          let amount: number
+          if (d.discount_type === "percentage") {
+            amount = Math.round(subtotal * d.discount_value / 100 * 100) / 100
+          } else {
+            amount = d.discount_value
+          }
+          amount = Math.min(amount, subtotal)
+
+          if (amount > bestAmount) {
+            bestAmount = amount
+            discountId = d.id
+            discountAmount = amount
+          }
+        }
+      }
+    }
+
+    const total = subtotal - discountAmount
+
+    // Detect country and IP
+    const forwarded = request.headers.get("x-forwarded-for")
+    const ipAddress = forwarded ? forwarded.split(",")[0].trim() : null
     const country = customer_country || await detectCountryFromIP(request)
 
     // Insert order
@@ -183,7 +271,10 @@ export async function POST(request: Request) {
         customer_address,
         payment_method: "cod",
         note: note || null,
+        ip_address: ipAddress,
         subtotal,
+        discount_id: discountId,
+        discount_amount: discountAmount,
         total,
       })
       .select("id, order_number")
@@ -203,6 +294,11 @@ export async function POST(request: Request) {
 
     if (itemsError) {
       return NextResponse.json({ error: "Order created but failed to add items" }, { status: 500 })
+    }
+
+    // Increment discount usage
+    if (discountId) {
+      await supabase.rpc("increment_discount_usage", { p_discount_id: discountId })
     }
 
     return NextResponse.json({

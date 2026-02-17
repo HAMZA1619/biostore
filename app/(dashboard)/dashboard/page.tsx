@@ -12,19 +12,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .single()
+  const [{ data: profile }, { data: store }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+    supabase.from("stores").select("id, name, slug, is_published, currency, custom_domain, domain_verified").eq("owner_id", user.id).single(),
+  ])
 
   const firstName = profile?.full_name?.split(" ")[0] || "there"
-
-  const { data: store } = await supabase
-    .from("stores")
-    .select("id, name, slug, is_published, currency, custom_domain, domain_verified")
-    .eq("owner_id", user.id)
-    .single()
 
   if (!store) {
     return (
@@ -38,15 +31,10 @@ export default async function DashboardPage() {
     )
   }
 
-  const { count: productCount } = await supabase
-    .from("products")
-    .select("*", { count: "exact", head: true })
-    .eq("store_id", store.id)
-
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("total, status")
-    .eq("store_id", store.id)
+  const [{ count: productCount }, { data: orders }] = await Promise.all([
+    supabase.from("products").select("*", { count: "exact", head: true }).eq("store_id", store.id),
+    supabase.from("orders").select("total, status").eq("store_id", store.id),
+  ])
 
   const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0
   return (

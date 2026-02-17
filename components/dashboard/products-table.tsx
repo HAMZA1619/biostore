@@ -73,9 +73,9 @@ export function ProductsTable({ initialProducts, currency, storeId, hasMore: ini
           <TableHeader>
             <TableRow>
               <TableHead>{t("products.columns.name")}</TableHead>
-              <TableHead>{t("products.columns.sku")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("products.columns.sku")}</TableHead>
               <TableHead>{t("products.columns.price")}</TableHead>
-              <TableHead>{t("products.columns.collection")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("products.columns.collection")}</TableHead>
               <TableHead>{t("products.columns.status")}</TableHead>
               <TableHead className="w-[100px] text-end">{t("products.columns.actions")}</TableHead>
             </TableRow>
@@ -83,14 +83,14 @@ export function ProductsTable({ initialProducts, currency, storeId, hasMore: ini
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
-                <TableCell className="max-w-[200px] truncate font-medium">
+                <TableCell className="max-w-[150px] truncate font-medium sm:max-w-[200px]">
                   <Link href={`/dashboard/products/${product.id}/edit`} className="hover:underline">
                     {product.name}
                   </Link>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{product.sku || "—"}</TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">{product.sku || "—"}</TableCell>
                 <TableCell>{formatPrice(product.price, currency)}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {(Array.isArray(product.collections) ? product.collections[0]?.name : product.collections?.name) || "—"}
                 </TableCell>
                 <TableCell>

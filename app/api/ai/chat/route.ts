@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest } from "next/server"
 
+export const maxDuration = 120
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -81,6 +83,7 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+        signal: AbortSignal.timeout(120000),
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile",
           messages,

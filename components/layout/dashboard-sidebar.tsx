@@ -10,6 +10,7 @@ import {
   Package,
   FolderOpen,
   ShoppingCart,
+  Ticket,
   Puzzle,
   Settings,
   Menu,
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/dashboard/products", labelKey: "nav.products", icon: Package },
   { href: "/dashboard/collections", labelKey: "nav.collections", icon: FolderOpen },
   { href: "/dashboard/orders", labelKey: "nav.orders", icon: ShoppingCart },
+  { href: "/dashboard/discounts", labelKey: "nav.discounts", icon: Ticket },
   { href: "/dashboard/integrations", labelKey: "nav.integrations", icon: Puzzle },
   { href: "/dashboard/settings", labelKey: "nav.settings", icon: Settings },
 ]

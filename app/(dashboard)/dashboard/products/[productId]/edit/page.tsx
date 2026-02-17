@@ -13,40 +13,25 @@ export default async function EditProductPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: store } = await supabase
-    .from("stores")
-    .select("id, currency")
-    .eq("owner_id", user.id)
-    .single()
+  const [{ data: store }, { data: product }] = await Promise.all([
+    supabase.from("stores").select("id, currency").eq("owner_id", user.id).single(),
+    supabase.from("products").select("*").eq("id", productId).single(),
+  ])
 
   if (!store) redirect("/dashboard/store")
+  if (!product || product.store_id !== store.id) notFound()
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", productId)
-    .eq("store_id", store.id)
-    .single()
-
-  if (!product) notFound()
-
-  // Resolve image IDs to URLs
   const imageIds: string[] = product.image_urls || []
-  let images: { id: string; url: string }[] = []
-  if (imageIds.length > 0) {
-    const { data: imgs } = await supabase
-      .from("store_images")
-      .select("id, storage_path")
-      .in("id", imageIds)
-    const imgMap = new Map((imgs || []).map((i: { id: string; storage_path: string }) => [i.id, getImageUrl(i.storage_path)!]))
-    images = imageIds.map((id) => ({ id, url: imgMap.get(id) || "" })).filter((i) => i.url)
-  }
 
-  const { data: variants } = await supabase
-    .from("product_variants")
-    .select("id, options, price, compare_at_price, sku, stock, is_available")
-    .eq("product_id", productId)
-    .order("sort_order")
+  const [{ data: imgs }, { data: variants }] = await Promise.all([
+    imageIds.length > 0
+      ? supabase.from("store_images").select("id, storage_path").in("id", imageIds)
+      : Promise.resolve({ data: null }),
+    supabase.from("product_variants").select("id, options, price, compare_at_price, sku, stock, is_available").eq("product_id", productId).order("sort_order"),
+  ])
+
+  const imgMap = new Map((imgs || []).map((i: { id: string; storage_path: string }) => [i.id, getImageUrl(i.storage_path)!]))
+  const images = imageIds.map((id) => ({ id, url: imgMap.get(id) || "" })).filter((i) => i.url)
 
   return (
     <ProductForm

@@ -3,7 +3,7 @@ import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { TrialBanner } from "@/components/dashboard/trial-banner"
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
 import { LanguageSwitcher } from "@/components/dashboard/language-switcher"
-import { AiChat } from "@/components/dashboard/ai-chat"
+
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
@@ -55,7 +55,6 @@ export default async function DashboardLayout({
         </div>
       </div>
       <LanguageSwitcher />
-      <AiChat />
     </I18nProvider>
   )
 }

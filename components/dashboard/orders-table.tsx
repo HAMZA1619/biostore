@@ -140,11 +140,11 @@ export function OrdersTable({ initialOrders, currency, hasMore: initialHasMore }
                 <TableRow>
                   <TableHead>{t("orders.columns.number")}</TableHead>
                   <TableHead>{t("orders.columns.customer")}</TableHead>
-                  <TableHead>{t("orders.columns.phone")}</TableHead>
-                  <TableHead>{t("orders.columns.country")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("orders.columns.phone")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("orders.columns.country")}</TableHead>
                   <TableHead>{t("orders.columns.total")}</TableHead>
                   <TableHead>{t("orders.columns.status")}</TableHead>
-                  <TableHead>{t("orders.columns.date")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t("orders.columns.date")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -159,14 +159,14 @@ export function OrdersTable({ initialOrders, currency, hasMore: initialHasMore }
                         #{order.order_number}
                       </span>
                     </TableCell>
-                    <TableCell className="font-medium">{order.customer_name}</TableCell>
-                    <TableCell className="text-muted-foreground">{order.customer_phone}</TableCell>
-                    <TableCell className="text-muted-foreground">{order.customer_country || "—"}</TableCell>
+                    <TableCell className="max-w-[120px] truncate font-medium">{order.customer_name}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{order.customer_phone}</TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">{order.customer_country || "—"}</TableCell>
                     <TableCell>{formatPrice(order.total, currency)}</TableCell>
                     <TableCell className="relative z-10">
                       <OrderStatusSelect orderId={order.id} status={order.status} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <RelativeDate date={order.created_at} />
                     </TableCell>
                   </TableRow>

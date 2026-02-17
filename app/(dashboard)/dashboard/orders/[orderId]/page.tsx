@@ -11,6 +11,7 @@ import {
   Mail,
   StickyNote,
   Banknote,
+  Globe,
 } from "lucide-react"
 import { T } from "@/components/dashboard/translated-text"
 
@@ -26,11 +27,10 @@ export default async function OrderDetailPage({
   } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: store } = await supabase
-    .from("stores")
-    .select("id, currency")
-    .eq("owner_id", user.id)
-    .single()
+  const [{ data: store }, { data: items }] = await Promise.all([
+    supabase.from("stores").select("id, currency").eq("owner_id", user.id).single(),
+    supabase.from("order_items").select("*").eq("order_id", orderId),
+  ])
 
   if (!store) redirect("/dashboard/store")
 
@@ -42,11 +42,6 @@ export default async function OrderDetailPage({
     .single()
 
   if (!order) notFound()
-
-  const { data: items } = await supabase
-    .from("order_items")
-    .select("*")
-    .eq("order_id", order.id)
 
   const itemCount = items?.reduce((sum, i) => sum + i.quantity, 0) ?? 0
   const initials = order.customer_name
@@ -88,7 +83,7 @@ export default async function OrderDetailPage({
       </div>
 
       {/* Two-column layout */}
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
         {/* Left column */}
         <div className="space-y-8 lg:col-span-2">
           {/* Items */}
@@ -180,6 +175,13 @@ export default async function OrderDetailPage({
                 </div>
               )}
 
+              {order.discount_amount > 0 && (
+                <div className="flex items-center justify-between text-green-600">
+                  <span><T k="orderDetail.discount" /></span>
+                  <span>-{formatPrice(order.discount_amount, store.currency)}</span>
+                </div>
+              )}
+
               <Separator />
 
               <div className="flex items-center justify-between pt-1 font-semibold">
@@ -248,6 +250,22 @@ export default async function OrderDetailPage({
                 )}
             </div>
           </div>
+
+          {/* IP Address */}
+          {order.ip_address && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Globe className="h-3.5 w-3.5" />
+                  <T k="orderDetail.ipAddress" />
+                </h3>
+                <p className="text-sm text-muted-foreground font-mono">
+                  {order.ip_address}
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Order note */}
           {order.note && (

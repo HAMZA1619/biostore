@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
+export const maxDuration = 60
+
 const POLAR_API_URL = process.env.POLAR_API_URL || "https://api.polar.sh"
 
 export async function POST() {

@@ -84,6 +84,29 @@ CREATE TABLE product_variants (
 );
 CREATE INDEX idx_variants_product ON product_variants(product_id);
 
+-- Discounts (coupon codes + automatic discounts)
+CREATE TABLE discounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('code', 'automatic')),
+  code TEXT,
+  label TEXT NOT NULL,
+  discount_type TEXT NOT NULL CHECK (discount_type IN ('percentage', 'fixed')),
+  discount_value DECIMAL(10,2) NOT NULL,
+  minimum_order_amount DECIMAL(10,2),
+  max_uses INTEGER,
+  max_uses_per_customer INTEGER,
+  times_used INTEGER NOT NULL DEFAULT 0,
+  starts_at TIMESTAMPTZ,
+  ends_at TIMESTAMPTZ,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX idx_discounts_code ON discounts(store_id, code) WHERE code IS NOT NULL;
+CREATE INDEX idx_discounts_store ON discounts(store_id);
+CREATE INDEX idx_discounts_active ON discounts(store_id, is_active) WHERE is_active = true;
+
 -- Orders
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -99,13 +122,17 @@ CREATE TABLE orders (
   payment_method TEXT NOT NULL DEFAULT 'cod' CHECK (payment_method = 'cod'),
   subtotal DECIMAL(10,2) NOT NULL,
   delivery_fee DECIMAL(10,2) DEFAULT 0,
+  discount_id UUID REFERENCES discounts(id) ON DELETE SET NULL,
+  discount_amount DECIMAL(10,2) DEFAULT 0,
   total DECIMAL(10,2) NOT NULL,
   note TEXT,
+  ip_address TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_orders_store ON orders(store_id);
 CREATE INDEX idx_orders_status ON orders(store_id, status);
+CREATE INDEX idx_orders_created_at ON orders(store_id, created_at DESC);
 
 -- Order Items
 CREATE TABLE order_items (
@@ -139,6 +166,16 @@ CREATE TABLE store_images (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_store_images_store ON store_images(store_id);
+
+-- Increment discount usage counter (atomic)
+CREATE OR REPLACE FUNCTION public.increment_discount_usage(p_discount_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.discounts
+  SET times_used = times_used + 1
+  WHERE id = p_discount_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 -- Increment store view (atomic upsert for daily counter)
 CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_date DATE)
@@ -230,6 +267,19 @@ CREATE POLICY "Owners can update collections" ON collections FOR UPDATE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can delete collections" ON collections FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = collections.store_id AND stores.owner_id = (select auth.uid())));
+
+-- Discounts
+ALTER TABLE discounts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view active discounts of published stores" ON discounts FOR SELECT
+  USING (is_active = true AND EXISTS (SELECT 1 FROM stores WHERE stores.id = discounts.store_id AND stores.is_published = true));
+CREATE POLICY "Owners can view own discounts" ON discounts FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = discounts.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can insert discounts" ON discounts FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = discounts.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can update discounts" ON discounts FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = discounts.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can delete discounts" ON discounts FOR DELETE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = discounts.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
@@ -340,7 +390,10 @@ BEGIN
         'status', NEW.status,
         'total', NEW.total,
         'subtotal', NEW.subtotal,
+        'discount_id', NEW.discount_id,
+        'discount_amount', NEW.discount_amount,
         'note', NEW.note,
+        'ip_address', NEW.ip_address,
         'created_at', NEW.created_at
       )
     );
@@ -373,12 +426,17 @@ BEGIN
           'store_id', NEW.store_id,
           'customer_name', NEW.customer_name,
           'customer_phone', NEW.customer_phone,
+          'customer_email', NEW.customer_email,
           'customer_country', NEW.customer_country,
           'customer_city', NEW.customer_city,
           'customer_address', NEW.customer_address,
           'old_status', OLD.status,
           'new_status', NEW.status,
           'total', NEW.total,
+          'subtotal', NEW.subtotal,
+          'discount_id', NEW.discount_id,
+          'discount_amount', NEW.discount_amount,
+          'ip_address', NEW.ip_address,
           'updated_at', now()
         )
       );

@@ -15,7 +15,8 @@
     "brandName": "BioStore",
     "viewStore": "Voir la boutique",
     "faqs": "FAQ",
-    "integrations": "Intégrations"
+    "integrations": "Intégrations",
+    "discounts": "Réductions"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -124,6 +125,54 @@
     "searchPlaceholder": "Rechercher par nom, téléphone ou #commande",
     "noResults": "Aucune commande trouvée."
   },
+  "discounts": {
+    "title": "Réductions",
+    "addDiscount": "Ajouter une réduction",
+    "empty": "Aucune réduction pour le moment. Créez votre première réduction.",
+    "automatic": "Auto",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleted": "Réduction supprimée",
+    "deleteFailed": "Échec de la suppression",
+    "deleteTitle": "Supprimer la réduction ?",
+    "deleteDescription": "Cette action est irréversible. La réduction sera définitivement supprimée.",
+    "cancel": "Annuler",
+    "columns": {
+      "label": "Libellé",
+      "code": "Code",
+      "discount": "Réduction",
+      "usage": "Utilisation",
+      "status": "Statut",
+      "actions": "Actions"
+    }
+  },
+  "discountForm": {
+    "createDiscount": "Créer une réduction",
+    "editDiscount": "Modifier la réduction",
+    "type": "Type",
+    "couponCode": "Code promo",
+    "automaticDiscount": "Automatique",
+    "code": "Code",
+    "label": "Libellé",
+    "labelPlaceholder": "ex. Soldes d'été 20%",
+    "discountType": "Type de réduction",
+    "percentage": "Pourcentage",
+    "fixedAmount": "Montant fixe",
+    "value": "Valeur",
+    "minimumOrder": "Montant minimum de commande",
+    "maxUses": "Utilisations max totales",
+    "maxPerCustomer": "Max par client",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "active": "Actif",
+    "updateDiscount": "Mettre à jour",
+    "cancel": "Annuler",
+    "discountCreated": "Réduction créée",
+    "discountUpdated": "Réduction mise à jour",
+    "saveFailed": "Échec de l'enregistrement"
+  },
   "orderDetail": {
     "items": "Articles",
     "cashOnDelivery": "Paiement à la livraison",
@@ -132,10 +181,12 @@
     "item": "{{count}} article",
     "items_plural": "{{count}} articles",
     "delivery": "Livraison",
+    "discount": "Réduction",
     "total": "Total",
     "contactInfo": "Coordonnées",
     "shippingAddress": "Adresse de livraison",
-    "note": "Note"
+    "note": "Note",
+    "ipAddress": "Adresse IP"
   },
   "collections": {
     "title": "Collections",
@@ -389,7 +440,11 @@
     "addressRequired": "L'adresse est requise",
     "cartEmpty": "Le panier ne peut pas être vide",
     "faqQuestionRequired": "La question est obligatoire",
-    "faqAnswerRequired": "La réponse est obligatoire"
+    "faqAnswerRequired": "La réponse est obligatoire",
+    "discountLabelRequired": "Le libellé de la réduction est requis",
+    "discountValueRequired": "La valeur de la réduction doit être positive",
+    "couponCodeRequired": "Le code promo est requis",
+    "percentageMax100": "Le pourcentage ne peut pas dépasser 100"
   },
   "storefront": {
     "addToCart": "Ajouter au panier",
@@ -401,7 +456,13 @@
     "yourCart": "Votre panier",
     "cartEmpty": "Votre panier est vide",
     "continueShopping": "Continuer vos achats",
+    "subtotal": "Sous-total",
+    "discount": "Réduction",
     "total": "Total",
+    "couponPlaceholder": "Code promo",
+    "apply": "Appliquer",
+    "couponApplied": "Code promo appliqué !",
+    "invalidCoupon": "Code promo invalide ou expiré",
     "deliveryInformation": "Informations de livraison",
     "fullName": "Nom complet",
     "fullNamePlaceholder": "Votre nom complet",

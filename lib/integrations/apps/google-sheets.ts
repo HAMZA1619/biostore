@@ -45,9 +45,11 @@ export const AVAILABLE_FIELDS: AvailableField[] = [
   { key: "item_price", defaultHeader: "Item Price" },
   { key: "item_variants", defaultHeader: "Item Variants" },
   { key: "subtotal", defaultHeader: "Subtotal" },
+  { key: "discount_amount", defaultHeader: "Discount" },
   { key: "total", defaultHeader: "Total" },
   { key: "status", defaultHeader: "Status" },
   { key: "note", defaultHeader: "Note" },
+  { key: "ip_address", defaultHeader: "IP Address" },
 ]
 
 export const DEFAULT_FIELD_MAPPINGS: FieldMapping[] = AVAILABLE_FIELDS.map(
@@ -77,7 +79,10 @@ export interface EventPayload {
   status: string
   total: number
   subtotal?: number
+  discount_id?: string | null
+  discount_amount?: number
   note?: string
+  ip_address?: string | null
   created_at?: string
   items?: OrderItem[]
   [key: string]: unknown
@@ -115,12 +120,16 @@ function getOrderFieldValue(
       return payload.customer_address || ""
     case "subtotal":
       return payload.subtotal != null ? `${payload.subtotal} ${currency}` : ""
+    case "discount_amount":
+      return payload.discount_amount ? `-${payload.discount_amount} ${currency}` : ""
     case "total":
       return `${payload.total} ${currency}`
     case "status":
       return payload.status || ""
     case "note":
       return payload.note || ""
+    case "ip_address":
+      return payload.ip_address || ""
     default:
       return ""
   }

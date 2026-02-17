@@ -15,7 +15,8 @@
     "brandName": "BioStore",
     "viewStore": "View store",
     "faqs": "FAQs",
-    "integrations": "Integrations"
+    "integrations": "Integrations",
+    "discounts": "Discounts"
   },
   "dashboard": {
     "welcome": "Welcome to BioStore",
@@ -124,6 +125,54 @@
     "searchPlaceholder": "Search by name, phone or #order",
     "noResults": "No orders found matching your search."
   },
+  "discounts": {
+    "title": "Discounts",
+    "addDiscount": "Add discount",
+    "empty": "No discounts yet. Create your first discount to get started.",
+    "automatic": "Auto",
+    "active": "Active",
+    "inactive": "Inactive",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleted": "Discount deleted",
+    "deleteFailed": "Failed to delete discount",
+    "deleteTitle": "Delete discount?",
+    "deleteDescription": "This action cannot be undone. This will permanently delete this discount.",
+    "cancel": "Cancel",
+    "columns": {
+      "label": "Label",
+      "code": "Code",
+      "discount": "Discount",
+      "usage": "Usage",
+      "status": "Status",
+      "actions": "Actions"
+    }
+  },
+  "discountForm": {
+    "createDiscount": "Create Discount",
+    "editDiscount": "Edit Discount",
+    "type": "Type",
+    "couponCode": "Coupon Code",
+    "automaticDiscount": "Automatic",
+    "code": "Code",
+    "label": "Label",
+    "labelPlaceholder": "e.g. Summer Sale 20%",
+    "discountType": "Discount type",
+    "percentage": "Percentage",
+    "fixedAmount": "Fixed amount",
+    "value": "Value",
+    "minimumOrder": "Minimum order amount",
+    "maxUses": "Max total uses",
+    "maxPerCustomer": "Max per customer",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "active": "Active",
+    "updateDiscount": "Update discount",
+    "cancel": "Cancel",
+    "discountCreated": "Discount created",
+    "discountUpdated": "Discount updated",
+    "saveFailed": "Failed to save discount"
+  },
   "orderDetail": {
     "items": "Items",
     "cashOnDelivery": "Cash on Delivery",
@@ -132,10 +181,12 @@
     "item": "{{count}} item",
     "items_plural": "{{count}} items",
     "delivery": "Delivery",
+    "discount": "Discount",
     "total": "Total",
     "contactInfo": "Contact Info",
     "shippingAddress": "Shipping Address",
-    "note": "Note"
+    "note": "Note",
+    "ipAddress": "IP Address"
   },
   "collections": {
     "title": "Collections",
@@ -389,7 +440,11 @@
     "addressRequired": "Address is required",
     "cartEmpty": "Cart cannot be empty",
     "faqQuestionRequired": "Question is required",
-    "faqAnswerRequired": "Answer is required"
+    "faqAnswerRequired": "Answer is required",
+    "discountLabelRequired": "Discount label is required",
+    "discountValueRequired": "Discount value must be positive",
+    "couponCodeRequired": "Coupon code is required",
+    "percentageMax100": "Percentage cannot exceed 100"
   },
   "storefront": {
     "addToCart": "Add to cart",
@@ -401,7 +456,13 @@
     "yourCart": "Your Cart",
     "cartEmpty": "Your cart is empty",
     "continueShopping": "Continue shopping",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
     "total": "Total",
+    "couponPlaceholder": "Coupon code",
+    "apply": "Apply",
+    "couponApplied": "Coupon applied!",
+    "invalidCoupon": "Invalid or expired coupon code",
     "deliveryInformation": "Delivery Information",
     "fullName": "Full name",
     "fullNamePlaceholder": "Your full name",

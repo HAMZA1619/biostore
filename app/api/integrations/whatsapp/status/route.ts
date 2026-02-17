@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
+export const maxDuration = 60
+
 export async function GET(request: Request) {
   try {
     const supabase = await createClient()
@@ -19,6 +21,16 @@ export async function GET(request: Request) {
         { status: 400 }
       )
     }
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("id", storeId)
+      .eq("owner_id", user.id)
+      .single()
+
+    if (!store)
+      return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
     const { data: integration } = await supabase
       .from("store_integrations")

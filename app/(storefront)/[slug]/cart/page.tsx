@@ -10,7 +10,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { COUNTRIES } from "@/lib/constants"
-import { Check, ChevronsUpDown, ImageIcon, Minus, Plus, Trash2 } from "lucide-react"
+import { Check, ChevronsUpDown, ImageIcon, Loader2, Minus, Plus, Tag, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
@@ -32,9 +32,14 @@ export default function CartPage() {
   const removeItem = useCartStore((s) => s.removeItem)
   const clearCart = useCartStore((s) => s.clearCart)
   const getTotal = useCartStore((s) => s.getTotal)
+  const appliedDiscount = useCartStore((s) => s.appliedDiscount)
+  const setDiscount = useCartStore((s) => s.setDiscount)
+  const getDiscountedTotal = useCartStore((s) => s.getDiscountedTotal)
   const track = usePixel()
   const buttonStyle = useButtonStyle()
   const router = useRouter()
+  const [couponCode, setCouponCode] = useState("")
+  const [couponLoading, setCouponLoading] = useState(false)
 
   const [form, setForm] = useState({
     customer_name: "",
@@ -100,6 +105,93 @@ export default function CartPage() {
       .catch(() => {})
   }, [])
 
+  // Check for automatic discounts and re-validate applied discounts on cart changes
+  const subtotal = getTotal()
+  useEffect(() => {
+    if (items.length === 0) {
+      setDiscount(null)
+      return
+    }
+
+    if (appliedDiscount) {
+      // Re-calculate discount amount for percentage discounts
+      if (appliedDiscount.discountType === "percentage") {
+        const newAmount = Math.round(subtotal * appliedDiscount.discountValue / 100 * 100) / 100
+        if (newAmount !== appliedDiscount.discountAmount) {
+          setDiscount({ ...appliedDiscount, discountAmount: Math.min(newAmount, subtotal) })
+        }
+      }
+      // If it's a coupon code, re-validate
+      if (appliedDiscount.code) {
+        fetch("/api/discounts/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug, code: appliedDiscount.code, subtotal }),
+        })
+          .then((r) => r.json())
+          .then((d) => { if (!d.valid) setDiscount(null) })
+          .catch(() => {})
+      }
+    } else {
+      // Check for automatic discounts
+      fetch("/api/discounts/automatic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, subtotal }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d) {
+            setDiscount({
+              discountId: d.discount_id,
+              code: null,
+              label: d.label,
+              discountType: d.discount_type,
+              discountValue: d.discount_value,
+              discountAmount: d.discount_amount,
+            })
+          }
+        })
+        .catch(() => {})
+    }
+  }, [subtotal]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleApplyCoupon() {
+    if (!couponCode.trim() || couponLoading) return
+    setCouponLoading(true)
+    try {
+      const res = await fetch("/api/discounts/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          code: couponCode.trim(),
+          subtotal: getTotal(),
+          customer_phone: form.customer_phone || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setDiscount({
+          discountId: data.discount_id,
+          code: couponCode.trim().toUpperCase(),
+          label: data.label,
+          discountType: data.discount_type,
+          discountValue: data.discount_value,
+          discountAmount: data.discount_amount,
+        })
+        setCouponCode("")
+        toast.success(t("storefront.couponApplied"))
+      } else {
+        toast.error(t("storefront.invalidCoupon"))
+      }
+    } catch {
+      toast.error(t("storefront.invalidCoupon"))
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
   if (items.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -141,6 +233,7 @@ export default function CartPage() {
           ...form,
           captcha_token: captchaToken,
           payment_method: "cod",
+          discount_code: appliedDiscount?.code || undefined,
           items: items.map((i) => ({
             product_id: i.productId,
             variant_id: i.variantId || null,
@@ -232,9 +325,68 @@ export default function CartPage() {
         ))}
       </div>
 
-      <div className="flex justify-between text-lg font-bold">
-        <span>{t("storefront.total")}</span>
-        <span>{formatPriceSymbol(getTotal(), currency)}</span>
+      {/* Coupon Code Input */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Tag className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            placeholder={t("storefront.couponPlaceholder")}
+            className="ps-9 uppercase"
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())}
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleApplyCoupon}
+          disabled={couponLoading || !couponCode.trim()}
+        >
+          {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("storefront.apply")}
+        </Button>
+      </div>
+
+      {/* Applied Discount */}
+      {appliedDiscount && (
+        <div className="flex items-center justify-between rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm dark:border-green-900 dark:bg-green-950">
+          <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <Tag className="h-4 w-4" />
+            <span>{appliedDiscount.label}</span>
+            <span className="font-medium">
+              {appliedDiscount.discountType === "percentage"
+                ? `-${appliedDiscount.discountValue}%`
+                : `-${formatPriceSymbol(appliedDiscount.discountAmount, currency)}`}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setDiscount(null)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+
+      {/* Order Summary */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>{t("storefront.subtotal")}</span>
+          <span>{formatPriceSymbol(getTotal(), currency)}</span>
+        </div>
+        {appliedDiscount && (
+          <div className="flex justify-between text-sm text-green-600">
+            <span>{t("storefront.discount")}</span>
+            <span>-{formatPriceSymbol(appliedDiscount.discountAmount, currency)}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-lg font-bold">
+          <span>{t("storefront.total")}</span>
+          <span>{formatPriceSymbol(getDiscountedTotal(), currency)}</span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
@@ -321,7 +473,6 @@ export default function CartPage() {
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               placeholder={t("storefront.notePlaceholder")}
               rows={2}
-              required
             />
           </div>
         )}

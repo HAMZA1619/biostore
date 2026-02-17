@@ -151,6 +151,16 @@ app/api/integrations/
   - **InitiateCheckout** — fired on cart page load (`app/(storefront)/[slug]/cart/page.tsx`)
 - **Purchase** — server-side only via Meta Conversions API (`lib/integrations/apps/meta-capi.ts`), triggered by `order.created` event.
 
+## Integration Sync Rule
+
+When adding or modifying order-related fields (columns on the `orders` table, payload fields in the `handle_order_created` trigger), always check and update the integrations that consume order data:
+
+- **Google Sheets** (`lib/integrations/apps/google-sheets.ts`) — add the new field to `AVAILABLE_FIELDS`, `EventPayload`, and the `getOrderFieldValue` switch so users can optionally include it in their spreadsheet.
+- **WhatsApp** (`lib/integrations/apps/whatsapp.ts`) — update `EventPayload`, the AI prompt context string, and the fallback `buildWhatsAppMessage` function so the new data appears in customer notifications when relevant.
+- **Meta CAPI** (`lib/integrations/apps/meta-capi.ts`) — update `EventPayload` if the field is relevant to Facebook conversion tracking (e.g. value, currency, content data).
+
+In short: any new order field must flow end-to-end — schema → trigger payload → integration `EventPayload` → handler logic.
+
 ## Don'ts
 
 - Don't create new migration files — modify the single `001_initial_schema.sql`.
