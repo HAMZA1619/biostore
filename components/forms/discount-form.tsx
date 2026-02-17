@@ -7,7 +7,7 @@ import type { DiscountFormData } from "@/lib/validations/discount"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getCurrencySymbol } from "@/lib/utils"
 import { useRouter } from "next/navigation"
@@ -73,13 +73,14 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
       minimum_order_amount: initialData?.minimum_order_amount ?? undefined,
       max_uses: initialData?.max_uses ?? undefined,
       max_uses_per_customer: initialData?.max_uses_per_customer ?? undefined,
-      starts_at: initialData?.starts_at ? initialData.starts_at.slice(0, 16) : null,
-      ends_at: initialData?.ends_at ? initialData.ends_at.slice(0, 16) : null,
+      starts_at: initialData?.starts_at ? initialData.starts_at.slice(0, 10) : null,
+      ends_at: initialData?.ends_at ? initialData.ends_at.slice(0, 10) : null,
       is_active: initialData?.is_active ?? true,
     },
   })
 
   const discountType = watch("discount_type")
+  const isActive = watch("is_active")
 
   async function onSubmit(data: DiscountFormData) {
     setLoading(true)
@@ -118,11 +119,33 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">
-        {isEdit ? t("discountForm.editDiscount") : t("discountForm.newDiscount")}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">
+          {isEdit ? t("discountForm.editDiscount") : t("discountForm.newDiscount")}
+        </h1>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="is_active" className="text-sm text-muted-foreground">
+            {t("discountForm.active")}
+          </Label>
+          <Switch
+            id="is_active"
+            checked={isActive}
+            onCheckedChange={(v) => setValue("is_active", v)}
+          />
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Label */}
+        <div className="space-y-2">
+          <Label htmlFor="label">{t("discountForm.label")}</Label>
+          <Input
+            id="label"
+            {...register("label")}
+            placeholder={t("discountForm.labelPlaceholder")}
+          />
+        </div>
+
         {/* Code */}
         <div className="space-y-2">
           <Label htmlFor="code">{t("discountForm.code")}</Label>
@@ -185,29 +208,29 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
           </div>
         </div>
 
-        {/* Checkboxes */}
-        <div className="space-y-4">
+        {/* Options */}
+        <div className="space-y-4 rounded-lg border p-4">
           {/* Set start and end dates */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="show_dates"
-                checked={showDates}
-                onCheckedChange={(v) => setShowDates(!!v)}
-              />
+            <div className="flex items-center justify-between">
               <Label htmlFor="show_dates" className="font-normal cursor-pointer">
                 {t("discountForm.setDates")}
               </Label>
+              <Switch
+                id="show_dates"
+                checked={showDates}
+                onCheckedChange={setShowDates}
+              />
             </div>
             {showDates && (
-              <div className="grid grid-cols-1 gap-3 ps-6 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label htmlFor="starts_at" className="text-xs text-muted-foreground">
                     {t("discountForm.startDate")}
                   </Label>
                   <Input
                     id="starts_at"
-                    type="datetime-local"
+                    type="date"
                     {...register("starts_at")}
                   />
                 </div>
@@ -217,7 +240,7 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
                   </Label>
                   <Input
                     id="ends_at"
-                    type="datetime-local"
+                    type="date"
                     {...register("ends_at")}
                   />
                 </div>
@@ -225,42 +248,44 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
             )}
           </div>
 
+          <div className="border-t" />
+
           {/* Limit discount */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="show_limit"
-                checked={showLimit}
-                onCheckedChange={(v) => setShowLimit(!!v)}
-              />
+            <div className="flex items-center justify-between">
               <Label htmlFor="show_limit" className="font-normal cursor-pointer">
                 {t("discountForm.limitDiscount")}
               </Label>
+              <Switch
+                id="show_limit"
+                checked={showLimit}
+                onCheckedChange={setShowLimit}
+              />
             </div>
             {showLimit && (
-              <div className="ps-6">
-                <Input
-                  id="max_uses"
-                  type="number"
-                  min="1"
-                  placeholder={t("discountForm.maxUsesPlaceholder")}
-                  {...register("max_uses", { valueAsNumber: true })}
-                  className="max-w-[200px]"
-                />
-              </div>
+              <Input
+                id="max_uses"
+                type="number"
+                min="1"
+                placeholder={t("discountForm.maxUsesPlaceholder")}
+                {...register("max_uses", { valueAsNumber: true })}
+                className="max-w-[200px]"
+              />
             )}
           </div>
 
+          <div className="border-t" />
+
           {/* One time usage per user */}
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="one_time_per_user"
-              checked={oneTimePerUser}
-              onCheckedChange={(v) => setOneTimePerUser(!!v)}
-            />
+          <div className="flex items-center justify-between">
             <Label htmlFor="one_time_per_user" className="font-normal cursor-pointer">
               {t("discountForm.oneTimePerUser")}
             </Label>
+            <Switch
+              id="one_time_per_user"
+              checked={oneTimePerUser}
+              onCheckedChange={setOneTimePerUser}
+            />
           </div>
         </div>
 

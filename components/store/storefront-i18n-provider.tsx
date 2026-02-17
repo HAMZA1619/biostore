@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { I18nextProvider } from "react-i18next"
-import i18n from "@/lib/i18n"
+import i18n, { loadLocale } from "@/lib/i18n"
 
 const RTL_LANGS = new Set(["ar"])
 
@@ -14,7 +14,9 @@ export function StorefrontI18nProvider({
   children: React.ReactNode
 }) {
   useEffect(() => {
-    i18n.changeLanguage(lang)
+    loadLocale(lang).then(() => {
+      i18n.changeLanguage(lang)
+    })
     document.documentElement.dir = RTL_LANGS.has(lang) ? "rtl" : "ltr"
     document.documentElement.lang = lang
   }, [lang])

@@ -61,11 +61,17 @@ export default async function StoreLayout({
   const ownerHasAccess = await getStoreOwnerAccess(store.id)
 
   if (!ownerHasAccess) {
+    const unavailableText: Record<string, { title: string; description: string }> = {
+      en: { title: "Store Unavailable", description: "This store is temporarily unavailable. Please check back later." },
+      fr: { title: "Boutique indisponible", description: "Cette boutique est temporairement indisponible. Veuillez réessayer plus tard." },
+      ar: { title: "المتجر غير متاح", description: "هذا المتجر غير متاح مؤقتاً. يرجى المحاولة لاحقاً." },
+    }
+    const txt = unavailableText[store.language] || unavailableText.en
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4" dir={store.language === "ar" ? "rtl" : "ltr"}>
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Store Unavailable</h1>
-          <p className="text-muted-foreground text-sm">This store is temporarily unavailable. Please check back later.</p>
+          <h1 className="text-2xl font-bold">{txt.title}</h1>
+          <p className="text-muted-foreground text-sm">{txt.description}</p>
         </div>
       </div>
     )
