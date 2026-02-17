@@ -7,13 +7,13 @@ import type { DiscountFormData } from "@/lib/validations/discount"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getCurrencySymbol } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, RefreshCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -36,11 +36,26 @@ interface DiscountFormProps {
   }
 }
 
+function generateCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+  let code = ""
+  for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)]
+  return code
+}
+
 export function DiscountForm({ storeId, currency, initialData }: DiscountFormProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const isEdit = !!initialData
+
+  const [showDates, setShowDates] = useState(
+    !!(initialData?.starts_at || initialData?.ends_at)
+  )
+  const [showLimit, setShowLimit] = useState(!!initialData?.max_uses)
+  const [oneTimePerUser, setOneTimePerUser] = useState(
+    initialData?.max_uses_per_customer === 1
+  )
 
   const {
     register,
@@ -51,7 +66,6 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
   } = useForm<DiscountFormData>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
-      type: (initialData?.type as "code" | "automatic") || "code",
       code: initialData?.code || "",
       label: initialData?.label || "",
       discount_type: (initialData?.discount_type as "percentage" | "fixed") || "percentage",
@@ -65,18 +79,20 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
     },
   })
 
-  const type = watch("type")
   const discountType = watch("discount_type")
-  const isActive = watch("is_active")
 
   async function onSubmit(data: DiscountFormData) {
     setLoading(true)
     try {
+      const code = data.code.toUpperCase()
       const payload = {
         ...data,
-        code: data.type === "code" ? data.code : null,
-        starts_at: data.starts_at || null,
-        ends_at: data.ends_at || null,
+        code,
+        label: data.label || code,
+        starts_at: showDates ? data.starts_at || null : null,
+        ends_at: showDates ? data.ends_at || null : null,
+        max_uses: showLimit ? data.max_uses || null : null,
+        max_uses_per_customer: oneTimePerUser ? 1 : null,
         ...(isEdit ? { id: initialData.id } : { store_id: storeId }),
       }
 
@@ -102,78 +118,38 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {isEdit ? t("discountForm.editDiscount") : t("discountForm.createDiscount")}
-        </h1>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="is_active" className="text-sm text-muted-foreground">
-            {t("discountForm.active")}
-          </Label>
-          <Switch
-            id="is_active"
-            checked={isActive}
-            onCheckedChange={(v) => setValue("is_active", v)}
-          />
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold">
+        {isEdit ? t("discountForm.editDiscount") : t("discountForm.newDiscount")}
+      </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Type */}
-        <div className="space-y-2">
-          <Label>{t("discountForm.type")}</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={type === "code" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setValue("type", "code")}
-            >
-              {t("discountForm.couponCode")}
-            </Button>
-            <Button
-              type="button"
-              variant={type === "automatic" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setValue("type", "automatic")}
-            >
-              {t("discountForm.automaticDiscount")}
-            </Button>
-          </div>
-        </div>
-
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Code */}
-        {type === "code" && (
-          <div className="space-y-2">
-            <Label htmlFor="code">{t("discountForm.code")}</Label>
+        <div className="space-y-2">
+          <Label htmlFor="code">{t("discountForm.code")}</Label>
+          <div className="relative">
             <Input
               id="code"
               {...register("code")}
-              placeholder="e.g. SAVE20"
-              className="uppercase"
+              placeholder={t("discountForm.enterCode")}
+              className="uppercase pe-10"
               onChange={(e) => setValue("code", e.target.value.toUpperCase())}
             />
-            {errors.code && (
-              <p className="text-sm text-red-500">{t(errors.code.message!)}</p>
-            )}
+            <button
+              type="button"
+              className="absolute end-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+              onClick={() => setValue("code", generateCode())}
+              title={t("discountForm.generateCode")}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
-        )}
-
-        {/* Label */}
-        <div className="space-y-2">
-          <Label htmlFor="label">{t("discountForm.label")}</Label>
-          <Input
-            id="label"
-            {...register("label")}
-            placeholder={t("discountForm.labelPlaceholder")}
-          />
-          {errors.label && (
-            <p className="text-sm text-red-500">{t(errors.label.message!)}</p>
+          {errors.code && (
+            <p className="text-sm text-red-500">{t(errors.code.message!)}</p>
           )}
         </div>
 
-        {/* Discount Type + Value */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Type + Value */}
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>{t("discountForm.discountType")}</Label>
             <Select
@@ -190,99 +166,106 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="discount_value">
-              {t("discountForm.value")}
-              <span className="ms-1 text-muted-foreground">
+            <Label htmlFor="discount_value">{t("discountForm.value")}</Label>
+            <div className="relative">
+              <Input
+                id="discount_value"
+                type="number"
+                step="0.01"
+                min="0"
+                {...register("discount_value", { valueAsNumber: true })}
+              />
+              <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                 {discountType === "percentage" ? "%" : getCurrencySymbol(currency)}
               </span>
-            </Label>
-            <Input
-              id="discount_value"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("discount_value", { valueAsNumber: true })}
-            />
+            </div>
             {errors.discount_value && (
               <p className="text-sm text-red-500">{t(errors.discount_value.message!)}</p>
             )}
           </div>
         </div>
 
-        {/* Minimum Order Amount */}
-        <div className="space-y-2">
-          <Label htmlFor="minimum_order_amount">
-            {t("discountForm.minimumOrder")}
-            <span className="ms-1 text-muted-foreground">({t("productForm.optional")})</span>
-          </Label>
-          <Input
-            id="minimum_order_amount"
-            type="number"
-            step="0.01"
-            min="0"
-            {...register("minimum_order_amount", { valueAsNumber: true })}
-            placeholder={`${getCurrencySymbol(currency)} 0.00`}
-          />
-        </div>
+        {/* Checkboxes */}
+        <div className="space-y-4">
+          {/* Set start and end dates */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="show_dates"
+                checked={showDates}
+                onCheckedChange={(v) => setShowDates(!!v)}
+              />
+              <Label htmlFor="show_dates" className="font-normal cursor-pointer">
+                {t("discountForm.setDates")}
+              </Label>
+            </div>
+            {showDates && (
+              <div className="grid grid-cols-1 gap-3 ps-6 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Label htmlFor="starts_at" className="text-xs text-muted-foreground">
+                    {t("discountForm.startDate")}
+                  </Label>
+                  <Input
+                    id="starts_at"
+                    type="datetime-local"
+                    {...register("starts_at")}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="ends_at" className="text-xs text-muted-foreground">
+                    {t("discountForm.endDate")}
+                  </Label>
+                  <Input
+                    id="ends_at"
+                    type="datetime-local"
+                    {...register("ends_at")}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
-        {/* Usage Limits */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="max_uses">
-              {t("discountForm.maxUses")}
-              <span className="ms-1 text-muted-foreground">({t("productForm.optional")})</span>
-            </Label>
-            <Input
-              id="max_uses"
-              type="number"
-              min="1"
-              {...register("max_uses", { valueAsNumber: true })}
-              placeholder="∞"
-            />
+          {/* Limit discount */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="show_limit"
+                checked={showLimit}
+                onCheckedChange={(v) => setShowLimit(!!v)}
+              />
+              <Label htmlFor="show_limit" className="font-normal cursor-pointer">
+                {t("discountForm.limitDiscount")}
+              </Label>
+            </div>
+            {showLimit && (
+              <div className="ps-6">
+                <Input
+                  id="max_uses"
+                  type="number"
+                  min="1"
+                  placeholder={t("discountForm.maxUsesPlaceholder")}
+                  {...register("max_uses", { valueAsNumber: true })}
+                  className="max-w-[200px]"
+                />
+              </div>
+            )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="max_uses_per_customer">
-              {t("discountForm.maxPerCustomer")}
-              <span className="ms-1 text-muted-foreground">({t("productForm.optional")})</span>
-            </Label>
-            <Input
-              id="max_uses_per_customer"
-              type="number"
-              min="1"
-              {...register("max_uses_per_customer", { valueAsNumber: true })}
-              placeholder="∞"
-            />
-          </div>
-        </div>
 
-        {/* Date Range */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="starts_at">
-              {t("discountForm.startDate")}
-              <span className="ms-1 text-muted-foreground">({t("productForm.optional")})</span>
-            </Label>
-            <Input
-              id="starts_at"
-              type="datetime-local"
-              {...register("starts_at")}
+          {/* One time usage per user */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="one_time_per_user"
+              checked={oneTimePerUser}
+              onCheckedChange={(v) => setOneTimePerUser(!!v)}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ends_at">
-              {t("discountForm.endDate")}
-              <span className="ms-1 text-muted-foreground">({t("productForm.optional")})</span>
+            <Label htmlFor="one_time_per_user" className="font-normal cursor-pointer">
+              {t("discountForm.oneTimePerUser")}
             </Label>
-            <Input
-              id="ends_at"
-              type="datetime-local"
-              {...register("ends_at")}
-            />
           </div>
         </div>
 
         {/* Submit */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-2">
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
             {isEdit ? t("discountForm.updateDiscount") : t("discountForm.createDiscount")}

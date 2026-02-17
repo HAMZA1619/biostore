@@ -40,6 +40,7 @@ export default function CartPage() {
   const router = useRouter()
   const [couponCode, setCouponCode] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
+  const [hasDiscounts, setHasDiscounts] = useState(false)
 
   const [form, setForm] = useState({
     customer_name: "",
@@ -91,6 +92,14 @@ export default function CartPage() {
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Check if store has active discounts
+  useEffect(() => {
+    fetch(`/api/discounts/validate?slug=${slug}`)
+      .then((r) => r.json())
+      .then((d) => setHasDiscounts(d.has_discounts))
+      .catch(() => {})
+  }, [slug])
+
   // Pre-fill country from IP address
   useEffect(() => {
     fetch("https://ipapi.co/country_code/")
@@ -132,27 +141,6 @@ export default function CartPage() {
           .then((d) => { if (!d.valid) setDiscount(null) })
           .catch(() => {})
       }
-    } else {
-      // Check for automatic discounts
-      fetch("/api/discounts/automatic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, subtotal }),
-      })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d) {
-            setDiscount({
-              discountId: d.discount_id,
-              code: null,
-              label: d.label,
-              discountType: d.discount_type,
-              discountValue: d.discount_value,
-              discountAmount: d.discount_amount,
-            })
-          }
-        })
-        .catch(() => {})
     }
   }, [subtotal]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -326,26 +314,28 @@ export default function CartPage() {
       </div>
 
       {/* Coupon Code Input */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Tag className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={couponCode}
-            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-            placeholder={t("storefront.couponPlaceholder")}
-            className="ps-9 uppercase"
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())}
-          />
+      {hasDiscounts && !appliedDiscount && (
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Tag className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder={t("storefront.couponPlaceholder")}
+              className="ps-9 uppercase"
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleApplyCoupon}
+            disabled={couponLoading || !couponCode.trim()}
+          >
+            {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("storefront.apply")}
+          </Button>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleApplyCoupon}
-          disabled={couponLoading || !couponCode.trim()}
-        >
-          {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t("storefront.apply")}
-        </Button>
-      </div>
+      )}
 
       {/* Applied Discount */}
       {appliedDiscount && (

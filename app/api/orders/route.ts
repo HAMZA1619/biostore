@@ -216,39 +216,6 @@ export async function POST(request: Request) {
           }
         }
       }
-    } else {
-      // Check for automatic discounts
-      const nowStr = new Date().toISOString()
-      const { data: autoDiscounts } = await supabase
-        .from("discounts")
-        .select("*")
-        .eq("store_id", store.id)
-        .eq("type", "automatic")
-        .eq("is_active", true)
-
-      if (autoDiscounts) {
-        let bestAmount = 0
-        for (const d of autoDiscounts) {
-          if (d.starts_at && d.starts_at > nowStr) continue
-          if (d.ends_at && d.ends_at < nowStr) continue
-          if (d.max_uses && d.times_used >= d.max_uses) continue
-          if (d.minimum_order_amount && subtotal < d.minimum_order_amount) continue
-
-          let amount: number
-          if (d.discount_type === "percentage") {
-            amount = Math.round(subtotal * d.discount_value / 100 * 100) / 100
-          } else {
-            amount = d.discount_value
-          }
-          amount = Math.min(amount, subtotal)
-
-          if (amount > bestAmount) {
-            bestAmount = amount
-            discountId = d.id
-            discountAmount = amount
-          }
-        }
-      }
     }
 
     const total = subtotal - discountAmount

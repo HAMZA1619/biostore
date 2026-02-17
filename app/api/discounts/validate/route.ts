@@ -1,6 +1,38 @@
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const slug = searchParams.get("slug")
+    if (!slug) return NextResponse.json({ has_discounts: false })
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("slug", slug)
+      .eq("is_published", true)
+      .single()
+
+    if (!store) return NextResponse.json({ has_discounts: false })
+
+    const { count } = await supabase
+      .from("discounts")
+      .select("id", { count: "exact", head: true })
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+
+    return NextResponse.json({ has_discounts: (count ?? 0) > 0 })
+  } catch {
+    return NextResponse.json({ has_discounts: false })
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()

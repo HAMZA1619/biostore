@@ -87,8 +87,7 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("discounts.columns.label")}</TableHead>
-              <TableHead className="hidden sm:table-cell">{t("discounts.columns.code")}</TableHead>
+              <TableHead>{t("discounts.columns.code")}</TableHead>
               <TableHead>{t("discounts.columns.discount")}</TableHead>
               <TableHead className="hidden md:table-cell">{t("discounts.columns.usage")}</TableHead>
               <TableHead>{t("discounts.columns.status")}</TableHead>
@@ -98,19 +97,12 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
           <TableBody>
             {discounts.map((discount) => (
               <TableRow key={discount.id}>
-                <TableCell className="max-w-[150px] truncate font-medium sm:max-w-[200px]">
+                <TableCell className="font-medium">
                   <Link href={`/dashboard/discounts/${discount.id}/edit`} className="hover:underline">
-                    {discount.label}
-                  </Link>
-                </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  {discount.type === "code" ? (
                     <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
                       {discount.code}
                     </code>
-                  ) : (
-                    <Badge variant="secondary">{t("discounts.automatic")}</Badge>
-                  )}
+                  </Link>
                 </TableCell>
                 <TableCell>
                   {discount.discount_type === "percentage"

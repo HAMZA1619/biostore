@@ -36,9 +36,9 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = await request.json()
-    const { store_id, type, code, label, discount_type, discount_value, minimum_order_amount, max_uses, max_uses_per_customer, starts_at, ends_at, is_active } = body
+    const { store_id, code, label, discount_type, discount_value, minimum_order_amount, max_uses, max_uses_per_customer, starts_at, ends_at, is_active } = body
 
-    if (!store_id || !label || !discount_type || !discount_value) {
+    if (!store_id || !discount_type || !discount_value) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -55,9 +55,9 @@ export async function POST(request: Request) {
       .from("discounts")
       .insert({
         store_id,
-        type: type || "code",
-        code: type === "code" && code ? code.toUpperCase().trim() : null,
-        label,
+        type: "code",
+        code: code ? code.toUpperCase().trim() : null,
+        label: label || (code ? code.toUpperCase().trim() : ""),
         discount_type,
         discount_value,
         minimum_order_amount: minimum_order_amount || null,
@@ -102,11 +102,8 @@ export async function PATCH(request: Request) {
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
-    if (fields.code && fields.type === "code") {
+    if (fields.code) {
       fields.code = fields.code.toUpperCase().trim()
-    }
-    if (fields.type === "automatic") {
-      fields.code = null
     }
 
     const { data, error } = await supabase

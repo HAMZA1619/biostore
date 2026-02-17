@@ -88,9 +88,9 @@ CREATE INDEX idx_variants_product ON product_variants(product_id);
 CREATE TABLE discounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('code', 'automatic')),
+  type TEXT NOT NULL DEFAULT 'code' CHECK (type IN ('code')),
   code TEXT,
-  label TEXT NOT NULL,
+  label TEXT DEFAULT '',
   discount_type TEXT NOT NULL CHECK (discount_type IN ('percentage', 'fixed')),
   discount_value DECIMAL(10,2) NOT NULL,
   minimum_order_amount DECIMAL(10,2),
@@ -293,7 +293,11 @@ CREATE POLICY "Owners can update orders" ON orders FOR UPDATE
 -- Order Items
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can insert order items" ON order_items FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id));
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM orders
+    JOIN stores ON stores.id = orders.store_id
+    WHERE orders.id = order_items.order_id AND stores.is_published = true
+  ));
 CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
   USING (EXISTS (
     SELECT 1 FROM orders
