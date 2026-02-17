@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { formatPrice } from "@/lib/utils"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { Copy, Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -52,6 +52,7 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
   const [discounts, setDiscounts] = useState(initialDiscounts)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const router = useRouter()
 
   async function handleDelete() {
@@ -87,6 +88,7 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>{t("discounts.columns.label")}</TableHead>
               <TableHead>{t("discounts.columns.code")}</TableHead>
               <TableHead>{t("discounts.columns.discount")}</TableHead>
               <TableHead className="hidden md:table-cell">{t("discounts.columns.usage")}</TableHead>
@@ -97,12 +99,29 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
           <TableBody>
             {discounts.map((discount) => (
               <TableRow key={discount.id}>
-                <TableCell className="font-medium">
+                <TableCell className="max-w-[200px] truncate font-medium">
                   <Link href={`/dashboard/discounts/${discount.id}/edit`} className="hover:underline">
-                    <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
-                      {discount.code}
-                    </code>
+                    {discount.label || discount.code}
                   </Link>
+                </TableCell>
+                <TableCell>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded bg-muted px-2 py-0.5 text-xs font-mono transition-colors hover:bg-muted/80"
+                    onClick={() => {
+                      navigator.clipboard.writeText(discount.code || "")
+                      setCopiedId(discount.id)
+                      toast.success(t("discounts.codeCopied"))
+                      setTimeout(() => setCopiedId(null), 2000)
+                    }}
+                  >
+                    {discount.code}
+                    {copiedId === discount.id ? (
+                      <Check className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </button>
                 </TableCell>
                 <TableCell>
                   {discount.discount_type === "percentage"

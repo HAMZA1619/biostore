@@ -138,6 +138,7 @@
     "deleteTitle": "Supprimer la réduction ?",
     "deleteDescription": "Cette action est irréversible. La réduction sera définitivement supprimée.",
     "cancel": "Annuler",
+    "codeCopied": "Code copié !",
     "columns": {
       "label": "Libellé",
       "code": "Code",

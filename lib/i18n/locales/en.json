@@ -138,6 +138,7 @@
     "deleteTitle": "Delete discount?",
     "deleteDescription": "This action cannot be undone. This will permanently delete this discount.",
     "cancel": "Cancel",
+    "codeCopied": "Code copied!",
     "columns": {
       "label": "Label",
       "code": "Code",
