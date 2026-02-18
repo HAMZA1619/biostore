@@ -17,7 +17,7 @@ import { revalidateStoreCache } from "@/lib/actions/revalidate"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { slugify, cn } from "@/lib/utils"
+import { slugify, cn, parseDesignSettings } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
 import { Check, ChevronsUpDown, Store, Globe, BarChart3, Coins } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -96,6 +96,7 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
       const { error } = await supabase.from("stores").insert({
         ...data,
         owner_id: userId,
+        design_settings: parseDesignSettings(),
       })
 
       if (error) {

@@ -161,6 +161,17 @@ When adding or modifying order-related fields (columns on the `orders` table, pa
 
 In short: any new order field must flow end-to-end — schema → trigger payload → integration `EventPayload` → handler logic.
 
+## Responsive UI
+
+- All UI must work on mobile (320px) first, then scale up — use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`).
+- Use `flex-wrap` on rows that contain multiple actions (buttons, badges) so they stack instead of overflowing.
+- Avoid fixed widths — prefer `w-full`, `max-w-*`, `min-w-0`, and `flex-1`.
+- Use responsive font sizes when needed (e.g., `text-xl sm:text-2xl`).
+- Long text (URLs, labels) must truncate or wrap — use `truncate`, `break-all`, or `line-clamp-*`.
+- Grids should adapt: e.g., `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, never hardcode 3+ columns without a mobile fallback.
+- Fixed/sticky floating elements (buttons, toasts) must not overlap each other — offset them vertically.
+- Test storefront components at 320px (mobile preview) since that's the primary target.
+
 ## Don'ts
 
 - Don't create new migration files — modify the single `001_initial_schema.sql`.

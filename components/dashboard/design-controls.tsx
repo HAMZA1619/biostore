@@ -463,6 +463,55 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   ))}
                 </div>
               </div>
+
+              {/* Card Hover Effect */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{t("design.cardHoverEffect")}</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["none", "lift", "border"] as const).map((effect) => (
+                    <button
+                      key={effect}
+                      type="button"
+                      onClick={() => onChange({ cardHoverEffect: effect })}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
+                        state.cardHoverEffect === effect
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <span className="text-[10px] font-medium">{t(`design.hover${effect.charAt(0).toUpperCase() + effect.slice(1)}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Info Alignment */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{t("design.productInfoAlign")}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["start", "center"] as const).map((align) => (
+                    <button
+                      key={align}
+                      type="button"
+                      onClick={() => onChange({ productInfoAlign: align })}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
+                        state.productInfoAlign === align
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <div className="w-full space-y-0.5">
+                        <div className={cn("h-1.5 w-8 rounded-sm bg-muted", align === "center" && "mx-auto")} />
+                        <div className={cn("h-1.5 w-5 rounded-sm bg-muted", align === "center" && "mx-auto")} />
+                      </div>
+                      <span className="text-[10px] font-medium">{t(`design.align${align.charAt(0).toUpperCase() + align.slice(1)}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -549,6 +598,96 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   checked={state.showSearch}
                   onCheckedChange={(v) => onChange({ showSearch: v })}
                 />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="sticky-header" className="text-sm">{t("design.stickyHeader")}</Label>
+                  <p className="text-[11px] text-muted-foreground">{t("design.stickyHeaderHint")}</p>
+                </div>
+                <Switch
+                  id="sticky-header"
+                  checked={state.stickyHeader}
+                  onCheckedChange={(v) => onChange({ stickyHeader: v })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="show-card-atc" className="text-sm">{t("design.showCardAddToCart")}</Label>
+                  <p className="text-[11px] text-muted-foreground">{t("design.showCardAddToCartHint")}</p>
+                </div>
+                <Switch
+                  id="show-card-atc"
+                  checked={state.showCardAddToCart}
+                  onCheckedChange={(v) => onChange({ showCardAddToCart: v })}
+                />
+              </div>
+
+              {/* Announcement Bar */}
+              <div className="space-y-1.5">
+                <Label htmlFor="announcement-text" className="text-sm">{t("design.announcementBar")}</Label>
+                <p className="text-[11px] text-muted-foreground">{t("design.announcementHint")}</p>
+                <Input
+                  id="announcement-text"
+                  value={state.announcementText}
+                  onChange={(e) => onChange({ announcementText: e.target.value })}
+                  placeholder={t("design.announcementText")}
+                  className="text-sm"
+                />
+                {state.announcementText && (
+                  <Input
+                    value={state.announcementLink}
+                    onChange={(e) => onChange({ announcementLink: e.target.value })}
+                    placeholder={t("design.announcementLink")}
+                    className="text-sm"
+                  />
+                )}
+              </div>
+
+              {/* WhatsApp Float */}
+              <div className="space-y-1.5">
+                <Label htmlFor="whatsapp-float" className="text-sm">{t("design.whatsappFloat")}</Label>
+                <p className="text-[11px] text-muted-foreground">{t("design.whatsappFloatHint")}</p>
+                <Input
+                  id="whatsapp-float"
+                  value={state.whatsappFloat}
+                  onChange={(e) => onChange({ whatsappFloat: e.target.value })}
+                  placeholder={t("design.whatsappFloatPlaceholder")}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Social Links */}
+              <div className="space-y-2">
+                <Label className="text-sm">{t("design.socialLinks")}</Label>
+                <p className="text-[11px] text-muted-foreground">{t("design.socialLinksHint")}</p>
+                <div className="space-y-2">
+                  <Input
+                    value={state.socialInstagram}
+                    onChange={(e) => onChange({ socialInstagram: e.target.value })}
+                    placeholder="Instagram URL"
+                    className="text-sm"
+                  />
+                  <Input
+                    value={state.socialTiktok}
+                    onChange={(e) => onChange({ socialTiktok: e.target.value })}
+                    placeholder="TikTok URL"
+                    className="text-sm"
+                  />
+                  <Input
+                    value={state.socialFacebook}
+                    onChange={(e) => onChange({ socialFacebook: e.target.value })}
+                    placeholder="Facebook URL"
+                    className="text-sm"
+                  />
+                  <Input
+                    value={state.socialWhatsapp}
+                    onChange={(e) => onChange({ socialWhatsapp: e.target.value })}
+                    placeholder="WhatsApp URL"
+                    className="text-sm"
+                  />
+                </div>
               </div>
             </div>
           )}

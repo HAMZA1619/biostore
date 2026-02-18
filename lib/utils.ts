@@ -80,5 +80,20 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     checkoutShowCity: typeof raw.checkoutShowCity === "boolean" ? raw.checkoutShowCity : true,
     checkoutShowNote: typeof raw.checkoutShowNote === "boolean" ? raw.checkoutShowNote : true,
     thankYouMessage: (raw.thankYouMessage as string) || "",
+    // Layout extras
+    cardHoverEffect: (raw.cardHoverEffect as DesignState["cardHoverEffect"]) || "none",
+    productInfoAlign: (raw.productInfoAlign as DesignState["productInfoAlign"]) || "start",
+    // Header
+    announcementText: (raw.announcementText as string) || "",
+    announcementLink: (raw.announcementLink as string) || "",
+    stickyHeader: typeof raw.stickyHeader === "boolean" ? raw.stickyHeader : true,
+    // Footer
+    socialInstagram: (raw.socialInstagram as string) || "",
+    socialTiktok: (raw.socialTiktok as string) || "",
+    socialFacebook: (raw.socialFacebook as string) || "",
+    socialWhatsapp: (raw.socialWhatsapp as string) || "",
+    // Preferences
+    showCardAddToCart: typeof raw.showCardAddToCart === "boolean" ? raw.showCardAddToCart : true,
+    whatsappFloat: (raw.whatsappFloat as string) || "",
   }
 }

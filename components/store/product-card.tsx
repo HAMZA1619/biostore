@@ -1,6 +1,6 @@
 "use client"
 
-import { formatPriceSymbol } from "@/lib/utils"
+import { cn, formatPriceSymbol } from "@/lib/utils"
 import { useCartStore } from "@/lib/store/cart-store"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { ImageIcon, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useEffect, useState } from "react"
 import "@/lib/i18n"
 
 interface ProductCardProps {
@@ -33,6 +34,18 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const hasVariants = product.options && product.options.length > 0
   const inStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
 
+  const [cardSettings, setCardSettings] = useState({ hover: "none", align: "start", showAtc: true })
+  useEffect(() => {
+    const root = document.querySelector("[data-card-hover]")
+    if (root) {
+      setCardSettings({
+        hover: root.getAttribute("data-card-hover") || "none",
+        align: root.getAttribute("data-product-align") || "start",
+        showAtc: root.getAttribute("data-show-card-atc") !== "false",
+      })
+    }
+  }, [])
+
   function handleAdd() {
     if (!inStock) return
     addItem(
@@ -54,8 +67,15 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
 
   const displayPrice = hasVariants && minVariantPrice != null ? minVariantPrice : product.price
 
+  const hoverClass = cardSettings.hover === "lift"
+    ? "transition-transform hover:-translate-y-1 hover:shadow-lg"
+    : cardSettings.hover === "border"
+      ? "transition-colors hover:border-primary/30 border border-transparent"
+      : ""
+  const isCentered = cardSettings.align === "center"
+
   return (
-    <div className="store-card group overflow-hidden" style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
+    <div className={cn("store-card group overflow-hidden", hoverClass)} style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
       <Link href={`/${storeSlug}/products/${product.id}`}>
         <div className="overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
           {product.image_urls[0] ? (
@@ -71,11 +91,11 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
           )}
         </div>
       </Link>
-      <div style={{ padding: "var(--store-card-padding)" }}>
+      <div className={cn(isCentered && "text-center")} style={{ padding: "var(--store-card-padding)" }}>
         <Link href={`/${storeSlug}/products/${product.id}`}>
           <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight" style={{ fontFamily: "var(--store-heading-font)" }}>{product.name}</h3>
         </Link>
-        <div className="mt-1 flex items-center gap-2">
+        <div className={cn("mt-1 flex items-center gap-2", isCentered && "justify-center")}>
           <span className="font-bold" style={{ color: "var(--store-primary)" }}>
             {hasVariants && minVariantPrice != null ? `${t("storefront.from")} ` : ""}
             {formatPriceSymbol(displayPrice, currency)}
@@ -86,28 +106,32 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             </span>
           )}
         </div>
-        {hasVariants ? (
-          <Button
-            asChild
-            size="sm"
-            className="mt-2 w-full"
-            style={getButtonStyleProps(buttonStyle)}
-          >
-            <Link href={`/${storeSlug}/products/${product.id}`}>
-              {t("storefront.chooseOptions")}
-            </Link>
-          </Button>
-        ) : (
-          <Button
-            onClick={handleAdd}
-            size="sm"
-            className="mt-2 w-full"
-            disabled={!inStock}
-            style={getButtonStyleProps(buttonStyle)}
-          >
-            <ShoppingCart className="me-2 h-3 w-3" />
-            {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}
-          </Button>
+        {cardSettings.showAtc && (
+          <>
+            {hasVariants ? (
+              <Button
+                asChild
+                size="sm"
+                className="mt-2 w-full"
+                style={getButtonStyleProps(buttonStyle)}
+              >
+                <Link href={`/${storeSlug}/products/${product.id}`}>
+                  {t("storefront.chooseOptions")}
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                onClick={handleAdd}
+                size="sm"
+                className="mt-2 w-full"
+                disabled={!inStock}
+                style={getButtonStyleProps(buttonStyle)}
+              >
+                <ShoppingCart className="me-2 h-3 w-3" />
+                {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>
