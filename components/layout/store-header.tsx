@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
 import { useEffect, useState } from "react"
 import { cn, getImageUrl } from "@/lib/utils"
+import Image from "next/image"
 
 interface StoreHeaderProps {
   slug: string
@@ -34,7 +35,7 @@ export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = t
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <Link href={`${baseHref}/`} className="flex items-center gap-2">
           {logoUrl && (
-            <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
+            <Image src={logoUrl} alt="" width={32} height={32} className="h-8 w-8 shrink-0 rounded-full object-cover" />
           )}
           <span className="truncate text-lg font-bold" style={{ color: "var(--store-primary)", fontFamily: "var(--store-heading-font)" }}>
             {name}
@@ -54,7 +55,7 @@ export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = t
     </header>
     {bannerUrl && isHomePage && (
       <div className="relative mx-auto max-w-2xl px-4 pt-4">
-        <img src={bannerUrl} alt="" className="w-full" style={{ borderRadius: "var(--store-radius)" }} />
+        <Image src={bannerUrl} alt="" width={672} height={224} sizes="(max-width: 672px) 100vw, 672px" className="w-full h-auto" style={{ borderRadius: "var(--store-radius)" }} />
       </div>
     )}
   </>

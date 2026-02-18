@@ -63,7 +63,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
 
   return (
     <div className="space-y-4 px-1 sm:px-0">
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 bg-background pb-4">
+      <div className="flex items-center justify-between gap-2 pb-4">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold sm:text-2xl">{t("design.title")}</h1>
           <Button

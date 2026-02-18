@@ -12,6 +12,7 @@ import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { COUNTRIES } from "@/lib/constants"
 import { Check, ChevronsUpDown, ImageIcon, Loader2, Minus, Plus, Tag, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
@@ -257,9 +258,11 @@ export default function CartPage() {
         {items.map((item) => (
           <div key={item.variantId ? `${item.productId}:${item.variantId}` : item.productId} className="store-card flex gap-3 p-3" style={{ borderRadius: "var(--store-radius)" }}>
             {item.imageUrl ? (
-              <img
+              <Image
                 src={item.imageUrl}
                 alt=""
+                width={64}
+                height={64}
                 className="h-16 w-16 shrink-0 rounded-md object-cover"
               />
             ) : (

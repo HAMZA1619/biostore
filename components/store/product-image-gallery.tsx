@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 interface ProductImageGalleryProps {
   images: string[]
@@ -14,7 +15,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-square overflow-hidden bg-muted" style={{ borderRadius: "var(--store-radius)" }}>
+      <div className="overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)", borderRadius: "var(--store-radius)" }}>
         <div className="flex h-full flex-col items-center justify-center text-muted-foreground/40">
           <ImageIcon className="h-16 w-16" />
         </div>
@@ -24,8 +25,8 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
 
   if (images.length === 1) {
     return (
-      <div className="aspect-square overflow-hidden bg-muted" style={{ borderRadius: "var(--store-radius)" }}>
-        <img src={images[0]} alt={productName} className="h-full w-full object-cover" />
+      <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)", borderRadius: "var(--store-radius)" }}>
+        <Image src={images[0]} alt={productName} fill sizes="(max-width: 672px) 100vw, 672px" className="object-cover" />
       </div>
     )
   }
@@ -33,11 +34,13 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
   return (
     <div className="space-y-2">
       {/* Main image with arrows */}
-      <div className="relative aspect-square overflow-hidden bg-muted" style={{ borderRadius: "var(--store-radius)" }}>
-        <img
+      <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)", borderRadius: "var(--store-radius)" }}>
+        <Image
           src={images[current]}
           alt={productName}
-          className="h-full w-full object-cover"
+          fill
+          sizes="(max-width: 672px) 100vw, 672px"
+          className="object-cover"
         />
 
         <button
@@ -83,7 +86,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               i === current ? "ring-2 ring-[var(--store-accent)]" : "opacity-60 hover:opacity-100"
             )}
           >
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            <Image src={url} alt="" width={64} height={64} className="h-full w-full object-cover" />
           </button>
         ))}
       </div>

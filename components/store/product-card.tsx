@@ -6,6 +6,7 @@ import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, ShoppingCart } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
@@ -77,12 +78,14 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   return (
     <div className={cn("store-card group overflow-hidden", hoverClass)} style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
       <Link href={`/${storeSlug}/products/${product.id}`}>
-        <div className="overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
+        <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
           {product.image_urls[0] ? (
-            <img
+            <Image
               src={product.image_urls[0]}
               alt={product.name}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              fill
+              sizes="(max-width: 672px) 50vw, 336px"
+              className="object-cover transition-transform group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground/40">
