@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -19,7 +19,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { slugify, cn } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
-import { Check, ChevronsUpDown, Store, Globe, BarChart3 } from "lucide-react"
+import { Check, ChevronsUpDown, Store, Globe, BarChart3, Coins } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { MarketingSettings } from "@/components/forms/marketing-settings"
 import "@/lib/i18n"
@@ -54,6 +54,7 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
     setValue,
     watch,
     formState: { errors, isDirty },
+    reset,
   } = useForm({
     resolver: zodResolver(storeSchema),
     defaultValues: {
@@ -131,34 +132,54 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{t(title)}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold sm:text-2xl">{t(title)}</h1>
           {initialData && (
-            <Badge
-              variant={initialData.is_published ? "default" : "secondary"}
-              className={initialData.is_published ? "bg-green-600" : ""}
+            <Select
+              value={initialData.is_published ? "published" : "draft"}
+              onValueChange={(v) => { if ((v === "published") !== initialData.is_published) togglePublish() }}
             >
-              {initialData.is_published
-                ? t("storeForm.published")
-                : t("storeForm.draft")}
-            </Badge>
+              <SelectTrigger
+                size="sm"
+                className={cn(
+                  "h-7 gap-1.5 rounded-full px-2.5 text-xs font-medium shadow-none",
+                  initialData.is_published
+                    ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                    : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+                )}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="published">
+                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                  {t("storeForm.published")}
+                </SelectItem>
+                <SelectItem value="draft">
+                  <span className="h-2 w-2 rounded-full bg-red-400" />
+                  {t("storeForm.draft")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           )}
         </div>
-        <div className="flex gap-3">
-          {initialData && (
-            <Button type="button" variant="outline" onClick={togglePublish}>
-              {initialData.is_published ? t("storeForm.unpublish") : t("storeForm.publish")}
+        {(!initialData || isDirty) && (
+          <div className="flex items-center gap-2">
+            {initialData && isDirty && (
+              <Button type="button" variant="outline" size="sm" onClick={() => reset()}>
+                {t("storeForm.cancel")}
+              </Button>
+            )}
+            <Button type="submit" size="sm" disabled={loading}>
+              {loading
+                ? t("storeForm.saving")
+                : initialData
+                  ? t("storeForm.updateStore")
+                  : t("storeForm.createStore")}
             </Button>
-          )}
-          <Button type="submit" disabled={loading || (!!initialData && !isDirty)}>
-            {loading
-              ? t("storeForm.saving")
-              : initialData
-                ? t("storeForm.updateStore")
-                : t("storeForm.createStore")}
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -182,8 +203,8 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
 
           <div className="space-y-2">
             <Label htmlFor="slug">{t("storeForm.storeUrl")}</Label>
-            <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-1 overflow-hidden">
+              <span className="shrink-0 truncate text-sm text-muted-foreground max-w-[150px] sm:max-w-none">
                 {process.env.NEXT_PUBLIC_APP_URL}/
               </span>
               <Input
@@ -214,7 +235,7 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
 
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-muted-foreground" />
+          <Coins className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-medium">{t("storeForm.currencyTitle")}</h2>
         </div>
         <Popover open={currencyOpen} onOpenChange={setCurrencyOpen}>

@@ -10,6 +10,7 @@ import { DesignControls } from "./design-controls"
 import { DesignPreview } from "./design-preview"
 import type { DesignState, PreviewTab } from "./design-preview"
 import { useTranslation } from "react-i18next"
+import { Eye, EyeOff } from "lucide-react"
 import "@/lib/i18n"
 
 interface StoreDesignData {
@@ -30,6 +31,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
   const [state, setState] = useState<DesignState>(initialState.current)
   const [previewTab, setPreviewTab] = useState<PreviewTab>("store")
   const [saving, setSaving] = useState(false)
+  const [showMobilePreview, setShowMobilePreview] = useState(false)
   const isDirty = JSON.stringify(state) !== JSON.stringify(initialState.current)
   const router = useRouter()
   const supabase = createClient()
@@ -60,21 +62,45 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-background pb-4">
-        <h1 className="text-2xl font-bold">{t("design.title")}</h1>
+    <div className="space-y-4 px-1 sm:px-0">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 bg-background pb-4">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-bold sm:text-2xl">{t("design.title")}</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 lg:hidden"
+            onClick={() => setShowMobilePreview(!showMobilePreview)}
+          >
+            {showMobilePreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        </div>
         {isDirty && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setState({ ...initialState.current })}>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setState({ ...initialState.current })}>
               {t("design.cancel")}
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button size="sm" onClick={handleSave} disabled={saving}>
               {saving ? t("design.saving") : t("design.saveChanges")}
             </Button>
           </div>
         )}
       </div>
-      <div className="flex flex-col gap-8 lg:flex-row">
+
+      {/* Mobile preview — shown when toggled */}
+      {showMobilePreview && (
+        <div className="flex justify-center pb-4 lg:hidden">
+          <DesignPreview
+            state={state}
+            storeName={store.name}
+            currency={store.currency}
+            previewTab={previewTab}
+            onTabChange={setPreviewTab}
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="min-w-0 flex-1">
           <DesignControls state={state} onChange={handleChange} storeId={store.id} previewTab={previewTab} onPreviewTabChange={setPreviewTab} />
         </div>

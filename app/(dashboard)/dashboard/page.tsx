@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, ShoppingCart, DollarSign } from "lucide-react"
+import { Package, ShoppingCart, Coins } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { DashboardAnalytics } from "@/components/dashboard/analytics"
 import { T } from "@/components/dashboard/translated-text"
+import { getCurrencySymbol } from "@/lib/utils"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -76,10 +77,10 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium"><T k="dashboard.revenue" /></CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="truncate text-2xl font-bold">{totalRevenue.toFixed(2)} {store.currency}</p>
+            <p className="truncate text-2xl font-bold">{getCurrencySymbol(store.currency)} {totalRevenue.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>

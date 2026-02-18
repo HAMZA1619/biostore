@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -38,26 +39,25 @@ export function ProductStatusSelect({ productId, status }: ProductStatusSelectPr
 
   return (
     <Select value={current} onValueChange={handleChange}>
-      <SelectTrigger className="h-8 w-[130px] border-transparent bg-transparent px-2 hover:bg-muted/50">
-        <SelectValue>
-          <span className="flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${current === "active" ? "bg-green-500" : "bg-red-400"}`} />
-            <span className="text-sm">{current === "active" ? t("products.statusActive") : t("products.statusDraft")}</span>
-          </span>
-        </SelectValue>
+      <SelectTrigger
+        size="sm"
+        className={cn(
+          "h-7 gap-1.5 rounded-full px-2.5 text-xs font-medium shadow-none",
+          current === "active"
+            ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+            : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+        )}
+      >
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="active">
-          <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
-            {t("products.statusActive")}
-          </span>
+          <span className="h-2 w-2 rounded-full bg-green-500" />
+          {t("products.statusActive")}
         </SelectItem>
         <SelectItem value="draft">
-          <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-red-400" />
-            {t("products.statusDraft")}
-          </span>
+          <span className="h-2 w-2 rounded-full bg-red-400" />
+          {t("products.statusDraft")}
         </SelectItem>
       </SelectContent>
     </Select>

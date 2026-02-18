@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { formatPrice } from "@/lib/utils"
+import { cn, formatPrice } from "@/lib/utils"
 import { Copy, Check, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -132,9 +131,15 @@ export function DiscountsTable({ initialDiscounts, currency }: DiscountsTablePro
                   {discount.times_used}/{discount.max_uses ?? "∞"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={discount.is_active ? "default" : "secondary"}>
+                  <span className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                    discount.is_active
+                      ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                      : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+                  )}>
+                    <span className={cn("h-1.5 w-1.5 rounded-full", discount.is_active ? "bg-green-500" : "bg-red-400")} />
                     {discount.is_active ? t("discounts.active") : t("discounts.inactive")}
-                  </Badge>
+                  </span>
                 </TableCell>
                 <TableCell className="text-end">
                   <DropdownMenu>

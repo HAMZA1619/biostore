@@ -3,13 +3,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import dynamic from "next/dynamic"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
 const LanguageSwitcher = dynamic(
   () => import("@/components/dashboard/language-switcher").then((m) => m.LanguageSwitcher),
-  { ssr: false }
-)
-const AiChat = dynamic(
-  () => import("@/components/dashboard/ai-chat").then((m) => m.AiChat),
   { ssr: false }
 )
 import { I18nProvider } from "@/components/dashboard/i18n-provider"
@@ -30,6 +27,36 @@ import {
   Zap,
 } from "lucide-react"
 import "@/lib/i18n"
+
+function FadeIn({ children, className = "", delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold: 0.15 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
 
 const features = [
   { icon: Zap, titleKey: "landing.featureReady", descKey: "landing.featureReadyDesc" },
@@ -63,7 +90,6 @@ export default function LandingPage() {
     <I18nProvider>
       <LandingContent />
       <LanguageSwitcher />
-      <AiChat />
     </I18nProvider>
   )
 }
@@ -88,38 +114,48 @@ function LandingContent() {
 
       {/* Hero */}
       <section className="flex flex-col items-center justify-center gap-6 px-4 py-24 text-center md:py-32">
-        <h1 className="max-w-2xl text-4xl font-bold tracking-tight md:text-6xl">
-          {t("landing.heroTitle")}{" "}
-          <span className="text-primary">{t("landing.heroHighlight")}</span>
-        </h1>
-        <p className="max-w-lg text-lg text-muted-foreground">
-          {t("landing.heroDescription")}
-        </p>
-        <div className="flex flex-col items-center gap-3">
-          <Button asChild size="lg">
-            <Link href="/signup">{t("landing.heroCta")}</Link>
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            {t("landing.heroTrialNote")}
+        <FadeIn>
+          <h1 className="max-w-2xl text-4xl font-bold tracking-tight md:text-6xl">
+            {t("landing.heroTitle")}{" "}
+            <span className="text-primary">{t("landing.heroHighlight")}</span>
+          </h1>
+        </FadeIn>
+        <FadeIn delay={150}>
+          <p className="max-w-lg text-lg text-muted-foreground">
+            {t("landing.heroDescription")}
           </p>
-        </div>
+        </FadeIn>
+        <FadeIn delay={300}>
+          <div className="flex flex-col items-center gap-3">
+            <Button asChild size="lg">
+              <Link href="/signup">{t("landing.heroCta")}</Link>
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              {t("landing.heroTrialNote")}
+            </p>
+          </div>
+        </FadeIn>
       </section>
 
       {/* How it works */}
       <section className="border-t bg-muted/30 px-4 py-20">
         <div className="mx-auto max-w-4xl">
-          <h2 className="mb-12 text-center text-2xl font-bold">
-            {t("landing.howItWorksTitle")}
-          </h2>
+          <FadeIn>
+            <h2 className="mb-12 text-center text-2xl font-bold">
+              {t("landing.howItWorksTitle")}
+            </h2>
+          </FadeIn>
           <div className="grid gap-10 md:grid-cols-3">
-            {steps.map((step) => (
-              <div key={step.titleKey} className="flex flex-col items-center gap-4 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">
-                  {step.step}
+            {steps.map((step, i) => (
+              <FadeIn key={step.titleKey} delay={i * 150}>
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-lg font-bold">
+                    {step.step}
+                  </div>
+                  <h3 className="text-lg font-bold">{t(step.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground">{t(step.descKey)}</p>
                 </div>
-                <h3 className="text-lg font-bold">{t(step.titleKey)}</h3>
-                <p className="text-sm text-muted-foreground">{t(step.descKey)}</p>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -128,51 +164,55 @@ function LandingContent() {
       {/* Features */}
       <section className="px-4 py-20">
         <div className="mx-auto max-w-5xl">
-          <h2 className="mb-12 text-center text-2xl font-bold">
-            {t("landing.featuresTitle")}
-          </h2>
+          <FadeIn>
+            <h2 className="mb-12 text-center text-2xl font-bold">
+              {t("landing.featuresTitle")}
+            </h2>
+          </FadeIn>
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-            {features.map((feature) => (
-              <div key={feature.titleKey} className="space-y-3 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <feature.icon className="h-6 w-6 text-primary" />
+            {features.map((feature, i) => (
+              <FadeIn key={feature.titleKey} delay={i * 100}>
+                <div className="space-y-3 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-bold">{t(feature.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t(feature.descKey)}
+                  </p>
                 </div>
-                <h3 className="font-bold">{t(feature.titleKey)}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {t(feature.descKey)}
-                </p>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section className="border-t bg-muted/30 px-4 py-20">
-        <div className="mx-auto max-w-md text-center">
-          <h2 className="mb-3 text-2xl font-bold">{t("landing.pricingTitle")}</h2>
-          <p className="mb-10 text-muted-foreground">{t("landing.pricingDescription")}</p>
-          <div className="rounded-2xl border bg-background p-8 shadow-sm">
-            <div className="mb-6">
+      <section className="border-t px-4 py-20">
+        <FadeIn>
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="mb-3 text-2xl font-bold">{t("landing.pricingTitle")}</h2>
+            <p className="mb-6 text-muted-foreground">{t("landing.pricingDescription")}</p>
+            <div className="mb-8">
               <span className="text-5xl font-bold">{t("landing.pricingPrice")}</span>
               <span className="text-muted-foreground">{t("landing.pricingPeriod")}</span>
             </div>
-            <ul className="mb-8 space-y-3 text-start text-sm">
+            <div className="mx-auto mb-8 flex max-w-lg flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
               {pricingFeatures.map((key) => (
-                <li key={key} className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
+                <span key={key} className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 text-primary" />
                   {t(key)}
-                </li>
+                </span>
               ))}
-            </ul>
-            <Button asChild size="lg" className="w-full">
+            </div>
+            <Button asChild size="lg">
               <Link href="/signup">{t("landing.pricingCta")}</Link>
             </Button>
             <p className="mt-3 text-xs text-muted-foreground">
               {t("landing.pricingTrialNote")}
             </p>
           </div>
-        </div>
+        </FadeIn>
       </section>
 
       {/* Footer */}

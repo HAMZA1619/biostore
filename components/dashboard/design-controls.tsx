@@ -99,41 +99,41 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-6">
       {/* Load Google Fonts for preview in dropdown */}
       <link rel="stylesheet" href={fontLinkHref} />
 
-      {/* Sidebar */}
-      <nav className="flex w-[160px] shrink-0 flex-col gap-1 pt-1">
+      {/* Navigation — horizontal scroll on mobile, vertical sidebar on md+ */}
+      <nav className="flex gap-1 overflow-x-auto pb-2 md:w-[160px] md:shrink-0 md:flex-col md:overflow-x-visible md:pb-0 md:pt-1">
         {sections.map((section) => (
           <button
             key={section.id}
             type="button"
             onClick={() => handleSectionChange(section.id)}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] transition-colors",
+              "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[13px] transition-colors md:py-2.5",
               activeSection === section.id
                 ? "bg-muted font-medium text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
             <section.icon className="h-4 w-4 shrink-0" />
-            <span className="truncate">{t(section.labelKey)}</span>
+            <span className="whitespace-nowrap">{t(section.labelKey)}</span>
           </button>
         ))}
       </nav>
 
       {/* Content */}
-      <div className="min-w-0 flex-1 max-w-md">
+      <div className="min-w-0 flex-1 md:max-w-md">
         <div className="space-y-6">
 
           {/* Branding */}
           {activeSection === "branding" && (
             <>
-              <div className="flex items-start gap-4">
-                <div className="w-[120px] shrink-0 space-y-1.5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[120px_1fr]">
+                <div className="space-y-1.5">
                   <h3 className="text-sm font-medium">{t("design.logo")}</h3>
-                  <div className="h-[120px]">
+                  <div className="h-[120px] w-[120px]">
                     <SingleImageUpload
                       storeId={storeId}
                       value={state.logoPath}
@@ -144,7 +144,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   <p className="text-[11px] text-muted-foreground">{t("design.logoSize")}</p>
                 </div>
 
-                <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="space-y-1.5">
                   <h3 className="text-sm font-medium">{t("design.banner")}</h3>
                   <div className="h-[120px]">
                     <SingleImageUpload
@@ -190,7 +190,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                     {t("design.shuffle")}
                   </button>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                   {COLOR_THEME_PRESETS.map((preset) => {
                     const isActive = matchingPreset?.id === preset.id
                     return (
@@ -310,7 +310,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
               {/* Theme */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">{t("design.theme")}</h3>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {themes.map((theme) => (
                     <button
                       key={theme.value}
@@ -364,7 +364,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
               {/* Border Radius */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">{t("design.borderRadius")}</h3>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                   {BORDER_RADIUS_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -390,7 +390,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
               {/* Card Shadow */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">{t("design.cardShadow")}</h3>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {CARD_SHADOW_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
