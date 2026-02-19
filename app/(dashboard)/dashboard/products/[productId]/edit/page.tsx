@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import { ProductForm } from "@/components/forms/product-form"
-import { getImageUrl } from "@/lib/utils"
 
 export default async function EditProductPage({
   params,
@@ -30,8 +29,8 @@ export default async function EditProductPage({
     supabase.from("product_variants").select("id, options, price, compare_at_price, sku, stock, is_available").eq("product_id", productId).order("sort_order"),
   ])
 
-  const imgMap = new Map((imgs || []).map((i: { id: string; storage_path: string }) => [i.id, getImageUrl(i.storage_path)!]))
-  const images = imageIds.map((id) => ({ id, url: imgMap.get(id) || "" })).filter((i) => i.url)
+  const imgMap = new Map((imgs || []).map((i: { id: string; storage_path: string }) => [i.id, i.storage_path]))
+  const images = imageIds.map((id) => ({ id, storage_path: imgMap.get(id) || "" })).filter((i) => i.storage_path)
 
   return (
     <ProductForm

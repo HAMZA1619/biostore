@@ -8,7 +8,7 @@ export const googleSheetsApp: AppDefinition = {
   icon: GoogleSheetsIcon,
   iconColor: "#0F9D58",
   category: "productivity",
-  events: ["order.created"],
+  events: ["order.created", "checkout.abandoned"],
   hasCustomSetup: true,
 }
 
@@ -50,6 +50,8 @@ export const AVAILABLE_FIELDS: AvailableField[] = [
   { key: "status", defaultHeader: "Status" },
   { key: "note", defaultHeader: "Note" },
   { key: "ip_address", defaultHeader: "IP Address" },
+  { key: "event_type", defaultHeader: "Event" },
+  { key: "checkout_status", defaultHeader: "Recovery" },
 ]
 
 export const DEFAULT_FIELD_MAPPINGS: FieldMapping[] = AVAILABLE_FIELDS.map(
@@ -130,6 +132,10 @@ function getOrderFieldValue(
       return payload.note || ""
     case "ip_address":
       return payload.ip_address || ""
+    case "event_type":
+      return (payload as Record<string, unknown>).event_type as string || "Order"
+    case "checkout_status":
+      return (payload as Record<string, unknown>).checkout_status as string || ""
     default:
       return ""
   }

@@ -1,3 +1,5 @@
+import urlJoin from "url-join"
+
 const VERCEL_API_BASE = "https://api.vercel.com"
 
 function getHeaders(): HeadersInit {
@@ -22,7 +24,7 @@ function projectId(): string {
 
 export async function addDomainToVercel(domain: string) {
   const res = await fetch(
-    `${VERCEL_API_BASE}/v10/projects/${projectId()}/domains${teamQuery()}`,
+    urlJoin(VERCEL_API_BASE, "v10/projects", projectId(), "domains") + teamQuery(),
     {
       method: "POST",
       headers: getHeaders(),
@@ -34,7 +36,7 @@ export async function addDomainToVercel(domain: string) {
 
 export async function getDomainFromVercel(domain: string) {
   const res = await fetch(
-    `${VERCEL_API_BASE}/v9/projects/${projectId()}/domains/${domain}${teamQuery()}`,
+    urlJoin(VERCEL_API_BASE, "v9/projects", projectId(), "domains", domain) + teamQuery(),
     {
       method: "GET",
       headers: getHeaders(),
@@ -45,7 +47,7 @@ export async function getDomainFromVercel(domain: string) {
 
 export async function verifyDomainOnVercel(domain: string) {
   const res = await fetch(
-    `${VERCEL_API_BASE}/v10/projects/${projectId()}/domains/${domain}/verify${teamQuery()}`,
+    urlJoin(VERCEL_API_BASE, "v10/projects", projectId(), "domains", domain, "verify") + teamQuery(),
     {
       method: "POST",
       headers: getHeaders(),
@@ -56,7 +58,7 @@ export async function verifyDomainOnVercel(domain: string) {
 
 export async function removeDomainFromVercel(domain: string) {
   const res = await fetch(
-    `${VERCEL_API_BASE}/v9/projects/${projectId()}/domains/${domain}${teamQuery()}`,
+    urlJoin(VERCEL_API_BASE, "v9/projects", projectId(), "domains", domain) + teamQuery(),
     {
       method: "DELETE",
       headers: getHeaders(),

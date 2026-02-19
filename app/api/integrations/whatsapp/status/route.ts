@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ connected: false, instance_exists: false })
     }
 
-    const evolutionUrl = process.env.EVOLUTION_API_URL?.replace(/\/+$/, "")
+    const evolutionUrl = process.env.EVOLUTION_API_URL
     const evolutionKey = process.env.EVOLUTION_API_KEY
     if (!evolutionUrl || !evolutionKey) {
       return NextResponse.json(
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
     }
 
     const stateRes = await fetch(
-      `${evolutionUrl}/instance/connectionState/${config.instance_name}`,
+      urlJoin(evolutionUrl, "instance/connectionState", config.instance_name),
       {
         headers: { apikey: evolutionKey },
         signal: AbortSignal.timeout(10000),

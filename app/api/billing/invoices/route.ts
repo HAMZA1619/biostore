@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -26,7 +27,7 @@ export async function GET() {
       return NextResponse.json({ orders: [] })
     }
 
-    const url = new URL(`${POLAR_API_URL}/v1/orders/`)
+    const url = new URL(urlJoin(POLAR_API_URL, "v1/orders/"))
     url.searchParams.set("customer_id", profile.polar_customer_id)
     url.searchParams.set("sorting", "-created_at")
     url.searchParams.set("limit", "50")

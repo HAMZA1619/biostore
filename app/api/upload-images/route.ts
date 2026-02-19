@@ -48,18 +48,13 @@ export async function POST(request: Request) {
             .upload(storagePath, buffer, { contentType: contentType || "image/jpeg" })
           if (uploadError) return null
 
-          const { data: urlData } = supabase.storage
-            .from("product-images")
-            .getPublicUrl(storagePath)
-
           const { data: inserted } = await supabase.from("store_images").insert({
             store_id: storeId,
-            url: urlData.publicUrl,
             filename: imgUrl.split("/").pop()?.split("?")[0] || `image.${ext}`,
             storage_path: storagePath,
-          }).select("id").single()
+          }).select("id, storage_path").single()
 
-          if (inserted) return { id: inserted.id, url: urlData.publicUrl }
+          if (inserted) return { id: inserted.id, storage_path: inserted.storage_path }
           return null
         } catch {
           return null
@@ -67,7 +62,7 @@ export async function POST(request: Request) {
       })
     )
 
-    const uploaded = results.filter(Boolean) as { id: string; url: string }[]
+    const uploaded = results.filter(Boolean) as { id: string; storage_path: string }[]
     return NextResponse.json({ images: uploaded })
   } catch {
     return NextResponse.json({ error: "Failed to upload images" }, { status: 500 })

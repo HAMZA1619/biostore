@@ -4,6 +4,10 @@ import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { T } from "@/components/dashboard/translated-text"
 import { Loader2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
+
+const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
 
 interface Order {
   id: string
@@ -15,6 +19,8 @@ interface Order {
 }
 
 export function InvoicesSection() {
+  const { i18n } = useTranslation()
+  const locale = localeMap[i18n.language] || i18n.language
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -62,7 +68,7 @@ export function InvoicesSection() {
                   {formatAmount(order.amount, order.currency)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(order.created_at).toLocaleDateString()}
+                  {new Date(order.created_at).toLocaleDateString(locale)}
                 </p>
               </div>
               <Badge variant="secondary" className={statusColor[order.status] ?? ""}>

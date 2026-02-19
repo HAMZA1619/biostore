@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import {
   refreshAccessToken,
@@ -200,7 +201,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       spreadsheet_id: spreadsheetId,
       spreadsheet_name: spreadsheetName,
-      spreadsheet_url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`,
+      spreadsheet_url: urlJoin("https://docs.google.com/spreadsheets/d", spreadsheetId),
     })
   } catch (err) {
     console.error("Google Sheets create error:", err)
@@ -315,7 +316,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({
       spreadsheet_id,
       spreadsheet_name: spreadsheetName,
-      spreadsheet_url: `https://docs.google.com/spreadsheets/d/${spreadsheet_id}`,
+      spreadsheet_url: urlJoin("https://docs.google.com/spreadsheets/d", spreadsheet_id),
     })
   } catch (err) {
     console.error("Google Sheets link error:", err)

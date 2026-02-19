@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { parseDesignSettings } from "@/lib/utils"
@@ -46,7 +47,7 @@ export default async function OrderConfirmedPage({
       )}
       <p className="max-w-sm opacity-60">{message}</p>
       <Button asChild style={btnStyle}>
-        <Link href={`${baseHref}/`}>{t("storefront.continueShopping")}</Link>
+        <Link href={urlJoin(baseHref, "/")}>{t("storefront.continueShopping")}</Link>
       </Button>
     </div>
   )

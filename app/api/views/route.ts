@@ -10,11 +10,13 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
-    const today = new Date().toISOString().split("T")[0]
+    const now = new Date()
+    now.setUTCMinutes(0, 0, 0)
+    const hour = now.toISOString()
 
     const { error } = await supabase.rpc("increment_store_view", {
       p_store_id: storeId,
-      p_date: today,
+      p_hour: hour,
     })
 
     if (error) {

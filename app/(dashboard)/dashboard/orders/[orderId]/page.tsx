@@ -14,6 +14,7 @@ import {
   Globe,
 } from "lucide-react"
 import { T } from "@/components/dashboard/translated-text"
+import { FormattedDateTime } from "@/components/dashboard/formatted-date"
 
 export default async function OrderDetailPage({
   params,
@@ -51,15 +52,6 @@ export default async function OrderDetailPage({
     .toUpperCase()
     .slice(0, 2)
 
-  const orderDate = new Date(order.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })
-
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -79,7 +71,7 @@ export default async function OrderDetailPage({
           <h1 className="text-2xl font-bold">#{order.order_number}</h1>
           <OrderStatusSelect orderId={order.id} status={order.status} />
         </div>
-        <p className="text-sm text-muted-foreground">{orderDate}</p>
+        <p className="text-sm text-muted-foreground"><FormattedDateTime date={order.created_at} /></p>
       </div>
 
       {/* Two-column layout */}
@@ -151,7 +143,7 @@ export default async function OrderDetailPage({
 
             <div className="space-y-2 text-sm">
               <p className="text-muted-foreground">
-                <T k="orderDetail.originalOrder" /> &bull; {orderDate}
+                <T k="orderDetail.originalOrder" /> &bull; <FormattedDateTime date={order.created_at} />
               </p>
 
               <Separator />

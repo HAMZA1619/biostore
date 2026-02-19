@@ -16,7 +16,9 @@
     "viewStore": "عرض المتجر",
     "faqs": "الأسئلة الشائعة",
     "integrations": "التكاملات",
-    "discounts": "التخفيضات"
+    "discounts": "التخفيضات",
+    "abandonedCheckouts": "السلات المتروكة",
+    "checkouts": "السلات"
   },
   "dashboard": {
     "welcome": "مرحبا بك في BioStore",
@@ -26,6 +28,8 @@
     "products": "المنتجات",
     "orders": "الطلبات",
     "revenue": "الإيرادات",
+    "recoveredCheckouts": "السلات المستردة",
+    "recoveryRate": "معدل الاسترداد",
     "notFoundTitle": "الصفحة غير موجودة",
     "notFoundDescription": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
     "goToDashboard": "الذهاب إلى لوحة التحكم",
@@ -426,7 +430,8 @@
     "uploading": "جارٍ الرفع...",
     "maxImages": "الحد الأقصى {{max}} صور",
     "failedUpload": "فشل رفع {{name}}",
-    "failedUploadImage": "فشل رفع الصورة"
+    "failedUploadImage": "فشل رفع الصورة",
+    "dragOrClick": "اسحب وأفلت أو انقر للرفع"
   },
   "imageGallery": {
     "title": "معرض الصور",
@@ -467,6 +472,32 @@
     "discountValueRequired": "يجب أن تكون قيمة التخفيض موجبة",
     "couponCodeRequired": "كود الخصم مطلوب",
     "percentageMax100": "لا يمكن أن تتجاوز النسبة 100"
+  },
+  "abandonedCheckouts": {
+    "title": "السلات المتروكة",
+    "empty": "لا توجد سلات متروكة حتى الآن.",
+    "customer": "العميل",
+    "phone": "الهاتف",
+    "total": "المجموع",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "statusLabels": {
+      "pending": "معلق",
+      "sent": "مرسل",
+      "recovered": "مسترد",
+      "expired": "منتهي"
+    },
+    "item": "منتج",
+    "items": "منتجات",
+    "cartItems": "عناصر السلة",
+    "recoveryLink": "رابط الاسترداد",
+    "recoveryLinkHint": "شارك هذا الرابط مع العميل لاسترداد سلته.",
+    "contactInfo": "معلومات الاتصال",
+    "shippingAddress": "عنوان الشحن",
+    "timeline": "الجدول الزمني",
+    "createdAt": "تاريخ الإنشاء",
+    "sentAt": "تاريخ الإرسال",
+    "recoveredAt": "تاريخ الاسترداد"
   },
   "storefront": {
     "addToCart": "أضف إلى السلة",
@@ -825,6 +856,8 @@
       "connectFailed": "فشل الاتصال",
       "insufficientPermissions": "صلاحيات غير كافية",
       "insufficientPermissionsHint": "تحتاج إلى منح صلاحيات Google Sheets وGoogle Drive. أعد الاتصال وتأكد من تحديد جميع الصلاحيات المطلوبة.",
+      "trackAbandoned": "تتبع السلات المتروكة",
+      "trackAbandonedHint": "تسجيل أحداث السلات المتروكة في الجدول مع الطلبات",
       "enabledFields": "الحقول المفعّلة (اسحب لإعادة الترتيب)",
       "disabledFields": "الحقول المعطّلة",
       "columnHeader": "عنوان العمود"
@@ -873,6 +906,14 @@
     "canceling": "جارٍ الإلغاء...",
     "invoices": "الفواتير",
     "noInvoices": "لا توجد فواتير بعد"
+  },
+  "timeAgo": {
+    "justNow": "الآن",
+    "minutes": "منذ {{count}} د",
+    "hours": "منذ {{count}} س",
+    "days": "منذ {{count}} يوم",
+    "months": "منذ {{count}} ش",
+    "years": "منذ {{count}} سنة"
   },
   "language": {
     "en": "English",

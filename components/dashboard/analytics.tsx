@@ -10,7 +10,7 @@ import { formatPrice } from "@/lib/utils"
 import { CalendarIcon, TrendingUp, TrendingDown } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
-import "@/lib/i18n"
+import i18n from "@/lib/i18n"
 
 interface AnalyticsProps {
   storeId: string
@@ -24,13 +24,30 @@ interface Order {
   created_at: string
 }
 
-interface StoreViewDaily {
-  view_date: string
+interface StoreViewHourly {
+  view_hour: string
   view_count: number
 }
 
+const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
+
 function formatDateShort(date: Date) {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  const locale = localeMap[i18n.language] || i18n.language
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" })
+}
+
+function toLocalDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+function formatHourLabel(h: number): string {
+  if (h === 0) return "12am"
+  if (h < 12) return `${h}am`
+  if (h === 12) return "12pm"
+  return `${h - 12}pm`
 }
 
 function getDaysBetween(from: Date, to: Date) {
@@ -40,11 +57,11 @@ function getDaysBetween(from: Date, to: Date) {
 function fillDays(from: Date, to: Date): string[] {
   const days: string[] = []
   const current = new Date(from)
-  current.setHours(0, 0, 0, 0)
+  current.setHours(12, 0, 0, 0)
   const end = new Date(to)
-  end.setHours(0, 0, 0, 0)
+  end.setHours(12, 0, 0, 0)
   while (current <= end) {
-    days.push(current.toISOString().split("T")[0])
+    days.push(toLocalDate(current))
     current.setDate(current.getDate() + 1)
   }
   return days
@@ -89,8 +106,8 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
   })
   const [orders, setOrders] = useState<Order[]>([])
   const [prevOrders, setPrevOrders] = useState<Order[]>([])
-  const [views, setViews] = useState<StoreViewDaily[]>([])
-  const [prevViews, setPrevViews] = useState<StoreViewDaily[]>([])
+  const [views, setViews] = useState<StoreViewHourly[]>([])
+  const [prevViews, setPrevViews] = useState<StoreViewHourly[]>([])
   const [loading, setLoading] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
@@ -124,11 +141,11 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
           .lte("created_at", toDate.toISOString())
           .order("created_at", { ascending: false }),
         supabase
-          .from("store_views_daily")
-          .select("view_date, view_count")
+          .from("store_views_hourly")
+          .select("view_hour, view_count")
           .eq("store_id", storeId)
-          .gte("view_date", fromDate.toISOString().split("T")[0])
-          .lte("view_date", toDate.toISOString().split("T")[0]),
+          .gte("view_hour", fromDate.toISOString())
+          .lte("view_hour", toDate.toISOString()),
         supabase
           .from("orders")
           .select("total, status, created_at")
@@ -136,18 +153,18 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
           .gte("created_at", prevFrom.toISOString())
           .lte("created_at", prevTo.toISOString()),
         supabase
-          .from("store_views_daily")
-          .select("view_date, view_count")
+          .from("store_views_hourly")
+          .select("view_hour, view_count")
           .eq("store_id", storeId)
-          .gte("view_date", prevFrom.toISOString().split("T")[0])
-          .lte("view_date", prevTo.toISOString().split("T")[0]),
+          .gte("view_hour", prevFrom.toISOString())
+          .lte("view_hour", prevTo.toISOString()),
       ])
 
       const fetchedOrders = (ordersRes.data || []) as Order[]
       setOrders(fetchedOrders)
       setPrevOrders((prevOrdersRes.data || []) as Order[])
-      setViews((viewsRes.data || []) as StoreViewDaily[])
-      setPrevViews((prevViewsRes.data || []) as StoreViewDaily[])
+      setViews((viewsRes.data || []) as StoreViewHourly[])
+      setPrevViews((prevViewsRes.data || []) as StoreViewHourly[])
 
       setLoading(false)
     }
@@ -172,36 +189,92 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
     return ((current - previous) / previous) * 100
   }
 
-  // Daily breakdowns for charts
-  const allDays = dateRange.from && dateRange.to ? fillDays(dateRange.from, dateRange.to) : []
+  // Determine if single-day view (show hourly) or multi-day (show daily)
+  const isSingleDay = dateRange.from && dateRange.to &&
+    toLocalDate(dateRange.from) === toLocalDate(dateRange.to)
 
-  const viewsByDay = new Map<string, number>()
-  for (const v of views) {
-    viewsByDay.set(v.view_date, (viewsByDay.get(v.view_date) || 0) + v.view_count)
+  let chartLabels: string[]
+  let visitorsChart: number[]
+  let ordersChart: number[]
+  let salesChart: number[]
+  let conversionChart: number[]
+  let aovChart: number[]
+  let epcChart: number[]
+
+  if (isSingleDay) {
+    // Hourly breakdown — bucket by local hour (0–23)
+    chartLabels = Array.from({ length: 24 }, (_, i) => formatHourLabel(i))
+
+    const viewsByHour = new Map<number, number>()
+    for (const v of views) {
+      const h = new Date(v.view_hour).getHours()
+      viewsByHour.set(h, (viewsByHour.get(h) || 0) + v.view_count)
+    }
+
+    const ordersByHour = new Map<number, number>()
+    const revenueByHour = new Map<number, number>()
+    for (const o of orders) {
+      const h = new Date(o.created_at).getHours()
+      ordersByHour.set(h, (ordersByHour.get(h) || 0) + 1)
+      revenueByHour.set(h, (revenueByHour.get(h) || 0) + Number(o.total))
+    }
+
+    visitorsChart = Array.from({ length: 24 }, (_, i) => viewsByHour.get(i) || 0)
+    ordersChart = Array.from({ length: 24 }, (_, i) => ordersByHour.get(i) || 0)
+    salesChart = Array.from({ length: 24 }, (_, i) => revenueByHour.get(i) || 0)
+    conversionChart = Array.from({ length: 24 }, (_, i) => {
+      const hv = viewsByHour.get(i) || 0
+      const ho = ordersByHour.get(i) || 0
+      return hv > 0 ? (ho / hv) * 100 : 0
+    })
+    aovChart = Array.from({ length: 24 }, (_, i) => {
+      const ho = ordersByHour.get(i) || 0
+      const hr = revenueByHour.get(i) || 0
+      return ho > 0 ? hr / ho : 0
+    })
+    epcChart = Array.from({ length: 24 }, (_, i) => {
+      const hv = viewsByHour.get(i) || 0
+      const hr = revenueByHour.get(i) || 0
+      return hv > 0 ? hr / hv : 0
+    })
+  } else {
+    // Daily breakdown — aggregate hourly data using local timezone
+    const allDays = dateRange.from && dateRange.to ? fillDays(dateRange.from, dateRange.to) : []
+    chartLabels = allDays.map((d) => d.slice(5))
+
+    const viewsByDay = new Map<string, number>()
+    for (const v of views) {
+      const day = toLocalDate(new Date(v.view_hour))
+      viewsByDay.set(day, (viewsByDay.get(day) || 0) + v.view_count)
+    }
+
+    const ordersByDay = new Map<string, number>()
+    const revenueByDay = new Map<string, number>()
+    for (const o of orders) {
+      const day = toLocalDate(new Date(o.created_at))
+      ordersByDay.set(day, (ordersByDay.get(day) || 0) + 1)
+      revenueByDay.set(day, (revenueByDay.get(day) || 0) + Number(o.total))
+    }
+
+    visitorsChart = allDays.map((d) => viewsByDay.get(d) || 0)
+    ordersChart = allDays.map((d) => ordersByDay.get(d) || 0)
+    salesChart = allDays.map((d) => revenueByDay.get(d) || 0)
+    conversionChart = allDays.map((d) => {
+      const dv = viewsByDay.get(d) || 0
+      const dor = ordersByDay.get(d) || 0
+      return dv > 0 ? (dor / dv) * 100 : 0
+    })
+    aovChart = allDays.map((d) => {
+      const dor = ordersByDay.get(d) || 0
+      const dr = revenueByDay.get(d) || 0
+      return dor > 0 ? dr / dor : 0
+    })
+    epcChart = allDays.map((d) => {
+      const dv = viewsByDay.get(d) || 0
+      const dr = revenueByDay.get(d) || 0
+      return dv > 0 ? dr / dv : 0
+    })
   }
-
-  const ordersByDay = new Map<string, number>()
-  const revenueByDay = new Map<string, number>()
-  for (const o of orders) {
-    const day = o.created_at.split("T")[0]
-    ordersByDay.set(day, (ordersByDay.get(day) || 0) + 1)
-    revenueByDay.set(day, (revenueByDay.get(day) || 0) + Number(o.total))
-  }
-
-  // Build daily arrays
-  const visitorsDaily = allDays.map((d) => viewsByDay.get(d) || 0)
-  const conversionDaily = allDays.map((d) => {
-    const dayViews = viewsByDay.get(d) || 0
-    const dayOrders = ordersByDay.get(d) || 0
-    return dayViews > 0 ? (dayOrders / dayViews) * 100 : 0
-  })
-  const aovDaily = allDays.map((d) => {
-    const dayOrders = ordersByDay.get(d) || 0
-    const dayRevenue = revenueByDay.get(d) || 0
-    return dayOrders > 0 ? dayRevenue / dayOrders : 0
-  })
-  const salesDaily = allDays.map((d) => revenueByDay.get(d) || 0)
-  const ordersDaily = allDays.map((d) => ordersByDay.get(d) || 0)
 
   return (
     <div className="space-y-4">
@@ -268,22 +341,22 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
               title={t("analytics.visitors")}
               value={totalVisitors.toString()}
               change={pctChange(totalVisitors, prevTotalVisitors)}
-              data={visitorsDaily}
-              days={allDays}
+              data={visitorsChart}
+              labels={chartLabels}
             />
             <MetricCard
               title={t("dashboard.orders")}
               value={orders.length.toString()}
               change={pctChange(orders.length, prevOrders.length)}
-              data={ordersDaily}
-              days={allDays}
+              data={ordersChart}
+              labels={chartLabels}
             />
             <MetricCard
               title={t("analytics.sales")}
               value={formatPrice(totalRevenue, currency)}
               change={pctChange(totalRevenue, prevTotalRevenue)}
-              data={salesDaily}
-              days={allDays}
+              data={salesChart}
+              labels={chartLabels}
               isCurrency
               currency={currency}
             />
@@ -294,16 +367,16 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
               title={t("analytics.conversionRate")}
               value={`${conversionRate.toFixed(2)}%`}
               change={pctChange(conversionRate, prevConversionRate)}
-              data={conversionDaily}
-              days={allDays}
+              data={conversionChart}
+              labels={chartLabels}
               isPercent
             />
             <MetricCard
               title={t("analytics.aov")}
               value={formatPrice(avgOrderValue, currency)}
               change={pctChange(avgOrderValue, prevAvgOrderValue)}
-              data={aovDaily}
-              days={allDays}
+              data={aovChart}
+              labels={chartLabels}
               isCurrency
               currency={currency}
             />
@@ -314,12 +387,8 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
                 totalVisitors > 0 ? totalRevenue / totalVisitors : 0,
                 prevTotalVisitors > 0 ? prevTotalRevenue / prevTotalVisitors : 0
               )}
-              data={allDays.map((d) => {
-                const dayViews = viewsByDay.get(d) || 0
-                const dayRevenue = revenueByDay.get(d) || 0
-                return dayViews > 0 ? dayRevenue / dayViews : 0
-              })}
-              days={allDays}
+              data={epcChart}
+              labels={chartLabels}
               isCurrency
               currency={currency}
             />
@@ -336,13 +405,13 @@ function MetricCard({
   value,
   change,
   data,
-  days,
+  labels,
 }: {
   title: string
   value: string
   change: number
   data: number[]
-  days: string[]
+  labels: string[]
   isCurrency?: boolean
   isPercent?: boolean
   currency?: string
@@ -350,18 +419,17 @@ function MetricCard({
   const { t } = useTranslation()
   const isPositive = change >= 0
   const barCount = data.length
-  // Show at most ~30 bars, aggregate if too many days
   const maxBars = 30
   let displayData = data
-  let displayDays = days
+  let displayLabels = labels
   if (barCount > maxBars) {
     const chunkSize = Math.ceil(barCount / maxBars)
     displayData = []
-    displayDays = []
+    displayLabels = []
     for (let i = 0; i < barCount; i += chunkSize) {
       const chunk = data.slice(i, i + chunkSize)
       displayData.push(chunk.reduce((a, b) => a + b, 0) / chunk.length)
-      displayDays.push(days[i])
+      displayLabels.push(labels[i])
     }
   }
   const displayMax = Math.max(...displayData, 0.01)
@@ -395,10 +463,10 @@ function MetricCard({
             />
           ))}
         </div>
-        {displayDays.length > 1 && (
+        {displayLabels.length > 1 && (
           <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-            <span>{displayDays[0]?.slice(5)}</span>
-            <span>{displayDays[displayDays.length - 1]?.slice(5)}</span>
+            <span>{displayLabels[0]}</span>
+            <span>{displayLabels[displayLabels.length - 1]}</span>
           </div>
         )}
       </CardContent>

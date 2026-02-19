@@ -148,19 +148,18 @@ CREATE TABLE order_items (
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 
--- Store Views Daily (aggregated visitor tracking — one row per store per day)
-CREATE TABLE store_views_daily (
+-- Store Views Hourly (aggregated visitor tracking — one row per store per hour)
+CREATE TABLE store_views_hourly (
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  view_hour TIMESTAMPTZ NOT NULL DEFAULT date_trunc('hour', now()),
   view_count INTEGER NOT NULL DEFAULT 1,
-  PRIMARY KEY (store_id, view_date)
+  PRIMARY KEY (store_id, view_hour)
 );
 
 -- Store Images (central gallery)
 CREATE TABLE store_images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  url TEXT NOT NULL,
   filename TEXT NOT NULL,
   storage_path TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -177,14 +176,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
--- Increment store view (atomic upsert for daily counter)
-CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_date DATE)
+-- Increment store view (atomic upsert for hourly counter)
+CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_hour TIMESTAMPTZ)
 RETURNS VOID AS $$
 BEGIN
-  INSERT INTO public.store_views_daily (store_id, view_date, view_count)
-  VALUES (p_store_id, p_date, 1)
-  ON CONFLICT (store_id, view_date)
-  DO UPDATE SET view_count = store_views_daily.view_count + 1;
+  INSERT INTO public.store_views_hourly (store_id, view_hour, view_count)
+  VALUES (p_store_id, p_hour, 1)
+  ON CONFLICT (store_id, view_hour)
+  DO UPDATE SET view_count = store_views_hourly.view_count + 1;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
@@ -305,14 +304,14 @@ CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
     WHERE orders.id = order_items.order_id AND stores.owner_id = (select auth.uid())
   ));
 
--- Store Views Daily
-ALTER TABLE store_views_daily ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can upsert store views" ON store_views_daily FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.is_published = true));
-CREATE POLICY "Anyone can update store views" ON store_views_daily FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.is_published = true));
-CREATE POLICY "Owners can view store views" ON store_views_daily FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_daily.store_id AND stores.owner_id = (select auth.uid())));
+-- Store Views Hourly
+ALTER TABLE store_views_hourly ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can upsert store views" ON store_views_hourly FOR INSERT
+  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.is_published = true));
+CREATE POLICY "Anyone can update store views" ON store_views_hourly FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.is_published = true));
+CREATE POLICY "Owners can view store views" ON store_views_hourly FOR SELECT
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Store Images
 ALTER TABLE store_images ENABLE ROW LEVEL SECURITY;
@@ -453,3 +452,103 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 CREATE TRIGGER on_order_status_changed
   AFTER UPDATE ON orders
   FOR EACH ROW EXECUTE FUNCTION public.handle_order_status_changed();
+
+-- ===================================================
+-- Abandoned Checkouts (checkout recovery tracking)
+-- ===================================================
+
+CREATE TABLE abandoned_checkouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  customer_phone TEXT NOT NULL,
+  customer_name TEXT,
+  customer_email TEXT,
+  customer_country TEXT,
+  customer_city TEXT,
+  customer_address TEXT,
+  cart_items JSONB NOT NULL DEFAULT '[]',
+  subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+  total DECIMAL(10,2) NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'sent', 'recovered', 'expired')),
+  recovered_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  sent_at TIMESTAMPTZ,
+  recovered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_abandoned_checkouts_store_phone
+  ON abandoned_checkouts(store_id, customer_phone)
+  WHERE status = 'pending' OR status = 'sent';
+
+CREATE INDEX idx_abandoned_checkouts_store ON abandoned_checkouts(store_id);
+CREATE INDEX idx_abandoned_checkouts_status ON abandoned_checkouts(status, created_at)
+  WHERE status = 'pending';
+
+ALTER TABLE abandoned_checkouts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Owners can view abandoned checkouts" ON abandoned_checkouts
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = abandoned_checkouts.store_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+
+CREATE POLICY "Owners can update abandoned checkouts" ON abandoned_checkouts
+  FOR UPDATE USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = abandoned_checkouts.store_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+
+CREATE POLICY "Anyone can create abandoned checkouts" ON abandoned_checkouts
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = abandoned_checkouts.store_id
+    AND stores.is_published = true
+  ));
+
+CREATE OR REPLACE FUNCTION public.upsert_abandoned_checkout(
+  p_store_id UUID,
+  p_customer_phone TEXT,
+  p_customer_name TEXT DEFAULT NULL,
+  p_customer_email TEXT DEFAULT NULL,
+  p_customer_country TEXT DEFAULT NULL,
+  p_customer_city TEXT DEFAULT NULL,
+  p_customer_address TEXT DEFAULT NULL,
+  p_cart_items JSONB DEFAULT '[]',
+  p_subtotal DECIMAL DEFAULT 0,
+  p_total DECIMAL DEFAULT 0,
+  p_currency TEXT DEFAULT 'MAD'
+) RETURNS UUID AS $$
+DECLARE v_id UUID;
+BEGIN
+  INSERT INTO public.abandoned_checkouts (
+    store_id, customer_phone, customer_name, customer_email,
+    customer_country, customer_city, customer_address,
+    cart_items, subtotal, total, currency, status, updated_at
+  ) VALUES (
+    p_store_id, p_customer_phone, p_customer_name, p_customer_email,
+    p_customer_country, p_customer_city, p_customer_address,
+    p_cart_items, p_subtotal, p_total, p_currency, 'pending', now()
+  )
+  ON CONFLICT (store_id, customer_phone)
+    WHERE status = 'pending' OR status = 'sent'
+  DO UPDATE SET
+    customer_name = COALESCE(EXCLUDED.customer_name, abandoned_checkouts.customer_name),
+    customer_email = COALESCE(EXCLUDED.customer_email, abandoned_checkouts.customer_email),
+    customer_country = COALESCE(EXCLUDED.customer_country, abandoned_checkouts.customer_country),
+    customer_city = COALESCE(EXCLUDED.customer_city, abandoned_checkouts.customer_city),
+    customer_address = COALESCE(EXCLUDED.customer_address, abandoned_checkouts.customer_address),
+    cart_items = EXCLUDED.cart_items,
+    subtotal = EXCLUDED.subtotal,
+    total = EXCLUDED.total,
+    currency = EXCLUDED.currency,
+    status = 'pending',
+    updated_at = now()
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+GRANT EXECUTE ON FUNCTION public.upsert_abandoned_checkout TO anon;
+GRANT EXECUTE ON FUNCTION public.upsert_abandoned_checkout TO authenticated;

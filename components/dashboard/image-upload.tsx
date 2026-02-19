@@ -1,6 +1,7 @@
 "use client"
 
 import { ImageGalleryDialog } from "@/components/dashboard/image-gallery-dialog"
+import { getImageUrl } from "@/lib/utils"
 import { Images, X } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
@@ -9,7 +10,7 @@ import "@/lib/i18n"
 
 export interface ImageItem {
   id: string
-  url: string
+  storage_path: string
 }
 
 interface ImageUploadProps {
@@ -35,7 +36,7 @@ export function ImageUpload({
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
           <div key={img.id} className="relative h-24 w-24 overflow-hidden rounded-md border">
-            <Image src={img.url} alt="" fill className="object-cover" />
+            <Image src={getImageUrl(img.storage_path)!} alt="" fill className="object-cover" />
             <button
               type="button"
               onClick={() => removeImage(i)}

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import urlJoin from "url-join"
 import { CURRENCIES } from "@/lib/constants"
 import type { DesignState } from "@/components/dashboard/design-preview"
 
@@ -50,7 +51,7 @@ export function slugify(text: string) {
 export function getImageUrl(storagePath: string | null | undefined): string | null {
   if (!storagePath) return null
   if (storagePath.startsWith("http")) return storagePath
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/product-images/${storagePath}`
+  return urlJoin(process.env.NEXT_PUBLIC_SUPABASE_URL!, "storage/v1/object/public/product-images", storagePath)
 }
 
 export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignState {

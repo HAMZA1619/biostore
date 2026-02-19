@@ -16,7 +16,9 @@
     "viewStore": "Voir la boutique",
     "faqs": "FAQ",
     "integrations": "Intégrations",
-    "discounts": "Réductions"
+    "discounts": "Réductions",
+    "abandonedCheckouts": "Paniers abandonnés",
+    "checkouts": "Paniers"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -26,6 +28,8 @@
     "products": "Produits",
     "orders": "Commandes",
     "revenue": "Revenus",
+    "recoveredCheckouts": "Paniers récupérés",
+    "recoveryRate": "taux de récupération",
     "notFoundTitle": "Page introuvable",
     "notFoundDescription": "La page que vous recherchez n'existe pas ou a été déplacée.",
     "goToDashboard": "Aller au tableau de bord",
@@ -426,7 +430,8 @@
     "uploading": "Téléchargement...",
     "maxImages": "Maximum {{max}} images",
     "failedUpload": "Échec du téléchargement de {{name}}",
-    "failedUploadImage": "Échec du téléchargement de l'image"
+    "failedUploadImage": "Échec du téléchargement de l'image",
+    "dragOrClick": "Glissez-déposez ou cliquez pour télécharger"
   },
   "imageGallery": {
     "title": "Galerie d'images",
@@ -467,6 +472,32 @@
     "discountValueRequired": "La valeur de la réduction doit être positive",
     "couponCodeRequired": "Le code promo est requis",
     "percentageMax100": "Le pourcentage ne peut pas dépasser 100"
+  },
+  "abandonedCheckouts": {
+    "title": "Paniers abandonnés",
+    "empty": "Aucun panier abandonné pour le moment.",
+    "customer": "Client",
+    "phone": "Téléphone",
+    "total": "Total",
+    "status": "Statut",
+    "date": "Date",
+    "statusLabels": {
+      "pending": "En attente",
+      "sent": "Envoyé",
+      "recovered": "Récupéré",
+      "expired": "Expiré"
+    },
+    "item": "article",
+    "items": "articles",
+    "cartItems": "Articles du panier",
+    "recoveryLink": "Lien de récupération",
+    "recoveryLinkHint": "Partagez ce lien avec le client pour récupérer son panier.",
+    "contactInfo": "Coordonnées",
+    "shippingAddress": "Adresse de livraison",
+    "timeline": "Chronologie",
+    "createdAt": "Créé",
+    "sentAt": "Notification envoyée",
+    "recoveredAt": "Récupéré"
   },
   "storefront": {
     "addToCart": "Ajouter au panier",
@@ -827,7 +858,9 @@
       "insufficientPermissionsHint": "Vous devez accorder l'accès à Google Sheets et Google Drive. Veuillez vous reconnecter et cocher toutes les permissions demandées.",
       "enabledFields": "Champs activés (glisser pour réordonner)",
       "disabledFields": "Champs désactivés",
-      "columnHeader": "En-tête de colonne"
+      "columnHeader": "En-tête de colonne",
+      "trackAbandoned": "Suivre les paniers abandonnés",
+      "trackAbandonedHint": "Enregistrer les événements de paniers abandonnés dans la feuille avec les commandes"
     },
     "events": {
       "link": "Événements",
@@ -873,6 +906,14 @@
     "canceling": "Annulation...",
     "invoices": "Factures",
     "noInvoices": "Aucune facture pour le moment"
+  },
+  "timeAgo": {
+    "justNow": "à l'instant",
+    "minutes": "il y a {{count}}m",
+    "hours": "il y a {{count}}h",
+    "days": "il y a {{count}} jour",
+    "months": "il y a {{count}} mois",
+    "years": "il y a {{count}}a"
   },
   "language": {
     "en": "English",

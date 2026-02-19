@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { WhatsAppIcon } from "@/components/icons/whatsapp"
 import type { AppDefinition } from "@/lib/integrations/registry"
 import { COUNTRIES } from "@/lib/constants"
@@ -9,7 +10,7 @@ export const whatsappApp: AppDefinition = {
   icon: WhatsAppIcon,
   iconColor: "#25D366",
   category: "notifications",
-  events: ["order.created", "order.status_changed"],
+  events: ["order.created", "order.status_changed", "checkout.abandoned"],
   hasCustomSetup: true,
 }
 
@@ -40,6 +41,30 @@ interface EventPayload {
   old_status?: string
   new_status?: string
   items?: OrderItem[]
+  [key: string]: unknown
+}
+
+interface AbandonedCheckoutPayload {
+  customer_name: string
+  customer_phone: string
+  customer_email?: string
+  customer_country?: string
+  customer_city?: string
+  customer_address?: string
+  cart_items: Array<{
+    product_name: string
+    product_price: number
+    quantity: number
+    variant_options?: string | null
+  }>
+  subtotal: number
+  total: number
+  currency: string
+  store_name: string
+  store_url: string
+  abandoned_checkout_id: string
+  status: string
+  created_at: string
   [key: string]: unknown
 }
 
@@ -153,6 +178,24 @@ Customer: ${payload.customer_name}
 ${addressParts || "Address: Not provided"}
 Previous status: ${payload.old_status}
 New status: ${payload.new_status}`
+  } else if (eventType === "checkout.abandoned") {
+    const aPayload = payload as unknown as AbandonedCheckoutPayload
+    const itemsList = aPayload.cart_items?.length
+      ? aPayload.cart_items
+          .map(
+            (i) =>
+              `- ${i.product_name}${i.variant_options ? ` (${i.variant_options})` : ""} x${i.quantity} — ${i.product_price} ${currency}`
+          )
+          .join("\n")
+      : "Items not available"
+
+    context = `Event: Abandoned checkout recovery
+Store: ${aPayload.store_name}
+Customer: ${aPayload.customer_name}
+Store URL: ${aPayload.store_url}
+Total: ${aPayload.total} ${currency}
+Items in cart:
+${itemsList}`
   } else {
     return null
   }
@@ -206,6 +249,31 @@ Rules:
 - Keep it to 3-5 lines. Short and clear.
 - Vary your wording naturally each time.
 - Do NOT include links, emojis, or placeholder text.
+- Do NOT start with "Dear" — be casual and direct.
+- Output ONLY the message text.`,
+
+    "checkout.abandoned": `You are a WhatsApp recovery assistant. Generate a warm, friendly WhatsApp message in ${langName} to remind a customer about items they left in their cart.
+
+CRITICAL — ONLY translate the static text (greetings, labels, closing). NEVER translate or change any of these dynamic values:
+- Customer name: "${payload.customer_name}" — use EXACTLY as-is (first word only).
+- Store name: "${(payload as unknown as AbandonedCheckoutPayload).store_name}" — use EXACTLY as-is. Do NOT add words like "store" or "متجر" before it.
+- Product names: use EXACTLY as provided in the items list.
+- Numbers, prices, currency codes: keep as-is.
+- Store URL: use EXACTLY as provided.
+
+Rules:
+- Write ONLY the static/surrounding text in ${langName}. All dynamic data stays in its original form.
+- Use WhatsApp formatting: *bold* for store name and total.
+- Structure:
+  1. Greet using the customer's name (first word only).
+  2. Remind them they left items in their cart.
+  3. List the items briefly.
+  4. Show the total.
+  5. Include the store URL so they can complete their order.
+  6. A short encouraging closing.
+- Keep it concise — 5-8 lines max.
+- Sound helpful and friendly, not pushy.
+- Do NOT include emojis or placeholder text.
 - Do NOT start with "Dear" — be casual and direct.
 - Output ONLY the message text.`,
   }
@@ -302,6 +370,32 @@ export function buildWhatsAppMessage(
     ].join("\n")
   }
 
+  if (eventType === "checkout.abandoned") {
+    const aPayload = payload as unknown as AbandonedCheckoutPayload
+    const itemsBlock = aPayload.cart_items?.length
+      ? aPayload.cart_items
+          .map(
+            (i) =>
+              `  ${i.product_name}${i.variant_options ? ` (${i.variant_options})` : ""} x${i.quantity} — ${i.product_price} ${currency}`
+          )
+          .join("\n")
+      : null
+
+    const lines = [
+      `Hey ${firstName}! You left some items in your cart at *${aPayload.store_name}*.`,
+      ``,
+    ]
+
+    if (itemsBlock) {
+      lines.push(itemsBlock, ``)
+    }
+
+    lines.push(`*Total: ${aPayload.total} ${currency}*`)
+    lines.push(``, `Complete your order here: ${aPayload.store_url}`)
+
+    return lines.join("\n")
+  }
+
   return ""
 }
 
@@ -320,7 +414,7 @@ export async function handleWhatsApp(
     buildWhatsAppMessage(eventType, payload, storeName, currency)
   if (!message) return
 
-  const evolutionUrl = process.env.EVOLUTION_API_URL?.replace(/\/+$/, "")
+  const evolutionUrl = process.env.EVOLUTION_API_URL
   const evolutionKey = process.env.EVOLUTION_API_KEY
   if (!evolutionUrl || !evolutionKey) {
     throw new Error("Evolution API not configured")
@@ -329,7 +423,7 @@ export async function handleWhatsApp(
   const phone = normalizePhone(payload.customer_phone, payload.customer_country)
 
   const res = await fetch(
-    `${evolutionUrl}/message/sendText/${config.instance_name}`,
+    urlJoin(evolutionUrl, "message/sendText", config.instance_name),
     {
       method: "POST",
       headers: {

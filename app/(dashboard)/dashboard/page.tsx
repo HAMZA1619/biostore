@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,12 +51,12 @@ export default async function DashboardPage() {
           >
             {store.custom_domain && store.domain_verified
               ? store.custom_domain
-              : `${process.env.NEXT_PUBLIC_APP_URL}/${store.slug}`}
+              : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)}
           </Link>
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium"><T k="dashboard.products" /></CardTitle>

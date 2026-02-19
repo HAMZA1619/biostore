@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { google } from "googleapis"
 import {
@@ -25,7 +26,7 @@ export function createOAuth2Client() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/integrations/google-sheets/callback`,
+    urlJoin(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000", "api/integrations/google-sheets/callback"),
   )
 }
 
@@ -68,7 +69,8 @@ export async function handleGoogleSheets(
   storeName: string,
   currency: string,
 ): Promise<void> {
-  if (eventType !== "order.created") return
+  if (eventType !== "order.created" && eventType !== "checkout.abandoned") return
+  if (eventType === "checkout.abandoned" && !(config as Record<string, unknown>).track_abandoned_checkouts) return
   if (!config.connected || !config.spreadsheet_id || !config.refresh_token) return
 
   const refreshed = await refreshAccessToken(config)

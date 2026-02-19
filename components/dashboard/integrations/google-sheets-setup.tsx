@@ -1,5 +1,6 @@
 "use client"
 
+import urlJoin from "url-join"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -266,6 +267,9 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
     (config.row_grouping as RowGrouping) || "per_product",
   )
 
+  const [trackAbandoned, setTrackAbandoned] = useState(
+    !!(config as Record<string, unknown>).track_abandoned_checkouts
+  )
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("")
   const [createNew, setCreateNew] = useState(true)
   const [loadingHeaders, setLoadingHeaders] = useState(false)
@@ -279,8 +283,10 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
     initial.disabled,
   )
 
+  const initialTrackAbandoned = !!(config as Record<string, unknown>).track_abandoned_checkouts
   const hasChanges =
     rowGrouping !== initialRowGrouping ||
+    trackAbandoned !== initialTrackAbandoned ||
     JSON.stringify(enabledFields) !== JSON.stringify(initial.enabled) ||
     JSON.stringify(disabledFields) !== JSON.stringify(initial.disabled)
 
@@ -288,6 +294,7 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
     setEnabledFields(initial.enabled)
     setDisabledFields(initial.disabled)
     setRowGrouping(initialRowGrouping)
+    setTrackAbandoned(initialTrackAbandoned)
   }
 
   async function fetchHeaders(spreadsheetId: string) {
@@ -439,7 +446,7 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: installed.id,
-          config: { field_mappings: enabledFields, row_grouping: rowGrouping },
+          config: { field_mappings: enabledFields, row_grouping: rowGrouping, track_abandoned_checkouts: trackAbandoned },
         }),
       })
       if (!res.ok) {
@@ -801,7 +808,7 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
                   {g("connectedStatus")}
                 </p>
                 <a
-                  href={`https://docs.google.com/spreadsheets/d/${config.spreadsheet_id}`}
+                  href={urlJoin("https://docs.google.com/spreadsheets/d", config.spreadsheet_id)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-0.5 flex items-center gap-1 text-sm text-green-600 hover:underline dark:text-green-400"
@@ -861,6 +868,21 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
                   </label>
                 ))}
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={trackAbandoned}
+                  onChange={(e) => setTrackAbandoned(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <div>
+                  <p className="text-sm font-medium">{g("trackAbandoned")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {g("trackAbandonedHint")}
+                  </p>
+                </div>
+              </label>
 
               {hasChanges && (
                 <div className="flex items-center gap-2">

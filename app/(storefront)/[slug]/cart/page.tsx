@@ -1,5 +1,6 @@
 "use client"
 
+import urlJoin from "url-join"
 import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,7 @@ import { COUNTRIES } from "@/lib/constants"
 import { Check, ChevronsUpDown, ImageIcon, Loader2, Minus, Plus, Tag, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -52,6 +53,42 @@ export default function CartPage() {
     customer_address: "",
     note: "",
   })
+
+  const searchParams = useSearchParams()
+  const recoverId = searchParams.get("checkout")
+
+  useEffect(() => {
+    if (!recoverId) return
+    fetch(`/api/recover/${recoverId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) return
+        useCartStore.setState({
+          items: (data.cart_items || []).map((item: { product_id?: string; variant_id?: string | null; product_name: string; product_price: number; quantity: number; variant_options?: string | null; image_url?: string | null }) => ({
+            productId: item.product_id || item.product_name,
+            variantId: item.variant_id || null,
+            name: item.product_name,
+            variantLabel: item.variant_options || null,
+            price: item.product_price,
+            quantity: item.quantity,
+            imageUrl: item.image_url || null,
+          })),
+          storeSlug: slug,
+          appliedDiscount: null,
+        })
+        setForm((prev) => ({
+          ...prev,
+          customer_name: data.customer_name || prev.customer_name,
+          customer_phone: data.customer_phone || prev.customer_phone,
+          customer_email: data.customer_email || prev.customer_email,
+          customer_country: data.customer_country || prev.customer_country,
+          customer_city: data.customer_city || prev.customer_city,
+          customer_address: data.customer_address || prev.customer_address,
+        }))
+      })
+      .catch(() => {})
+  }, [recoverId, slug])
+
   const [loading, setLoading] = useState(false)
   const captchaRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
@@ -64,6 +101,41 @@ export default function CartPage() {
       size: "invisible",
     })
   }, [])
+
+  const checkoutSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const phoneEnteredRef = useRef(false)
+
+  const saveCheckoutSession = useCallback(() => {
+    if (!form.customer_phone || items.length === 0) return
+    phoneEnteredRef.current = true
+
+    const cartItems = items.map((i) => ({
+      product_id: i.productId,
+      variant_id: i.variantId || null,
+      product_name: i.name,
+      product_price: i.price,
+      quantity: i.quantity,
+      variant_options: i.variantLabel || null,
+      image_url: i.imageUrl || null,
+    }))
+
+    fetch("/api/checkout-sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug,
+        customer_phone: form.customer_phone,
+        customer_name: form.customer_name || undefined,
+        customer_email: form.customer_email || undefined,
+        customer_city: form.customer_city || undefined,
+        customer_country: form.customer_country || undefined,
+        customer_address: form.customer_address || undefined,
+        cart_items: cartItems,
+        subtotal: getTotal(),
+        total: getDiscountedTotal(),
+      }),
+    }).catch(() => {})
+  }, [slug, form, items, getTotal, getDiscountedTotal])
 
   const [showFields, setShowFields] = useState({
     email: true,
@@ -114,6 +186,18 @@ export default function CartPage() {
       })
       .catch(() => {})
   }, [])
+
+  // Debounced re-save checkout session when form/cart changes
+  useEffect(() => {
+    if (!phoneEnteredRef.current || !form.customer_phone || items.length === 0) return
+    if (checkoutSaveRef.current) clearTimeout(checkoutSaveRef.current)
+    checkoutSaveRef.current = setTimeout(() => {
+      saveCheckoutSession()
+    }, 5000)
+    return () => {
+      if (checkoutSaveRef.current) clearTimeout(checkoutSaveRef.current)
+    }
+  }, [form, items, saveCheckoutSession])
 
   // Check for automatic discounts and re-validate applied discounts on cart changes
   const subtotal = getTotal()
@@ -188,7 +272,7 @@ export default function CartPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() => router.push(`${baseHref}/`)}
+          onClick={() => router.push(urlJoin(baseHref, "/"))}
         >
           {t("storefront.continueShopping")}
         </Button>
@@ -241,7 +325,7 @@ export default function CartPage() {
 
       const data = await res.json()
       clearCart()
-      router.push(`${baseHref}/order-confirmed?order=${data.order_number}`)
+      router.push(urlJoin(baseHref, "order-confirmed") + `?order=${data.order_number}`)
     } catch {
       toast.error(t("storefront.failedPlaceOrder"))
       const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
@@ -403,6 +487,7 @@ export default function CartPage() {
             type="tel"
             value={form.customer_phone}
             onChange={(e) => setForm({ ...form, customer_phone: e.target.value })}
+            onBlur={saveCheckoutSession}
             placeholder={t("storefront.phonePlaceholder")}
             required
           />

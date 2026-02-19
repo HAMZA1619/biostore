@@ -2,7 +2,7 @@ import { whatsappApp } from "@/lib/integrations/apps/whatsapp"
 import { metaCapiApp } from "@/lib/integrations/apps/meta-capi"
 import { googleSheetsApp } from "@/lib/integrations/apps/google-sheets"
 
-export type IntegrationEventType = "order.created" | "order.status_changed"
+export type IntegrationEventType = "order.created" | "order.status_changed" | "checkout.abandoned"
 
 export interface AppDefinition {
   id: string

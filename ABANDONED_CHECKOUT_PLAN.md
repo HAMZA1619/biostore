@@ -505,3 +505,43 @@ Generate a secure random string: `openssl rand -hex 32`
 - [ ] Dashboard shows recovery stats
 - [ ] No impact on normal checkout flow (all saves are non-blocking)
 - [ ] pg_cron job runs every 30 minutes (check `cron.job_run_details`)
+
+---
+
+## pg_cron + pg_net Setup
+
+### Prerequisites
+1. Enable the `pg_cron` and `pg_net` extensions in Supabase Dashboard → Database → Extensions
+2. Generate a `CRON_SECRET`: `openssl rand -hex 32`
+3. Add `CRON_SECRET` to Vercel environment variables and `.env.local`
+
+### Schedule the cron job
+Run this SQL in the Supabase SQL Editor:
+
+```sql
+SELECT cron.schedule(
+  'process-abandoned-checkouts',
+  '*/30 * * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://biostore-indol.vercel.app/api/cron/abandoned-checkouts',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer <CRON_SECRET from .env.local>'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
+
+Replace `<CRON_SECRET from .env.local>` with the actual value from your `.env.local` file.
+
+### Verify the job
+```sql
+-- Check scheduled jobs
+SELECT * FROM cron.job;
+
+-- Check recent runs
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 10;
+```

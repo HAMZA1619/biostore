@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
-    const evolutionUrl = process.env.EVOLUTION_API_URL?.replace(/\/+$/, "")
+    const evolutionUrl = process.env.EVOLUTION_API_URL
     const evolutionKey = process.env.EVOLUTION_API_KEY
     if (!evolutionUrl || !evolutionKey) {
       return NextResponse.json(
@@ -46,20 +47,20 @@ export async function POST(request: Request) {
     const headers = { "Content-Type": "application/json", apikey: evolutionKey }
 
     // Step 1: Delete any existing stale instance
-    await fetch(`${evolutionUrl}/instance/logout/${instanceName}`, {
+    await fetch(urlJoin(evolutionUrl, "instance/logout", instanceName), {
       method: "DELETE",
       headers: { apikey: evolutionKey },
       signal: AbortSignal.timeout(5000),
     }).catch(() => {})
 
-    await fetch(`${evolutionUrl}/instance/delete/${instanceName}`, {
+    await fetch(urlJoin(evolutionUrl, "instance/delete", instanceName), {
       method: "DELETE",
       headers: { apikey: evolutionKey },
       signal: AbortSignal.timeout(5000),
     }).catch(() => {})
 
     // Step 2: Create fresh instance
-    const createRes = await fetch(`${evolutionUrl}/instance/create`, {
+    const createRes = await fetch(urlJoin(evolutionUrl, "instance/create"), {
       method: "POST",
       headers,
       body: JSON.stringify({
@@ -107,7 +108,7 @@ export async function POST(request: Request) {
     // Step 5: If no QR from create, try connect endpoint
     if (!qrBase64) {
       const connectRes = await fetch(
-        `${evolutionUrl}/instance/connect/${instanceName}`,
+        urlJoin(evolutionUrl, "instance/connect", instanceName),
         {
           headers: { apikey: evolutionKey },
           signal: AbortSignal.timeout(15000),

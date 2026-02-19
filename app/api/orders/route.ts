@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@supabase/supabase-js"
 import { getImageUrl } from "@/lib/utils"
 import { NextResponse } from "next/server"
@@ -10,7 +11,7 @@ async function detectCountryFromIP(request: Request): Promise<string> {
     const ip = forwarded ? forwarded.split(",")[0].trim() : null
     if (!ip || ip === "127.0.0.1" || ip === "::1") return "Unknown"
 
-    const res = await fetch(`https://ipapi.co/${ip}/country_name/`, {
+    const res = await fetch(urlJoin("https://ipapi.co", ip, "country_name/"), {
       signal: AbortSignal.timeout(60000),
     })
     if (!res.ok) return "Unknown"
@@ -267,6 +268,22 @@ export async function POST(request: Request) {
     if (discountId) {
       await supabase.rpc("increment_discount_usage", { p_discount_id: discountId })
     }
+
+    // Mark any abandoned checkout as recovered
+    try {
+      const { createAdminClient } = await import("@/lib/supabase/admin")
+      const admin = createAdminClient()
+      await admin
+        .from("abandoned_checkouts")
+        .update({
+          status: "recovered",
+          recovered_order_id: order.id,
+          recovered_at: new Date().toISOString(),
+        })
+        .eq("store_id", store.id)
+        .eq("customer_phone", customer_phone)
+        .in("status", ["pending", "sent"])
+    } catch {}
 
     return NextResponse.json({
       order_id: order.id,

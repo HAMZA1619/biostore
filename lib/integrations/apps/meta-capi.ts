@@ -1,4 +1,5 @@
 import { createHash } from "crypto"
+import urlJoin from "url-join"
 import { MetaIcon } from "@/components/icons/meta"
 import type { AppDefinition } from "@/lib/integrations/registry"
 import { COUNTRIES } from "@/lib/constants"
@@ -10,7 +11,7 @@ export const metaCapiApp: AppDefinition = {
   icon: MetaIcon,
   iconColor: "#0081FB",
   category: "analytics",
-  events: ["order.created"],
+  events: ["order.created", "checkout.abandoned"],
   hasCustomSetup: true,
 }
 
@@ -71,7 +72,7 @@ export async function handleMetaCAPI(
   currency: string,
 ): Promise<void> {
   if (!config.pixel_id || !config.access_token) return
-  if (eventType !== "order.created") return
+  if (eventType !== "order.created" && eventType !== "checkout.abandoned") return
 
   const nameParts = payload.customer_name.trim().split(/\s+/)
   const firstName = nameParts[0] || ""
@@ -98,14 +99,17 @@ export async function handleMetaCAPI(
     }
   }
 
-  const contents = payload.items?.map((item) => ({
+  const items = payload.items || []
+  const contents = items.map((item) => ({
     id: item.product_name,
     quantity: item.quantity,
     item_price: item.product_price,
-  })) || []
+  }))
+
+  const isAbandoned = eventType === "checkout.abandoned"
 
   const eventData: Record<string, unknown> = {
-    event_name: "Purchase",
+    event_name: isAbandoned ? "InitiateCheckout" : "Purchase",
     event_time: Math.floor(Date.now() / 1000),
     action_source: "website",
     user_data: userData,
@@ -113,8 +117,9 @@ export async function handleMetaCAPI(
       value: payload.total,
       currency: currency.toUpperCase(),
       content_type: "product",
-      order_id: String(payload.order_number),
-      contents,
+      ...(isAbandoned
+        ? { num_items: items.reduce((sum, i) => sum + i.quantity, 0), contents }
+        : { order_id: String(payload.order_number), contents }),
     },
   }
 
@@ -126,7 +131,7 @@ export async function handleMetaCAPI(
     body.test_event_code = config.test_event_code
   }
 
-  const url = `https://graph.facebook.com/v21.0/${config.pixel_id}/events?access_token=${config.access_token}`
+  const url = urlJoin("https://graph.facebook.com", "v21.0", config.pixel_id, "events") + `?access_token=${config.access_token}`
 
   const res = await fetch(url, {
     method: "POST",

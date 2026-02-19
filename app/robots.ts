@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import type { MetadataRoute } from "next"
 
 export default function robots(): MetadataRoute.Robots {
@@ -11,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/dashboard/", "/api/", "/login", "/signup"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: urlJoin(baseUrl, "sitemap.xml"),
   }
 }

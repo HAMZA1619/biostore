@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -38,12 +39,12 @@ export async function POST(request: Request) {
 
     const config = integration.config as { instance_name?: string }
     if (config.instance_name) {
-      const evolutionUrl = process.env.EVOLUTION_API_URL?.replace(/\/+$/, "")
+      const evolutionUrl = process.env.EVOLUTION_API_URL
       const evolutionKey = process.env.EVOLUTION_API_KEY
 
       if (evolutionUrl && evolutionKey) {
         await fetch(
-          `${evolutionUrl}/instance/logout/${config.instance_name}`,
+          urlJoin(evolutionUrl, "instance/logout", config.instance_name),
           {
             method: "DELETE",
             headers: { apikey: evolutionKey },
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
         ).catch(() => {})
 
         await fetch(
-          `${evolutionUrl}/instance/delete/${config.instance_name}`,
+          urlJoin(evolutionUrl, "instance/delete", config.instance_name),
           {
             method: "DELETE",
             headers: { apikey: evolutionKey },

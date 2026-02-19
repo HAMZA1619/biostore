@@ -16,7 +16,9 @@
     "viewStore": "View store",
     "faqs": "FAQs",
     "integrations": "Integrations",
-    "discounts": "Discounts"
+    "discounts": "Discounts",
+    "abandonedCheckouts": "Abandoned Carts",
+    "checkouts": "Checkouts"
   },
   "dashboard": {
     "welcome": "Welcome to BioStore",
@@ -26,6 +28,8 @@
     "products": "Products",
     "orders": "Orders",
     "revenue": "Revenue",
+    "recoveredCheckouts": "Recovered Carts",
+    "recoveryRate": "recovery rate",
     "notFoundTitle": "Page not found",
     "notFoundDescription": "The page you're looking for doesn't exist or has been moved.",
     "goToDashboard": "Go to dashboard",
@@ -426,7 +430,8 @@
     "uploading": "Uploading...",
     "maxImages": "Maximum {{max}} images",
     "failedUpload": "Failed to upload {{name}}",
-    "failedUploadImage": "Failed to upload image"
+    "failedUploadImage": "Failed to upload image",
+    "dragOrClick": "Drag & drop or click to upload"
   },
   "imageGallery": {
     "title": "Image Gallery",
@@ -467,6 +472,32 @@
     "discountValueRequired": "Discount value must be positive",
     "couponCodeRequired": "Coupon code is required",
     "percentageMax100": "Percentage cannot exceed 100"
+  },
+  "abandonedCheckouts": {
+    "title": "Abandoned Carts",
+    "empty": "No abandoned checkouts yet.",
+    "customer": "Customer",
+    "phone": "Phone",
+    "total": "Total",
+    "status": "Status",
+    "date": "Date",
+    "statusLabels": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "recovered": "Recovered",
+      "expired": "Expired"
+    },
+    "item": "item",
+    "items": "items",
+    "cartItems": "Cart Items",
+    "recoveryLink": "Recovery Link",
+    "recoveryLinkHint": "Share this link with the customer to recover their cart.",
+    "contactInfo": "Contact Info",
+    "shippingAddress": "Shipping Address",
+    "timeline": "Timeline",
+    "createdAt": "Created",
+    "sentAt": "Notification Sent",
+    "recoveredAt": "Recovered"
   },
   "storefront": {
     "addToCart": "Add to cart",
@@ -827,7 +858,9 @@
       "insufficientPermissionsHint": "You need to grant both Google Sheets and Google Drive access. Please reconnect and make sure all requested permissions are checked.",
       "enabledFields": "Enabled fields (drag to reorder)",
       "disabledFields": "Disabled fields",
-      "columnHeader": "Column header"
+      "columnHeader": "Column header",
+      "trackAbandoned": "Track abandoned checkouts",
+      "trackAbandonedHint": "Log abandoned cart events to the spreadsheet alongside orders"
     },
     "events": {
       "link": "Events",
@@ -873,6 +906,14 @@
     "canceling": "Canceling...",
     "invoices": "Invoices",
     "noInvoices": "No invoices yet"
+  },
+  "timeAgo": {
+    "justNow": "just now",
+    "minutes": "{{count}}m ago",
+    "hours": "{{count}}h ago",
+    "days": "{{count}} day ago",
+    "months": "{{count}}mo ago",
+    "years": "{{count}}y ago"
   },
   "language": {
     "en": "English",

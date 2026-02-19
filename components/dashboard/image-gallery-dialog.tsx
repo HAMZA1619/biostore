@@ -4,9 +4,8 @@ import { createClient } from "@/lib/supabase/client"
 import { getImageUrl } from "@/lib/utils"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Check, ImagePlus, Loader2, Trash2 } from "lucide-react"
+import { Check, ImagePlus, Loader2, Trash2, Upload } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -16,7 +15,6 @@ const PAGE_SIZE = 30
 
 interface GalleryImage {
   id: string
-  url: string
   filename: string
   storage_path: string
 }
@@ -25,7 +23,7 @@ interface ImageGalleryDialogProps {
   storeId: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelect: (images: { id: string; url: string; storage_path: string }[]) => void
+  onSelect: (images: { id: string; storage_path: string }[]) => void
   multiple?: boolean
 }
 
@@ -43,16 +41,17 @@ export function ImageGalleryDialog({
   const [hasMore, setHasMore] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [uploading, setUploading] = useState(false)
+  const [uploadCount, setUploadCount] = useState({ done: 0, total: 0 })
   const [deleting, setDeleting] = useState(false)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-  const [tab, setTab] = useState("gallery")
+  const [dragOver, setDragOver] = useState(false)
   const supabase = createClient()
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!open) return
     setSelected(new Set())
-    setTab("gallery")
     setImages([])
     setHasMore(true)
     loadImages(0)
@@ -64,7 +63,7 @@ export function ImageGalleryDialog({
 
     const { data, error } = await supabase
       .from("store_images")
-      .select("id, url, filename, storage_path")
+      .select("id, filename, storage_path")
       .eq("store_id", storeId)
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1)
@@ -121,7 +120,7 @@ export function ImageGalleryDialog({
   function handleConfirm() {
     const result = images
       .filter((img) => selected.has(img.id))
-      .map((img) => ({ id: img.id, url: img.url, storage_path: img.storage_path }))
+      .map((img) => ({ id: img.id, storage_path: img.storage_path }))
     onSelect(result)
     onOpenChange(false)
   }
@@ -153,141 +152,172 @@ export function ImageGalleryDialog({
     setConfirmDeleteOpen(false)
   }
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) return
     setUploading(true)
-    try {
-      const ext = file.name.split(".").pop()
-      const storagePath = `${storeId}/${crypto.randomUUID()}.${ext}`
+    setUploadCount({ done: 0, total: files.length })
 
-      const { error } = await supabase.storage
-        .from("product-images")
-        .upload(storagePath, file)
+    const uploaded: GalleryImage[] = []
 
-      if (error) {
-        toast.error(t("imageUpload.failedUploadImage"))
-        return
-      }
+    await Promise.all(
+      files.map(async (file) => {
+        try {
+          const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+          const storagePath = `${storeId}/${crypto.randomUUID()}.${ext}`
 
-      const { data: urlData } = supabase.storage
-        .from("product-images")
-        .getPublicUrl(storagePath)
+          const { error } = await supabase.storage
+            .from("product-images")
+            .upload(storagePath, file)
 
-      const { data: inserted, error: dbError } = await supabase
-        .from("store_images")
-        .insert({
-          store_id: storeId,
-          url: urlData.publicUrl,
-          filename: file.name,
-          storage_path: storagePath,
-        })
-        .select("id, url, filename, storage_path")
-        .single()
+          if (error) return
 
-      if (dbError || !inserted) {
-        toast.error(t("imageUpload.failedUploadImage"))
-        return
-      }
+          const { data: inserted } = await supabase
+            .from("store_images")
+            .insert({
+              store_id: storeId,
+              filename: file.name,
+              storage_path: storagePath,
+            })
+            .select("id, filename, storage_path")
+            .single()
 
-      setImages((prev) => [inserted, ...prev])
+          if (inserted) uploaded.push(inserted)
+        } catch {
+          // skip failed
+        } finally {
+          setUploadCount((prev) => ({ ...prev, done: prev.done + 1 }))
+        }
+      })
+    )
 
+    if (uploaded.length > 0) {
+      setImages((prev) => [...uploaded.reverse(), ...prev])
+      const newIds = uploaded.map((img) => img.id)
       if (!multiple) {
-        setSelected(new Set([inserted.id]))
+        setSelected(new Set([newIds[0]]))
       } else {
-        setSelected((prev) => new Set([...prev, inserted.id]))
+        setSelected((prev) => new Set([...prev, ...newIds]))
       }
-
-      setTab("gallery")
-    } catch {
-      toast.error(t("imageUpload.failedUploadImage"))
-    } finally {
-      setUploading(false)
-      e.target.value = ""
     }
+
+    if (uploaded.length < files.length) {
+      toast.error(t("imageUpload.failedUploadImage"))
+    }
+
+    setUploading(false)
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    uploadFiles(files)
+    e.target.value = ""
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"))
+    uploadFiles(files)
   }
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[80vh] flex-col sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{t("imageGallery.title")}</DialogTitle>
+        <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-2xl">
+          <DialogHeader className="pe-8">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{t("imageGallery.title")}</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                {uploading
+                  ? `${uploadCount.done}/${uploadCount.total}`
+                  : t("imageUpload.upload")}
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+              disabled={uploading}
+            />
           </DialogHeader>
 
-          <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col">
-            <TabsList className="w-full">
-              <TabsTrigger value="gallery" className="flex-1">{t("imageGallery.tabGallery")}</TabsTrigger>
-              <TabsTrigger value="upload" className="flex-1">{t("imageGallery.tabUpload")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="gallery" className="mt-3 min-h-0 flex-1 overflow-y-auto">
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div
+            className={`min-h-0 flex-1 overflow-y-auto rounded-md transition-colors ${
+              dragOver ? "border border-primary bg-primary/5" : ""
+            }`}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : images.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex w-full flex-col items-center justify-center py-16 text-muted-foreground hover:text-foreground"
+              >
+                <ImagePlus className="mb-2 h-10 w-10 text-muted-foreground/30" />
+                <p className="text-sm">{t("imageGallery.empty")}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("imageUpload.dragOrClick")}</p>
+              </button>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-1.5 p-1 sm:grid-cols-4 md:grid-cols-5">
+                  {images.map((img) => {
+                    const isSelected = selected.has(img.id)
+                    return (
+                      <button
+                        key={img.id}
+                        type="button"
+                        onClick={() => toggleSelect(img.id)}
+                        className={`group relative aspect-square overflow-hidden rounded-md border-2 transition-all ${
+                          isSelected
+                            ? "border-primary ring-1 ring-primary"
+                            : "border-transparent hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <img
+                          src={getImageUrl(img.storage_path)!}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                        {isSelected && (
+                          <div className="absolute inset-0 bg-primary/10">
+                            <div className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              <Check className="h-3 w-3" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
-              ) : images.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <ImagePlus className="mb-2 h-8 w-8 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">{t("imageGallery.empty")}</p>
+                <div ref={sentinelRef} className="flex justify-center py-3">
+                  {loadingMore && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {images.map((img) => {
-                      const isSelected = selected.has(img.id)
-                      return (
-                        <div key={img.id} className="group relative aspect-square">
-                          <button
-                            type="button"
-                            onClick={() => toggleSelect(img.id)}
-                            className={`h-full w-full overflow-hidden rounded-md border-2 transition-colors ${
-                              isSelected ? "border-primary" : "border-transparent hover:border-muted-foreground/30"
-                            }`}
-                          >
-                            <img src={getImageUrl(img.storage_path)!} alt="" className="h-full w-full object-cover" />
-                            {isSelected && (
-                              <div className="absolute inset-0 bg-primary/10">
-                                <div className="absolute end-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                                  <Check className="h-3 w-3" />
-                                </div>
-                              </div>
-                            )}
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  <div ref={sentinelRef} className="flex justify-center py-3">
-                    {loadingMore && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-                  </div>
-                </>
-              )}
-            </TabsContent>
+              </>
+            )}
+          </div>
 
-            <TabsContent value="upload" className="mt-3">
-              <label className="flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed py-12 text-muted-foreground hover:border-foreground hover:text-foreground">
-                {uploading ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  <ImagePlus className="h-8 w-8" />
-                )}
-                <span className="mt-2 text-sm">
-                  {uploading ? t("imageUpload.uploading") : t("imageUpload.upload")}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleUpload}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </label>
-            </TabsContent>
-          </Tabs>
-
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             {selected.size > 0 && (
               <Button
                 type="button"

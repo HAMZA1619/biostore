@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { createOAuth2Client } from "@/lib/integrations/apps/google-sheets.server"
 import { NextResponse } from "next/server"
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
     const error = searchParams.get("error")
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    const redirectBase = `${appUrl}/dashboard/integrations`
+    const redirectBase = urlJoin(appUrl, "dashboard/integrations")
 
     if (error) {
       return NextResponse.redirect(
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
     const missingScopes = requiredScopes.filter((s) => !grantedScopes.includes(s))
     if (missingScopes.length > 0) {
       return NextResponse.redirect(
-        `${redirectBase}/google-sheets?error=insufficient_scopes`,
+        urlJoin(redirectBase, "google-sheets") + "?error=insufficient_scopes",
       )
     }
 
@@ -109,12 +110,12 @@ export async function GET(request: Request) {
       { onConflict: "store_id,integration_id" },
     )
 
-    return NextResponse.redirect(`${redirectBase}/google-sheets`)
+    return NextResponse.redirect(urlJoin(redirectBase, "google-sheets"))
   } catch (err) {
     console.error("Google Sheets callback error:", err)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
     return NextResponse.redirect(
-      `${appUrl}/dashboard/integrations?google-sheets=error&reason=unknown`,
+      urlJoin(appUrl, "dashboard/integrations") + "?google-sheets=error&reason=unknown",
     )
   }
 }

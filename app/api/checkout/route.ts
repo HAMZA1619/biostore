@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -24,7 +25,7 @@ export async function POST() {
       )
     }
 
-    const res = await fetch(`${POLAR_API_URL}/v1/checkouts/custom/`, {
+    const res = await fetch(urlJoin(POLAR_API_URL, "v1/checkouts/custom/"), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.POLAR_ACCESS_TOKEN}`,
@@ -32,7 +33,7 @@ export async function POST() {
       },
       body: JSON.stringify({
         product_id: productId,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?checkout=success`,
+        success_url: urlJoin(process.env.NEXT_PUBLIC_APP_URL!, "dashboard/settings") + "?checkout=success",
         metadata: {
           user_id: user.id,
         },

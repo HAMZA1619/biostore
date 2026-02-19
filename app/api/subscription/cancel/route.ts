@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -30,7 +31,7 @@ export async function POST() {
     }
 
     const res = await fetch(
-      `${POLAR_API_URL}/v1/subscriptions/${profile.polar_subscription_id}`,
+      urlJoin(POLAR_API_URL, "v1/subscriptions", profile.polar_subscription_id),
       {
         method: "PATCH",
         headers: {

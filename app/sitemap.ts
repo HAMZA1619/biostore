@@ -1,3 +1,4 @@
+import urlJoin from "url-join"
 import type { MetadataRoute } from "next"
 import { createStaticClient } from "@/lib/supabase/static"
 
@@ -6,8 +7,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
+    { url: urlJoin(baseUrl, "privacy"), lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
+    { url: urlJoin(baseUrl, "terms"), lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
   ]
 
   const supabase = createStaticClient()
@@ -18,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("is_published", true)
 
   const storePages: MetadataRoute.Sitemap = (stores || []).map((store) => ({
-    url: `${baseUrl}/${store.slug}`,
+    url: urlJoin(baseUrl, store.slug),
     lastModified: store.updated_at ? new Date(store.updated_at) : new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,
