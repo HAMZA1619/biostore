@@ -23,8 +23,10 @@ function TermsContent() {
 
   const sections = [
     { title: t("terms.accountTitle"), text: t("terms.accountText") },
+    { title: t("terms.subscriptionTitle"), text: t("terms.subscriptionText") },
     { title: t("terms.storeTitle"), text: t("terms.storeText") },
     { title: t("terms.buyerTitle"), text: t("terms.buyerText") },
+    { title: t("terms.integrationsTitle"), text: t("terms.integrationsText") },
     { title: t("terms.contentTitle"), text: t("terms.contentText") },
     { title: t("terms.prohibitedTitle"), text: t("terms.prohibitedText") },
     { title: t("terms.terminationTitle"), text: t("terms.terminationText") },

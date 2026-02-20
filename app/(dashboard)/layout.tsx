@@ -9,6 +9,7 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { getSubscriptionAccess, type SubscriptionAccess } from "@/lib/subscription"
 import { SubscriptionGate } from "@/components/dashboard/subscription-gate"
+import { AiChat } from "@/components/dashboard/ai-chat"
 
 export default async function DashboardLayout({
   children,
@@ -55,6 +56,7 @@ export default async function DashboardLayout({
         </div>
       </div>
       <LanguageSwitcher />
+      <AiChat />
     </I18nProvider>
   )
 }
