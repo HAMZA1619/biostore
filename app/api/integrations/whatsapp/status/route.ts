@@ -23,6 +23,8 @@ export async function GET(request: Request) {
       )
     }
 
+    const instanceNameParam = searchParams.get("instance_name")
+
     const { data: store } = await supabase
       .from("stores")
       .select("id")
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
     if (!store)
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
+    // Try DB first, fall back to query param (pre-install polling)
     const { data: integration } = await supabase
       .from("store_integrations")
       .select("config")
@@ -40,12 +43,10 @@ export async function GET(request: Request) {
       .eq("integration_id", "whatsapp")
       .single()
 
-    if (!integration) {
-      return NextResponse.json({ connected: false, instance_exists: false })
-    }
+    const config = (integration?.config || {}) as { instance_name?: string; connected?: boolean; enabled_events?: string[] }
+    const instanceName = config.instance_name || instanceNameParam
 
-    const config = integration.config as { instance_name?: string }
-    if (!config.instance_name) {
+    if (!instanceName) {
       return NextResponse.json({ connected: false, instance_exists: false })
     }
 
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
     }
 
     const stateRes = await fetch(
-      urlJoin(evolutionUrl, "instance/connectionState", config.instance_name),
+      urlJoin(evolutionUrl, "instance/connectionState", instanceName),
       {
         headers: { apikey: evolutionKey },
         signal: AbortSignal.timeout(10000),
@@ -76,12 +77,20 @@ export async function GET(request: Request) {
     if (connected) {
       await supabase
         .from("store_integrations")
-        .update({
-          config: { ...config, connected: true },
-          updated_at: new Date().toISOString(),
-        })
-        .eq("store_id", storeId)
-        .eq("integration_id", "whatsapp")
+        .upsert(
+          {
+            store_id: storeId,
+            integration_id: "whatsapp",
+            config: {
+              ...config,
+              instance_name: instanceName,
+              connected: true,
+              enabled_events: config.enabled_events ?? ["order.created"],
+            },
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "store_id,integration_id" }
+        )
     }
 
     return NextResponse.json({

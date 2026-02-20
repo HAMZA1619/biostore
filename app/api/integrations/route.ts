@@ -79,20 +79,28 @@ export async function PATCH(request: Request) {
       )
     }
 
+    // Verify integration belongs to a store owned by the current user
+    const { data: existing } = await supabase
+      .from("store_integrations")
+      .select("config, store_id, stores!inner(owner_id)")
+      .eq("id", id)
+      .single()
+
+    if (!existing) {
+      return NextResponse.json({ error: "Integration not found" }, { status: 404 })
+    }
+
+    const owner = (existing.stores as unknown as { owner_id: string })
+    if (owner.owner_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     }
 
     if (config) {
-      // Merge incoming config with existing to avoid overwriting
-      // server-refreshed tokens with stale client-side values
-      const { data: existing } = await supabase
-        .from("store_integrations")
-        .select("config")
-        .eq("id", id)
-        .single()
-
-      if (existing?.config && typeof existing.config === "object") {
+      if (existing.config && typeof existing.config === "object") {
         updates.config = { ...(existing.config as Record<string, unknown>), ...config }
       } else {
         updates.config = config
@@ -110,7 +118,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    if (data?.store_id) revalidateTag(`integrations:${data.store_id}`, "max")
+    revalidateTag(`integrations:${existing.store_id}`, "max")
     return NextResponse.json(data)
   } catch {
     return NextResponse.json(
@@ -139,11 +147,21 @@ export async function DELETE(request: Request) {
       )
     }
 
+    // Verify integration belongs to a store owned by the current user
     const { data: integration } = await supabase
       .from("store_integrations")
-      .select("store_id")
+      .select("store_id, stores!inner(owner_id)")
       .eq("id", id)
       .single()
+
+    if (!integration) {
+      return NextResponse.json({ error: "Integration not found" }, { status: 404 })
+    }
+
+    const owner = (integration.stores as unknown as { owner_id: string })
+    if (owner.owner_id !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
 
     const { error } = await supabase
       .from("store_integrations")
@@ -154,7 +172,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    if (integration?.store_id) revalidateTag(`integrations:${integration.store_id}`, "max")
+    revalidateTag(`integrations:${integration.store_id}`, "max")
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json(

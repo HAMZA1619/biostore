@@ -86,23 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: message }, { status: createRes.status })
     }
 
-    // Step 3: Save integration
-    await supabase
-      .from("store_integrations")
-      .upsert(
-        {
-          store_id,
-          integration_id: "whatsapp",
-          config: {
-            instance_name: instanceName,
-            connected: false,
-          },
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "store_id,integration_id" }
-      )
-
-    // Step 4: Extract QR from create response
+    // Step 3: Extract QR from create response
     let qrBase64 = extractQrBase64(createData)
 
     // Step 5: If no QR from create, try connect endpoint

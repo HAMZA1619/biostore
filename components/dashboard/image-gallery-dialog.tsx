@@ -1,5 +1,6 @@
 "use client"
 
+import imageCompression from "browser-image-compression"
 import { createClient } from "@/lib/supabase/client"
 import { getImageUrl } from "@/lib/utils"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -152,6 +153,17 @@ export function ImageGalleryDialog({
     setConfirmDeleteOpen(false)
   }
 
+  async function compressFile(file: File): Promise<File> {
+    if (file.type === "image/svg+xml" || file.type === "image/gif") return file
+
+    return imageCompression(file, {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      fileType: "image/webp",
+      useWebWorker: true,
+    })
+  }
+
   async function uploadFiles(files: File[]) {
     if (files.length === 0) return
     setUploading(true)
@@ -162,12 +174,15 @@ export function ImageGalleryDialog({
     await Promise.all(
       files.map(async (file) => {
         try {
-          const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+          const compressed = await compressFile(file)
+          const isSvg = file.type === "image/svg+xml"
+          const isGif = file.type === "image/gif"
+          const ext = isSvg ? "svg" : isGif ? "gif" : "webp"
           const storagePath = `${storeId}/${crypto.randomUUID()}.${ext}`
 
           const { error } = await supabase.storage
             .from("product-images")
-            .upload(storagePath, file)
+            .upload(storagePath, compressed)
 
           if (error) return
 

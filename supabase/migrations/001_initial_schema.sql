@@ -339,8 +339,6 @@ CREATE INDEX idx_store_integrations_store ON store_integrations(store_id);
 ALTER TABLE store_integrations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners can view own integrations" ON store_integrations FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
-CREATE POLICY "Public can view integrations of published stores" ON store_integrations FOR SELECT
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.is_published = true));
 CREATE POLICY "Owners can insert integrations" ON store_integrations FOR INSERT
   WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_integrations.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update integrations" ON store_integrations FOR UPDATE

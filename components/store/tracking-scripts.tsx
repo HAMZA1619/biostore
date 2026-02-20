@@ -5,15 +5,23 @@ import Script from "next/script"
 interface TrackingScriptsProps {
   gaId?: string | null
   fbPixelId?: string | null
+  ttPixelCode?: string | null
 }
 
-export function TrackingScripts({ gaId, fbPixelId }: TrackingScriptsProps) {
+function sanitizeId(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "")
+}
+
+export function TrackingScripts({ gaId, fbPixelId, ttPixelCode }: TrackingScriptsProps) {
+  const safeGaId = gaId ? sanitizeId(gaId) : null
+  const safeFbPixelId = fbPixelId ? sanitizeId(fbPixelId) : null
+  const safeTtPixelCode = ttPixelCode ? sanitizeId(ttPixelCode) : null
   return (
     <>
-      {gaId && (
+      {safeGaId && (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${safeGaId}`}
             strategy="afterInteractive"
           />
           <Script
@@ -24,14 +32,14 @@ export function TrackingScripts({ gaId, fbPixelId }: TrackingScriptsProps) {
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '${gaId}');
+                gtag('config', '${safeGaId}');
               `,
             }}
           />
         </>
       )}
 
-      {fbPixelId && (
+      {safeFbPixelId && (
         <>
           <Script
             id="fb-pixel"
@@ -46,7 +54,7 @@ export function TrackingScripts({ gaId, fbPixelId }: TrackingScriptsProps) {
                 t.src=v;s=b.getElementsByTagName(e)[0];
                 s.parentNode.insertBefore(t,s)}(window, document,'script',
                 'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '${fbPixelId}');
+                fbq('init', '${safeFbPixelId}');
                 fbq('track', 'PageView');
               `,
             }}
@@ -56,11 +64,35 @@ export function TrackingScripts({ gaId, fbPixelId }: TrackingScriptsProps) {
               height="1"
               width="1"
               style={{ display: "none" }}
-              src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
+              src={`https://www.facebook.com/tr?id=${safeFbPixelId}&ev=PageView&noscript=1`}
               alt=""
             />
           </noscript>
         </>
+      )}
+
+      {safeTtPixelCode && (
+        <Script
+          id="tt-pixel"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function (w, d, t) {
+                w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];
+                ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"];
+                ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};
+                for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);
+                ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};
+                ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;
+                ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e+\"_\"+o]=1,ttq._o=ttq._o||{},ttq._o[e]=n||{};
+                var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=r+"?sdkid="+e+"&lib="+t;
+                var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(a,s)};
+                ttq.load('${safeTtPixelCode}');
+                ttq.page();
+              }(window, document, 'ttq');
+            `,
+          }}
+        />
       )}
     </>
   )

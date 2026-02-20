@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
 import { usePixel } from "@/lib/hooks/use-pixel"
+import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import Script from "next/script"
 import "@/lib/i18n"
@@ -38,6 +39,7 @@ export default function CartPage() {
   const setDiscount = useCartStore((s) => s.setDiscount)
   const getDiscountedTotal = useCartStore((s) => s.getDiscountedTotal)
   const track = usePixel()
+  const ttTrack = useTiktokPixel()
   const buttonStyle = useButtonStyle()
   const router = useRouter()
   const [couponCode, setCouponCode] = useState("")
@@ -160,6 +162,11 @@ export default function CartPage() {
     track("InitiateCheckout", {
       content_ids: items.map((i) => i.productId),
       num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+      value: getTotal(),
+      currency: currency.toUpperCase(),
+    })
+    ttTrack("InitiateCheckout", {
+      content_ids: items.map((i) => i.productId),
       value: getTotal(),
       currency: currency.toUpperCase(),
     })

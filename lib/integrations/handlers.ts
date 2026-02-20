@@ -1,5 +1,6 @@
 import { handleWhatsApp } from "@/lib/integrations/apps/whatsapp"
 import { handleMetaCAPI } from "@/lib/integrations/apps/meta-capi"
+import { handleTiktokEAPI } from "@/lib/integrations/apps/tiktok-eapi"
 import { handleGoogleSheets } from "@/lib/integrations/apps/google-sheets.server"
 
 interface IntegrationEvent {
@@ -40,6 +41,15 @@ export async function dispatchSingle(
         event.event_type,
         event.payload as unknown as Parameters<typeof handleMetaCAPI>[1],
         integration.config as unknown as Parameters<typeof handleMetaCAPI>[2],
+        store.name,
+        store.currency,
+      )
+      break
+    case "tiktok-eapi":
+      await handleTiktokEAPI(
+        event.event_type,
+        event.payload as unknown as Parameters<typeof handleTiktokEAPI>[1],
+        integration.config as unknown as Parameters<typeof handleTiktokEAPI>[2],
         store.name,
         store.currency,
       )

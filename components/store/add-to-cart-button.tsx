@@ -2,6 +2,7 @@
 
 import { useCartStore } from "@/lib/store/cart-store"
 import { usePixel } from "@/lib/hooks/use-pixel"
+import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const track = usePixel()
+  const ttTrack = useTiktokPixel()
   const currency = useStoreCurrency()
   const buttonStyle = useButtonStyle()
 
@@ -43,6 +45,13 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
     track("AddToCart", {
       content_name: product.name,
       content_ids: [product.id],
+      content_type: "product",
+      value: product.price,
+      currency: currency.toUpperCase(),
+    })
+    ttTrack("AddToCart", {
+      content_name: product.name,
+      content_id: product.id,
       content_type: "product",
       value: product.price,
       currency: currency.toUpperCase(),

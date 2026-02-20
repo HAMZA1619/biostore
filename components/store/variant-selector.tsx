@@ -2,6 +2,7 @@
 
 import { useCartStore } from "@/lib/store/cart-store"
 import { usePixel } from "@/lib/hooks/use-pixel"
+import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { Button } from "@/components/ui/button"
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
@@ -42,6 +43,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const track = usePixel()
+  const ttTrack = useTiktokPixel()
   const currency = useStoreCurrency()
   const buttonStyle = useButtonStyle()
   const [selected, setSelected] = useState<Record<string, string>>({})
@@ -97,6 +99,13 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
     track("AddToCart", {
       content_name: product.name,
       content_ids: [product.id],
+      content_type: "product_group",
+      value: matchedVariant.price,
+      currency: currency.toUpperCase(),
+    })
+    ttTrack("AddToCart", {
+      content_name: product.name,
+      content_id: product.id,
       content_type: "product_group",
       value: matchedVariant.price,
       currency: currency.toUpperCase(),

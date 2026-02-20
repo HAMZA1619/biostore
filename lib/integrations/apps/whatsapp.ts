@@ -17,6 +17,7 @@ export const whatsappApp: AppDefinition = {
 interface WhatsAppConfig {
   instance_name: string
   connected: boolean
+  enabled_events?: string[]
 }
 
 interface OrderItem {
@@ -408,6 +409,9 @@ export async function handleWhatsApp(
   storeLanguage?: string
 ): Promise<void> {
   if (!config.connected || !config.instance_name) return
+
+  const enabledEvents = config.enabled_events ?? ["order.created"]
+  if (!enabledEvents.includes(eventType)) return
 
   const message =
     (await generateAIMessage(eventType, payload, storeName, currency, storeLanguage || "en")) ||

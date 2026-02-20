@@ -4,6 +4,7 @@ import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { ProductImageGallery } from "@/components/store/product-image-gallery"
 import { VariantSelector } from "@/components/store/variant-selector"
 import { PixelViewContent } from "@/components/store/pixel-view-content"
+import { TiktokPixelViewContent } from "@/components/store/tiktok-pixel-view-content"
 import { getT } from "@/lib/i18n/storefront"
 import { getStoreBySlug, getProduct, getProductVariants, resolveImageUrls } from "@/lib/storefront/cache"
 import type { Metadata } from "next"
@@ -96,6 +97,7 @@ export default async function ProductPage({
   return (
     <div className="space-y-6">
       <PixelViewContent productName={product.name} productId={product.id} price={product.price} currency={store.currency} />
+      <TiktokPixelViewContent productName={product.name} productId={product.id} price={product.price} currency={store.currency} />
       <ProductImageGallery images={resolvedImageUrls} productName={product.name} />
 
       <div className="space-y-3">

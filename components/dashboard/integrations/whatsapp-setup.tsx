@@ -5,7 +5,14 @@ import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { Loader2, CheckCircle2, QrCode, Unplug } from "lucide-react"
+
+const WHATSAPP_EVENTS = [
+  { id: "order.created", labelKey: "integrations.eventNewOrder" },
+  { id: "order.status_changed", labelKey: "integrations.eventStatusChanged" },
+  { id: "checkout.abandoned", labelKey: "integrations.eventAbandonedCheckout" },
+] as const
 
 interface InstalledIntegration {
   id: string
@@ -23,15 +30,24 @@ interface Props {
 export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
   const { t } = useTranslation()
   const [qrCode, setQrCode] = useState<string | null>(null)
+  const [instanceName, setInstanceName] = useState<string | null>(
+    (installed?.config?.instance_name as string) || null
+  )
   const [connected, setConnected] = useState(
     (installed?.config?.connected as boolean) || false
   )
+  const [enabledEvents, setEnabledEvents] = useState<string[]>(
+    (installed?.config?.enabled_events as string[]) ?? ["order.created"]
+  )
+  const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
   const [polling, setPolling] = useState(false)
 
   const checkStatus = useCallback(async () => {
+    const params = new URLSearchParams({ store_id: storeId })
+    if (instanceName) params.set("instance_name", instanceName)
     const res = await fetch(
-      `/api/integrations/whatsapp/status?store_id=${storeId}`
+      `/api/integrations/whatsapp/status?${params}`
     )
     if (!res.ok) return false
     const data = await res.json()
@@ -42,7 +58,7 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
       return true
     }
     return false
-  }, [storeId])
+  }, [storeId, instanceName])
 
   useEffect(() => {
     if (!polling) return
@@ -51,6 +67,7 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
       if (isConnected) {
         clearInterval(interval)
         toast.success(t("integrations.whatsappConnected"))
+        onDone()
       }
     }, 3000)
     return () => clearInterval(interval)
@@ -69,6 +86,10 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
       if (!res.ok) {
         toast.error(data.error || t("integrations.connectFailed"))
         return
+      }
+
+      if (data.instance_name) {
+        setInstanceName(data.instance_name)
       }
 
       if (data.qrcode?.base64) {
@@ -109,11 +130,42 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
     }
   }
 
+  function toggleEvent(eventId: string) {
+    setEnabledEvents((prev) =>
+      prev.includes(eventId)
+        ? prev.filter((e) => e !== eventId)
+        : [...prev, eventId]
+    )
+  }
+
+  async function handleSaveEvents() {
+    if (!installed) return
+    setSaving(true)
+    try {
+      const res = await fetch("/api/integrations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: installed.id,
+          config: { enabled_events: enabledEvents },
+        }),
+      })
+      if (res.ok) {
+        toast.success(t("integrations.saved"))
+        onDone()
+      }
+    } catch {
+      toast.error(t("integrations.saveFailed"))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (connected) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
           <div>
             <p className="font-medium text-green-800 dark:text-green-200">
               {t("integrations.whatsappConnectedStatus")}
@@ -123,19 +175,53 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          className="w-full text-red-600 hover:text-red-700"
-          onClick={handleDisconnect}
-          disabled={loading}
-        >
-          {loading ? (
-            <Loader2 className="me-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Unplug className="me-2 h-4 w-4" />
-          )}
-          {t("integrations.disconnect")}
-        </Button>
+
+        <div className="space-y-1">
+          <p className="text-sm font-medium">{t("integrations.whatsappEventsTitle")}</p>
+          <p className="text-xs text-muted-foreground">{t("integrations.whatsappEventsDescription")}</p>
+        </div>
+        <div className="space-y-2">
+          {WHATSAPP_EVENTS.map((evt) => (
+            <div
+              key={evt.id}
+              className="flex items-center justify-between rounded-lg border px-3 py-2.5"
+            >
+              <span className="text-sm">{t(evt.labelKey)}</span>
+              <Switch
+                checked={enabledEvents.includes(evt.id)}
+                onCheckedChange={() => toggleEvent(evt.id)}
+              />
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          {t("integrations.whatsappAiNote")}
+        </p>
+
+        <div className="flex gap-2">
+          <Button
+            className="flex-1"
+            onClick={handleSaveEvents}
+            disabled={saving}
+          >
+            {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            {t("integrations.save", "Save")}
+          </Button>
+          <Button
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+            onClick={handleDisconnect}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="me-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Unplug className="me-2 h-4 w-4" />
+            )}
+            {t("integrations.disconnect")}
+          </Button>
+        </div>
       </div>
     )
   }

@@ -1,16 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import sharp from "sharp"
 
 export const maxDuration = 120
 
-const MIME_TO_EXT: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-  "image/avif": "avif",
-  "image/svg+xml": "svg",
-}
+const SKIP_COMPRESSION = new Set(["image/svg+xml", "image/gif"])
 
 export async function POST(request: Request) {
   try {
@@ -36,16 +30,33 @@ export async function POST(request: Request) {
           if (!imgRes.ok) return null
 
           const contentType = imgRes.headers.get("content-type")?.split(";")[0] || ""
-          const ext = MIME_TO_EXT[contentType] || imgUrl.split(".").pop()?.split("?")[0]?.toLowerCase() || "jpg"
           const arrayBuffer = await imgRes.arrayBuffer()
           if (arrayBuffer.byteLength === 0 || arrayBuffer.byteLength > 10 * 1024 * 1024) return null
-          const buffer = Buffer.from(arrayBuffer)
+          const rawBuffer = Buffer.from(arrayBuffer)
+
+          const skip = SKIP_COMPRESSION.has(contentType)
+          let uploadBuffer: Buffer
+          let ext: string
+          let uploadContentType: string
+
+          if (skip) {
+            uploadBuffer = rawBuffer
+            ext = contentType === "image/gif" ? "gif" : "svg"
+            uploadContentType = contentType
+          } else {
+            uploadBuffer = await sharp(rawBuffer)
+              .resize(1920, 1920, { fit: "inside", withoutEnlargement: true })
+              .webp({ quality: 80 })
+              .toBuffer()
+            ext = "webp"
+            uploadContentType = "image/webp"
+          }
 
           const storagePath = `${storeId}/${crypto.randomUUID()}.${ext}`
 
           const { error: uploadError } = await supabase.storage
             .from("product-images")
-            .upload(storagePath, buffer, { contentType: contentType || "image/jpeg" })
+            .upload(storagePath, uploadBuffer, { contentType: uploadContentType })
           if (uploadError) return null
 
           const { data: inserted } = await supabase.from("store_images").insert({

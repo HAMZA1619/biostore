@@ -199,7 +199,7 @@ export function resolveImageUrls(imageIds: string[]) {
 export function getStoreIntegration(storeId: string, integrationId: string) {
   return unstable_cache(
     async () => {
-      const supabase = createStaticClient()
+      const supabase = createAdminClient()
       const { data } = await supabase
         .from("store_integrations")
         .select("config")

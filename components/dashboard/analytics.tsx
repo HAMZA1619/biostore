@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -110,9 +111,22 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
   const [prevViews, setPrevViews] = useState<StoreViewHourly[]>([])
   const [loading, setLoading] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const cacheRef = useRef<Map<string, { orders: Order[]; prevOrders: Order[]; views: StoreViewHourly[]; prevViews: StoreViewHourly[] }>>(new Map())
 
   useEffect(() => {
     if (!dateRange.from || !dateRange.to) return
+
+    const cacheKey = `${toLocalDate(dateRange.from)}_${toLocalDate(dateRange.to)}`
+    const cached = cacheRef.current.get(cacheKey)
+
+    if (cached) {
+      setOrders(cached.orders)
+      setPrevOrders(cached.prevOrders)
+      setViews(cached.views)
+      setPrevViews(cached.prevViews)
+      setLoading(false)
+      return
+    }
 
     async function fetchData() {
       setLoading(true)
@@ -161,10 +175,21 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
       ])
 
       const fetchedOrders = (ordersRes.data || []) as Order[]
+      const fetchedPrevOrders = (prevOrdersRes.data || []) as Order[]
+      const fetchedViews = (viewsRes.data || []) as StoreViewHourly[]
+      const fetchedPrevViews = (prevViewsRes.data || []) as StoreViewHourly[]
+
+      cacheRef.current.set(cacheKey, {
+        orders: fetchedOrders,
+        prevOrders: fetchedPrevOrders,
+        views: fetchedViews,
+        prevViews: fetchedPrevViews,
+      })
+
       setOrders(fetchedOrders)
-      setPrevOrders((prevOrdersRes.data || []) as Order[])
-      setViews((viewsRes.data || []) as StoreViewHourly[])
-      setPrevViews((prevViewsRes.data || []) as StoreViewHourly[])
+      setPrevOrders(fetchedPrevOrders)
+      setViews(fetchedViews)
+      setPrevViews(fetchedPrevViews)
 
       setLoading(false)
     }
@@ -332,7 +357,48 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
       </div>
 
       {loading ? (
-        <div className="py-8 text-center text-sm text-muted-foreground">{t("analytics.loading")}</div>
+        <>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-4 pb-3 px-4">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="mt-2 h-7 w-28" />
+                  <Skeleton className="mt-2 h-3 w-32" />
+                  <div className="mt-3 flex items-end gap-[2px]" style={{ height: 60 }}>
+                    {Array.from({ length: 20 }).map((_, j) => (
+                      <Skeleton
+                        key={j}
+                        className="flex-1 min-w-[2px] rounded-t"
+                        style={{ height: `${20 + Math.random() * 80}%` }}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-4 pb-3 px-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="mt-2 h-7 w-20" />
+                  <Skeleton className="mt-2 h-3 w-28" />
+                  <div className="mt-3 flex items-end gap-[2px]" style={{ height: 60 }}>
+                    {Array.from({ length: 20 }).map((_, j) => (
+                      <Skeleton
+                        key={j}
+                        className="flex-1 min-w-[2px] rounded-t"
+                        style={{ height: `${20 + Math.random() * 80}%` }}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
       ) : (
         <>
           {/* Metric cards grid */}

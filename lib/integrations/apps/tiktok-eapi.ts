@@ -1,22 +1,21 @@
 import { createHash } from "crypto"
-import urlJoin from "url-join"
-import { MetaIcon } from "@/components/icons/meta"
+import { TiktokIcon } from "@/components/icons/tiktok"
 import type { AppDefinition } from "@/lib/integrations/registry"
 import { COUNTRIES } from "@/lib/constants"
 
-export const metaCapiApp: AppDefinition = {
-  id: "meta-capi",
-  name: "Meta Conversions API",
-  description: "Send server-side Purchase events to Facebook for accurate ad conversion tracking.",
-  icon: MetaIcon,
-  iconColor: "#0081FB",
+export const tiktokEapiApp: AppDefinition = {
+  id: "tiktok-eapi",
+  name: "TikTok Events API",
+  description: "Send server-side CompletePayment events to TikTok for accurate ad conversion tracking.",
+  icon: TiktokIcon,
+  iconColor: "#000000",
   category: "analytics",
   events: ["order.created"],
   hasCustomSetup: true,
 }
 
-interface MetaCapiConfig {
-  pixel_id: string
+interface TiktokEapiConfig {
+  pixel_code: string
   access_token: string
   test_event_code?: string
   test_mode?: boolean
@@ -64,54 +63,60 @@ function normalizePhoneForHash(phone: string): string {
   return phone.replace(/[^0-9]/g, "")
 }
 
-export async function handleMetaCAPI(
+export async function handleTiktokEAPI(
   eventType: string,
   payload: EventPayload,
-  config: MetaCapiConfig,
+  config: TiktokEapiConfig,
   storeName: string,
   currency: string,
 ): Promise<void> {
-  if (!config.pixel_id || !config.access_token) return
+  if (!config.pixel_code || !config.access_token) return
   if (eventType !== "order.created") return
 
   const nameParts = payload.customer_name.trim().split(/\s+/)
   const firstName = nameParts[0] || ""
   const lastName = nameParts.slice(1).join(" ") || ""
 
-  const userData: Record<string, string[]> = {}
+  const userData: Record<string, string> = {}
 
   if (payload.customer_phone) {
-    userData.ph = [hashSHA256(normalizePhoneForHash(payload.customer_phone))]
+    const normalizedPhone = normalizePhoneForHash(payload.customer_phone)
+    userData.phone = hashSHA256(normalizedPhone)
+    userData.external_id = hashSHA256(normalizedPhone)
   }
   if (firstName) {
-    userData.fn = [hashSHA256(firstName)]
+    userData.first_name = hashSHA256(firstName)
   }
   if (lastName) {
-    userData.ln = [hashSHA256(lastName)]
+    userData.last_name = hashSHA256(lastName)
   }
   if (payload.customer_city) {
-    userData.ct = [hashSHA256(payload.customer_city)]
+    userData.city = hashSHA256(payload.customer_city)
   }
   if (payload.customer_country) {
     const iso = resolveCountryISO(payload.customer_country)
     if (iso) {
-      userData.country = [hashSHA256(iso)]
+      userData.country = hashSHA256(iso)
     }
+  }
+  if (payload.ip_address) {
+    userData.ip = payload.ip_address
   }
 
   const items = payload.items || []
   const contents = items.map((item) => ({
-    id: item.product_name,
+    content_id: item.product_name,
+    content_name: item.product_name,
     quantity: item.quantity,
-    item_price: item.product_price,
+    price: item.product_price,
   }))
 
   const eventData: Record<string, unknown> = {
-    event_name: "Purchase",
+    event: "CompletePayment",
     event_time: Math.floor(Date.now() / 1000),
-    action_source: "website",
-    user_data: userData,
-    custom_data: {
+    event_id: `order-${payload.order_number}-${Date.now()}`,
+    user: userData,
+    properties: {
       value: payload.total,
       currency: currency.toUpperCase(),
       content_type: "product",
@@ -121,6 +126,8 @@ export async function handleMetaCAPI(
   }
 
   const body: Record<string, unknown> = {
+    event_source: "web",
+    event_source_id: config.pixel_code,
     data: [eventData],
   }
 
@@ -128,17 +135,21 @@ export async function handleMetaCAPI(
     body.test_event_code = config.test_event_code
   }
 
-  const url = urlJoin("https://graph.facebook.com", "v21.0", config.pixel_id, "events") + `?access_token=${config.access_token}`
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15000),
-  })
+  const res = await fetch(
+    "https://business-api.tiktok.com/open_api/v1.3/event/track/",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Token": config.access_token,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
+    }
+  )
 
   if (!res.ok) {
     const text = await res.text().catch(() => "")
-    throw new Error(`Meta CAPI error ${res.status}: ${text}`)
+    throw new Error(`TikTok EAPI error ${res.status}: ${text}`)
   }
 }

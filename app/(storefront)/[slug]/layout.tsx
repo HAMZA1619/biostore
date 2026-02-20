@@ -77,9 +77,13 @@ export default async function StoreLayout({
     )
   }
 
-  const metaCapi = await getStoreIntegration(store.id, "meta-capi")
+  const [metaCapi, tiktokEapi] = await Promise.all([
+    getStoreIntegration(store.id, "meta-capi"),
+    getStoreIntegration(store.id, "tiktok-eapi"),
+  ])
 
   const fbPixelId = (metaCapi?.config as Record<string, unknown>)?.pixel_id as string | undefined
+  const ttPixelCode = (tiktokEapi?.config as Record<string, unknown>)?.pixel_code as string | undefined
 
   const headersList = await headers()
   const isCustomDomain = headersList.get("x-custom-domain") === "true"
@@ -182,7 +186,7 @@ export default async function StoreLayout({
       {ds.customCss && (
         <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "") }} />
       )}
-      <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={fbPixelId} />
+      <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
       <StorefrontI18nProvider lang={storeLang}>
         {ds.announcementText && (
           <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
