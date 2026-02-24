@@ -600,25 +600,6 @@
     "cancel": "إلغاء",
     "confirmDelete": "إزالة"
   },
-  "marketing": {
-    "title": "التسويق",
-    "description": "أضف بكسلات التتبع لقياس أداء متجرك",
-    "ga": "Google Analytics",
-    "gaDescription": "أضف تتبع Google Analytics إلى متجرك لمعرفة جميع مقاييس متجرك بما في ذلك بيانات التجارة الإلكترونية.",
-    "gaLabel": "معرّف القياس",
-    "gaPlaceholder": "G-XXXXXXXXXX",
-    "fb": "Facebook (Meta) Pixel",
-    "fbDescription": "قم بدمج أداة تحليلات Facebook Pixel لقياس فعالية إعلاناتك من خلال فهم الإجراءات التي يتخذها عملاؤك على موقع متجرك.",
-    "fbLabel": "معرّف البكسل",
-    "fbPlaceholder": "0101010101010101",
-    "save": "حفظ",
-    "saving": "جاري الحفظ...",
-    "saved": "تم حفظ إعدادات التسويق",
-    "saveFailed": "فشل حفظ إعدادات التسويق",
-    "invalidInput": "يرجى إدخال معرفات تتبع صالحة",
-    "invalidGaId": "معرّف Google Analytics غير صالح",
-    "invalidFbId": "معرّف Facebook Pixel غير صالح"
-  },
   "landing": {
     "signIn": "تسجيل الدخول",
     "getStarted": "ابدأ الآن",
@@ -871,6 +852,11 @@
     "tiktokEapiTestCode": "رمز حدث الاختبار (اختياري)",
     "tiktokEapiSaved": "تم حفظ TikTok Events API",
     "tiktokEapiSave": "حفظ",
+    "googleAnalyticsSetupHint": "Google Analytics مفعّل ويتتبع متجرك.",
+    "googleAnalyticsMeasurementId": "معرّف القياس",
+    "googleAnalyticsInvalidId": "معرّف القياس غير صالح (يجب أن يبدأ بـ G-)",
+    "googleAnalyticsSaved": "تم حفظ Google Analytics",
+    "googleAnalyticsSave": "حفظ",
     "googleSheets": {
       "title": "Google Sheets",
       "description": "مزامنة الطلبات تلقائياً إلى جدول بيانات Google",

@@ -2,6 +2,7 @@ import { whatsappApp } from "@/lib/integrations/apps/whatsapp"
 import { metaCapiApp } from "@/lib/integrations/apps/meta-capi"
 import { tiktokEapiApp } from "@/lib/integrations/apps/tiktok-eapi"
 import { googleSheetsApp } from "@/lib/integrations/apps/google-sheets"
+import { googleAnalyticsApp } from "@/lib/integrations/apps/google-analytics"
 
 export type IntegrationEventType = "order.created" | "order.status_changed" | "checkout.abandoned"
 
@@ -21,6 +22,7 @@ export const APPS: Record<string, AppDefinition> = {
   "meta-capi": metaCapiApp,
   "tiktok-eapi": tiktokEapiApp,
   "google-sheets": googleSheetsApp,
+  "google-analytics": googleAnalyticsApp,
 }
 
 export const APP_LIST = Object.values(APPS)

@@ -32,6 +32,7 @@ import type { AppDefinition } from "@/lib/integrations/registry"
 import { WhatsAppSetup } from "@/components/dashboard/integrations/whatsapp-setup"
 import { MetaCapiSetup } from "@/components/dashboard/integrations/meta-capi-setup"
 import { TiktokEapiSetup } from "@/components/dashboard/integrations/tiktok-eapi-setup"
+import { GoogleAnalyticsSetup } from "@/components/dashboard/integrations/google-analytics-setup"
 
 const CATEGORY_ORDER = ["analytics", "notifications", "productivity", "shipping"] as const
 
@@ -147,6 +148,17 @@ export function IntegrationManager({ storeId, installedIntegrations }: Props) {
           <TiktokEapiSetup
             storeId={storeId}
             installed={installedMap.get("tiktok-eapi") || null}
+            onDone={() => {
+              setSetupAppId(null)
+              router.refresh()
+            }}
+          />
+        )
+      case "google-analytics":
+        return (
+          <GoogleAnalyticsSetup
+            storeId={storeId}
+            installed={installedMap.get("google-analytics") || null}
             onDone={() => {
               setSetupAppId(null)
               router.refresh()

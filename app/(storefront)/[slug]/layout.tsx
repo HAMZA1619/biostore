@@ -54,7 +54,7 @@ export default async function StoreLayout({
 }) {
   const { slug } = await params
 
-  const store = await getStoreBySlug(slug, "id, name, slug, language, currency, design_settings, ga_measurement_id")
+  const store = await getStoreBySlug(slug, "id, name, slug, language, currency, design_settings")
 
   if (!store) notFound()
 
@@ -77,13 +77,15 @@ export default async function StoreLayout({
     )
   }
 
-  const [metaCapi, tiktokEapi] = await Promise.all([
+  const [metaCapi, tiktokEapi, googleAnalytics] = await Promise.all([
     getStoreIntegration(store.id, "meta-capi"),
     getStoreIntegration(store.id, "tiktok-eapi"),
+    getStoreIntegration(store.id, "google-analytics"),
   ])
 
   const fbPixelId = (metaCapi?.config as Record<string, unknown>)?.pixel_id as string | undefined
   const ttPixelCode = (tiktokEapi?.config as Record<string, unknown>)?.pixel_code as string | undefined
+  const gaId = (googleAnalytics?.config as Record<string, unknown>)?.measurement_id as string | undefined
 
   const headersList = await headers()
   const isCustomDomain = headersList.get("x-custom-domain") === "true"
@@ -186,7 +188,7 @@ export default async function StoreLayout({
       {ds.customCss && (
         <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "") }} />
       )}
-      <TrackingScripts gaId={store.ga_measurement_id} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
+      <TrackingScripts gaId={gaId} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
       <StorefrontI18nProvider lang={storeLang}>
         {ds.announcementText && (
           <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>

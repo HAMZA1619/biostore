@@ -27,7 +27,6 @@ CREATE TABLE stores (
   is_published BOOLEAN NOT NULL DEFAULT false,
   custom_domain TEXT UNIQUE,
   domain_verified BOOLEAN NOT NULL DEFAULT false,
-  ga_measurement_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

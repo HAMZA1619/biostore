@@ -19,9 +19,8 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { slugify, cn, parseDesignSettings } from "@/lib/utils"
 import { CURRENCIES } from "@/lib/constants"
-import { Check, ChevronsUpDown, Store, Globe, BarChart3, Coins } from "lucide-react"
+import { Check, ChevronsUpDown, Store, Globe, Coins } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { MarketingSettings } from "@/components/forms/marketing-settings"
 import "@/lib/i18n"
 
 interface StoreFormProps {
@@ -37,7 +36,6 @@ interface StoreFormProps {
     currency: string
     payment_methods: ("cod")[]
     is_published: boolean
-    ga_measurement_id: string | null
   } | null
 }
 
@@ -64,7 +62,6 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
       language: (initialData?.language as "en" | "fr" | "ar") || "en",
       currency: initialData?.currency || "MAD",
       payment_methods: ["cod"] as const,
-      ga_measurement_id: initialData?.ga_measurement_id || "",
     },
   })
 
@@ -304,18 +301,6 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
         </>
       )}
 
-      {initialData && (
-        <>
-          <Separator />
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-medium">{t("marketing.title")}</h2>
-            </div>
-            <MarketingSettings register={register as unknown as (name: string) => ReturnType<typeof register>} />
-          </div>
-        </>
-      )}
     </form>
   )
 }

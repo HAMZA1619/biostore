@@ -600,25 +600,6 @@
     "cancel": "Annuler",
     "confirmDelete": "Supprimer"
   },
-  "marketing": {
-    "title": "Marketing",
-    "description": "Ajoutez des pixels de suivi pour mesurer la performance de votre boutique",
-    "ga": "Google Analytics",
-    "gaDescription": "Ajoutez le suivi Google Analytics à votre boutique pour être informé de toutes les métriques, y compris les données e-commerce.",
-    "gaLabel": "ID de mesure",
-    "gaPlaceholder": "G-XXXXXXXXXX",
-    "fb": "Facebook (Meta) Pixel",
-    "fbDescription": "Intégrez l'outil d'analyse Facebook Pixel pour mesurer l'efficacité de votre publicité en comprenant les actions de vos clients sur votre boutique.",
-    "fbLabel": "ID du Pixel",
-    "fbPlaceholder": "0101010101010101",
-    "save": "Enregistrer",
-    "saving": "Enregistrement...",
-    "saved": "Paramètres marketing enregistrés",
-    "saveFailed": "Échec de l'enregistrement des paramètres marketing",
-    "invalidInput": "Veuillez entrer des identifiants de suivi valides",
-    "invalidGaId": "Identifiant Google Analytics invalide",
-    "invalidFbId": "Identifiant Facebook Pixel invalide"
-  },
   "landing": {
     "signIn": "Se connecter",
     "getStarted": "Commencer",
@@ -871,6 +852,11 @@
     "tiktokEapiTestCode": "Code d'événement test (optionnel)",
     "tiktokEapiSaved": "TikTok Events API enregistré",
     "tiktokEapiSave": "Enregistrer",
+    "googleAnalyticsSetupHint": "Google Analytics est actif et suit votre boutique.",
+    "googleAnalyticsMeasurementId": "ID de mesure",
+    "googleAnalyticsInvalidId": "ID de mesure invalide (doit commencer par G-)",
+    "googleAnalyticsSaved": "Google Analytics enregistré",
+    "googleAnalyticsSave": "Enregistrer",
     "googleSheets": {
       "title": "Google Sheets",
       "description": "Synchronisez automatiquement les commandes vers une feuille de calcul Google",
