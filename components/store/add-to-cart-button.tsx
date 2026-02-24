@@ -4,6 +4,7 @@ import { useCartStore } from "@/lib/store/cart-store"
 import { usePixel } from "@/lib/hooks/use-pixel"
 import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
+import { useMarket } from "@/lib/hooks/use-market"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
@@ -27,6 +28,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   const track = usePixel()
   const ttTrack = useTiktokPixel()
   const currency = useStoreCurrency()
+  const market = useMarket()
   const buttonStyle = useButtonStyle()
 
   function handleAdd() {
@@ -40,7 +42,8 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
         price: product.price,
         imageUrl: product.imageUrl,
       },
-      storeSlug
+      storeSlug,
+      market?.slug
     )
     track("AddToCart", {
       content_name: product.name,

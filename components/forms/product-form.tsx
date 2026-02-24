@@ -768,6 +768,7 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
             </div>
           </div>
         )}
+
       </div>
 
     </form>

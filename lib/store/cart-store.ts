@@ -22,10 +22,6 @@ export interface AppliedDiscount {
   discountAmount: number
 }
 
-function cartItemKey(productId: string, variantId: string | null | undefined): string {
-  return variantId ? `${productId}:${variantId}` : productId
-}
-
 function itemMatches(item: CartItem, productId: string, variantId: string | null | undefined): boolean {
   return item.productId === productId && (item.variantId || null) === (variantId || null)
 }
@@ -33,8 +29,9 @@ function itemMatches(item: CartItem, productId: string, variantId: string | null
 interface CartStore {
   items: CartItem[]
   storeSlug: string | null
+  marketSlug: string | null
   appliedDiscount: AppliedDiscount | null
-  addItem: (item: Omit<CartItem, "quantity">, storeSlug: string) => void
+  addItem: (item: Omit<CartItem, "quantity">, storeSlug: string, marketSlug?: string | null) => void
   removeItem: (productId: string, variantId?: string | null) => void
   updateQuantity: (productId: string, variantId: string | null | undefined, quantity: number) => void
   clearCart: () => void
@@ -49,14 +46,15 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       storeSlug: null,
+      marketSlug: null,
       appliedDiscount: null,
 
-      addItem: (item, storeSlug) => {
-        const { items, storeSlug: currentSlug } = get()
+      addItem: (item, storeSlug, marketSlug = null) => {
+        const { items, storeSlug: currentSlug, marketSlug: currentMarket } = get()
 
-        // Clear cart if switching stores
-        if (currentSlug && currentSlug !== storeSlug) {
-          set({ items: [{ ...item, quantity: 1 }], storeSlug, appliedDiscount: null })
+        // Clear cart if switching stores or markets
+        if ((currentSlug && currentSlug !== storeSlug) || (currentMarket && marketSlug && currentMarket !== marketSlug)) {
+          set({ items: [{ ...item, quantity: 1 }], storeSlug, marketSlug, appliedDiscount: null })
           return
         }
 
@@ -69,11 +67,13 @@ export const useCartStore = create<CartStore>()(
                 : i
             ),
             storeSlug,
+            marketSlug: marketSlug || currentMarket,
           })
         } else {
           set({
             items: [...items, { ...item, quantity: 1 }],
             storeSlug,
+            marketSlug: marketSlug || currentMarket,
           })
         }
       },
@@ -94,7 +94,7 @@ export const useCartStore = create<CartStore>()(
         })
       },
 
-      clearCart: () => set({ items: [], storeSlug: null, appliedDiscount: null }),
+      clearCart: () => set({ items: [], storeSlug: null, marketSlug: null, appliedDiscount: null }),
 
       setDiscount: (discount) => set({ appliedDiscount: discount }),
 

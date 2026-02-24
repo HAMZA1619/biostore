@@ -126,6 +126,8 @@ CREATE TABLE orders (
   total DECIMAL(10,2) NOT NULL,
   note TEXT,
   ip_address TEXT,
+  market_id UUID REFERENCES markets(id) ON DELETE SET NULL,
+  currency TEXT NOT NULL DEFAULT 'MAD',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -323,6 +325,105 @@ CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
 CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
 
+-- Markets (multi-market support per store)
+CREATE TABLE markets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  countries TEXT[] NOT NULL DEFAULT '{}',
+  currency TEXT NOT NULL,
+  pricing_mode TEXT NOT NULL DEFAULT 'auto' CHECK (pricing_mode IN ('fixed', 'auto')),
+  price_adjustment DECIMAL(5,2) NOT NULL DEFAULT 0,
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(store_id, slug)
+);
+CREATE INDEX idx_markets_store ON markets(store_id);
+CREATE INDEX idx_markets_active ON markets(store_id, is_active) WHERE is_active = true;
+
+-- Market Prices (per-market fixed pricing overrides)
+CREATE TABLE market_prices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  market_id UUID NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  variant_id UUID REFERENCES product_variants(id) ON DELETE CASCADE,
+  price DECIMAL(10,2) NOT NULL,
+  compare_at_price DECIMAL(10,2)
+);
+CREATE UNIQUE INDEX idx_market_prices_product_unique
+  ON market_prices(market_id, product_id) WHERE variant_id IS NULL;
+CREATE UNIQUE INDEX idx_market_prices_variant_unique
+  ON market_prices(market_id, product_id, variant_id) WHERE variant_id IS NOT NULL;
+CREATE INDEX idx_market_prices_market ON market_prices(market_id);
+CREATE INDEX idx_market_prices_product ON market_prices(product_id);
+
+-- Markets
+ALTER TABLE markets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view active markets of published stores" ON markets
+  FOR SELECT USING (
+    is_active = true AND EXISTS (
+      SELECT 1 FROM stores WHERE stores.id = markets.store_id AND stores.is_published = true
+    )
+  );
+CREATE POLICY "Owners can view own markets" ON markets
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = markets.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can insert markets" ON markets
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = markets.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can update markets" ON markets
+  FOR UPDATE USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = markets.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can delete markets" ON markets
+  FOR DELETE USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = markets.store_id AND stores.owner_id = (select auth.uid())
+  ));
+
+-- Market Prices
+ALTER TABLE market_prices ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view market prices of published stores" ON market_prices
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_prices.market_id
+    AND markets.is_active = true
+    AND stores.is_published = true
+  ));
+CREATE POLICY "Owners can view own market prices" ON market_prices
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_prices.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can insert market prices" ON market_prices
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_prices.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can update market prices" ON market_prices
+  FOR UPDATE USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_prices.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can delete market prices" ON market_prices
+  FOR DELETE USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_prices.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+
 -- Store Integrations (installed apps per store)
 CREATE TABLE store_integrations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -394,6 +495,9 @@ BEGIN
         'discount_amount', NEW.discount_amount,
         'note', NEW.note,
         'ip_address', NEW.ip_address,
+        'market_id', NEW.market_id,
+        'currency', NEW.currency,
+        'delivery_fee', NEW.delivery_fee,
         'created_at', NEW.created_at
       )
     );
@@ -437,6 +541,9 @@ BEGIN
           'discount_id', NEW.discount_id,
           'discount_amount', NEW.discount_amount,
           'ip_address', NEW.ip_address,
+          'market_id', NEW.market_id,
+          'currency', NEW.currency,
+          'delivery_fee', NEW.delivery_fee,
           'updated_at', now()
         )
       );

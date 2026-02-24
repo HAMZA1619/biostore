@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       captcha_token,
       items,
       discount_code,
+      market_id,
     } = body
 
     if (!slug || !customer_name || !customer_phone || !customer_address || !items?.length) {
@@ -82,6 +83,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
+    // Resolve market for currency
+    let orderCurrency = store.currency
+    let orderMarketId: string | null = null
+    let marketInfo: { pricing_mode: string; price_adjustment: number } | null = null
+    let marketPricesMap = new Map<string, number>()
+
+    if (market_id) {
+      const { data: market } = await supabase
+        .from("markets")
+        .select("id, currency, pricing_mode, price_adjustment, store_id")
+        .eq("id", market_id)
+        .eq("is_active", true)
+        .single()
+
+      if (market && market.store_id === store.id) {
+        orderCurrency = market.currency
+        orderMarketId = market.id
+        marketInfo = { pricing_mode: market.pricing_mode, price_adjustment: Number(market.price_adjustment) }
+      }
+    }
+
     // Fetch products and verify prices
     const productIds = items.map((i: { product_id: string }) => i.product_id)
     const { data: products, error: productsError } = await supabase
@@ -96,6 +118,33 @@ export async function POST(request: Request) {
 
     if (!products || products.length !== new Set(productIds).size) {
       return NextResponse.json({ error: "Some products are unavailable" }, { status: 400 })
+    }
+
+    // Verify product availability and stock for non-variant items
+    for (const item of items) {
+      if (!item.variant_id) {
+        const product = products.find((p) => p.id === item.product_id)
+        if (!product || !product.is_available || product.status !== "active") {
+          return NextResponse.json({ error: "Some products are unavailable" }, { status: 400 })
+        }
+        if (product.stock !== null && product.stock < item.quantity) {
+          return NextResponse.json({ error: "Not enough stock for this product" }, { status: 400 })
+        }
+      }
+    }
+
+    // Fetch market prices for fixed-pricing markets
+    if (orderMarketId && marketInfo?.pricing_mode === "fixed") {
+      const { data: mPrices } = await supabase
+        .from("market_prices")
+        .select("product_id, variant_id, price")
+        .eq("market_id", orderMarketId)
+        .in("product_id", productIds)
+
+      for (const mp of mPrices || []) {
+        const key = mp.variant_id ? `${mp.product_id}:${mp.variant_id}` : mp.product_id
+        marketPricesMap.set(key, Number(mp.price))
+      }
     }
 
     // Fetch variants if any items have variant_id
@@ -150,12 +199,24 @@ export async function POST(request: Request) {
       for (const img of imgs || []) imageMap.set(img.id, getImageUrl(img.storage_path)!)
     }
 
-    // Calculate totals
+    // Calculate totals with market pricing
     let subtotal = 0
     const orderItems = items.map((item: { product_id: string; variant_id?: string | null; quantity: number }) => {
       const product = products.find((p) => p.id === item.product_id)!
       const variant = item.variant_id ? variantsMap[item.variant_id] : null
-      const price = variant ? variant.price : product.price
+      let price = variant ? variant.price : product.price
+
+      // Apply market pricing
+      if (marketInfo) {
+        const marketKey = item.variant_id ? `${item.product_id}:${item.variant_id}` : item.product_id
+        if (marketInfo.pricing_mode === "fixed" && marketPricesMap.has(marketKey)) {
+          price = marketPricesMap.get(marketKey)!
+        } else if (marketInfo.pricing_mode === "auto") {
+          const multiplier = 1 + marketInfo.price_adjustment / 100
+          price = Math.round(price * multiplier * 100) / 100
+        }
+      }
+
       const firstImageId = product.image_urls?.[0]
 
       subtotal += price * item.quantity
@@ -244,6 +305,8 @@ export async function POST(request: Request) {
         discount_id: discountId,
         discount_amount: discountAmount,
         total,
+        market_id: orderMarketId,
+        currency: orderCurrency,
       })
       .select("id, order_number")
       .single()
@@ -289,7 +352,7 @@ export async function POST(request: Request) {
       order_id: order.id,
       order_number: order.order_number,
       store_name: store.name,
-      currency: store.currency,
+      currency: orderCurrency,
       items: orderItems,
       total,
     })

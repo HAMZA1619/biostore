@@ -11,6 +11,7 @@ import {
   FolderOpen,
   ShoppingCart,
   Ticket,
+  MapPin,
   Puzzle,
   Settings,
   Menu,
@@ -48,6 +49,7 @@ const navItems: NavItem[] = [
     ],
   },
   { href: "/dashboard/discounts", labelKey: "nav.discounts", icon: Ticket },
+  { href: "/dashboard/markets", labelKey: "nav.markets", icon: MapPin },
   { href: "/dashboard/integrations", labelKey: "nav.integrations", icon: Puzzle },
   { href: "/dashboard/settings", labelKey: "nav.settings", icon: Settings },
 ]

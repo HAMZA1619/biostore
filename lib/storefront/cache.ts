@@ -193,6 +193,44 @@ export function resolveImageUrls(imageIds: string[]) {
 }
 
 // ---------------------------------------------------------------------------
+// Markets
+// ---------------------------------------------------------------------------
+
+export function getStoreMarkets(storeId: string) {
+  return unstable_cache(
+    async () => {
+      const supabase = createStaticClient()
+      const { data } = await supabase
+        .from("markets")
+        .select("id, name, slug, countries, currency, pricing_mode, price_adjustment, is_default, is_active")
+        .eq("store_id", storeId)
+        .eq("is_active", true)
+        .order("is_default", { ascending: false })
+      return data
+    },
+    [`markets-${storeId}`],
+    { tags: [`markets:${storeId}`], revalidate: REVALIDATE },
+  )()
+}
+
+export function getMarketPrices(marketId: string, productIds: string[]) {
+  const sortedIds = [...productIds].sort()
+  return unstable_cache(
+    async () => {
+      const supabase = createStaticClient()
+      const { data } = await supabase
+        .from("market_prices")
+        .select("product_id, variant_id, price, compare_at_price")
+        .eq("market_id", marketId)
+        .in("product_id", sortedIds)
+      return data
+    },
+    [`market-prices-${marketId}-${sortedIds.join(",")}`],
+    { tags: [`market-prices:${marketId}`], revalidate: REVALIDATE },
+  )()
+}
+
+// ---------------------------------------------------------------------------
 // Store integration
 // ---------------------------------------------------------------------------
 

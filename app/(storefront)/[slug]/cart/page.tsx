@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { useBaseHref } from "@/lib/hooks/use-base-href"
+import { useMarket } from "@/lib/hooks/use-market"
 import { usePixel } from "@/lib/hooks/use-pixel"
 import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
@@ -38,6 +39,7 @@ export default function CartPage() {
   const appliedDiscount = useCartStore((s) => s.appliedDiscount)
   const setDiscount = useCartStore((s) => s.setDiscount)
   const getDiscountedTotal = useCartStore((s) => s.getDiscountedTotal)
+  const market = useMarket()
   const track = usePixel()
   const ttTrack = useTiktokPixel()
   const buttonStyle = useButtonStyle()
@@ -135,9 +137,10 @@ export default function CartPage() {
         cart_items: cartItems,
         subtotal: getTotal(),
         total: getDiscountedTotal(),
+        market_id: market?.id || undefined,
       }),
     }).catch(() => {})
-  }, [slug, form, items, getTotal, getDiscountedTotal])
+  }, [slug, form, items, getTotal, getDiscountedTotal, market])
 
   const [showFields, setShowFields] = useState({
     email: true,
@@ -314,6 +317,7 @@ export default function CartPage() {
           captcha_token: captchaToken,
           payment_method: "cod",
           discount_code: appliedDiscount?.code || undefined,
+          market_id: market?.id || undefined,
           items: items.map((i) => ({
             product_id: i.productId,
             variant_id: i.variantId || null,

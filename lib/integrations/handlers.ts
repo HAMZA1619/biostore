@@ -25,6 +25,8 @@ export async function dispatchSingle(
   integration: StoreIntegration,
   store: StoreInfo,
 ): Promise<void> {
+  const currency = (event.payload.currency as string) || store.currency
+
   switch (integration.integration_id) {
     case "whatsapp":
       await handleWhatsApp(
@@ -32,7 +34,7 @@ export async function dispatchSingle(
         event.payload as unknown as Parameters<typeof handleWhatsApp>[1],
         integration.config as unknown as Parameters<typeof handleWhatsApp>[2],
         store.name,
-        store.currency,
+        currency,
         store.language,
       )
       break
@@ -42,7 +44,7 @@ export async function dispatchSingle(
         event.payload as unknown as Parameters<typeof handleMetaCAPI>[1],
         integration.config as unknown as Parameters<typeof handleMetaCAPI>[2],
         store.name,
-        store.currency,
+        currency,
       )
       break
     case "tiktok-eapi":
@@ -51,7 +53,7 @@ export async function dispatchSingle(
         event.payload as unknown as Parameters<typeof handleTiktokEAPI>[1],
         integration.config as unknown as Parameters<typeof handleTiktokEAPI>[2],
         store.name,
-        store.currency,
+        currency,
       )
       break
     case "google-sheets":
@@ -61,7 +63,7 @@ export async function dispatchSingle(
         integration.config as unknown as Parameters<typeof handleGoogleSheets>[2],
         store.id,
         store.name,
-        store.currency,
+        currency,
       )
       break
     default:

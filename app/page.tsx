@@ -22,6 +22,7 @@ import {
   Languages,
   LayoutDashboard,
   Layers,
+  MapPin,
   Link as LinkIcon,
   Package,
   Paintbrush,
@@ -77,6 +78,7 @@ const features = [
   { icon: Puzzle, titleKey: "landing.featureIntegrations", descKey: "landing.featureIntegrationsDesc" },
   { icon: Globe, titleKey: "landing.featureDomain", descKey: "landing.featureDomainDesc" },
   { icon: Languages, titleKey: "landing.featureLanguage", descKey: "landing.featureLanguageDesc" },
+  { icon: MapPin, titleKey: "landing.featureMarkets", descKey: "landing.featureMarketsDesc" },
 ]
 
 const steps = [
@@ -92,6 +94,7 @@ const pricingFeatures = [
   "landing.pricingFeature4",
   "landing.pricingFeature5",
   "landing.pricingFeature6",
+  "landing.pricingFeature7",
 ]
 
 const faqItems = [
@@ -100,6 +103,7 @@ const faqItems = [
   { qKey: "landing.faq3Question", aKey: "landing.faq3Answer" },
   { qKey: "landing.faq4Question", aKey: "landing.faq4Answer" },
   { qKey: "landing.faq5Question", aKey: "landing.faq5Answer" },
+  { qKey: "landing.faq6Question", aKey: "landing.faq6Answer" },
 ]
 
 export default function LandingPage() {

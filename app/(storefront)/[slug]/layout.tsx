@@ -1,13 +1,15 @@
 import { notFound } from "next/navigation"
-import { headers } from "next/headers"
+import { headers, cookies } from "next/headers"
 import { StoreHeader } from "@/components/layout/store-header"
 import { StoreFooter } from "@/components/layout/store-footer"
 import { FloatingCartButton } from "@/components/store/floating-cart-button"
 import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { TrackingScripts } from "@/components/store/tracking-scripts"
+import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
 import { cn, parseDesignSettings, getImageUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess } from "@/lib/storefront/cache"
+import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess, getStoreMarkets } from "@/lib/storefront/cache"
+import { detectMarketByCountry } from "@/lib/market/detect-market"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -87,7 +89,36 @@ export default async function StoreLayout({
   const ttPixelCode = (tiktokEapi?.config as Record<string, unknown>)?.pixel_code as string | undefined
   const gaId = (googleAnalytics?.config as Record<string, unknown>)?.measurement_id as string | undefined
 
+  const markets = await getStoreMarkets(store.id)
+  const hasMarkets = markets && markets.length > 0
+
   const headersList = await headers()
+  const cookieStore = await cookies()
+  const marketCookie = cookieStore.get("biostore-market")?.value
+  const geoCountry = headersList.get("cf-ipcountry") || headersList.get("x-vercel-ip-country") || null
+
+  let activeMarket: (typeof markets extends (infer T)[] | null ? T : never) | null = null
+  if (hasMarkets) {
+    if (marketCookie) {
+      activeMarket = markets.find((m) => m.slug === marketCookie) || null
+    }
+    if (!activeMarket) {
+      activeMarket = markets.find((m) => m.is_default) || null
+    }
+  }
+
+  let suggestedMarket: typeof activeMarket = null
+  if (hasMarkets && geoCountry && !marketCookie) {
+    const detected = detectMarketByCountry(markets, geoCountry)
+    if (detected && activeMarket && detected.slug !== activeMarket.slug) {
+      suggestedMarket = markets.find((m) => m.slug === detected.slug) || null
+    } else if (detected && !activeMarket) {
+      suggestedMarket = markets.find((m) => m.slug === detected.slug) || null
+    }
+  }
+
+  const activeCurrency = activeMarket?.currency || store.currency
+
   const isCustomDomain = headersList.get("x-custom-domain") === "true"
   const baseHref = isCustomDomain ? "" : `/${slug}`
 
@@ -115,7 +146,9 @@ export default async function StoreLayout({
       dir={isRtl ? "rtl" : "ltr"}
       lang={storeLang}
       data-base-href={baseHref}
-      data-currency={store.currency || "MAD"}
+      data-currency={activeCurrency || "MAD"}
+      data-market-id={activeMarket?.id || ""}
+      data-market-slug={activeMarket?.slug || ""}
       data-theme={ds.theme}
       data-button-style={ds.buttonStyle}
       data-show-email={ds.checkoutShowEmail}
@@ -199,7 +232,21 @@ export default async function StoreLayout({
             )}
           </div>
         )}
-        <StoreHeader slug={store.slug} name={store.name} logoPath={ds.logoPath} bannerPath={ds.bannerPath} stickyHeader={ds.stickyHeader} />
+        {suggestedMarket && (
+          <MarketSuggestionBanner
+            suggestedMarket={{ slug: suggestedMarket.slug, name: suggestedMarket.name, currency: suggestedMarket.currency }}
+            currentMarketSlug={activeMarket?.slug}
+          />
+        )}
+        <StoreHeader
+          slug={store.slug}
+          name={store.name}
+          logoPath={ds.logoPath}
+          bannerPath={ds.bannerPath}
+          stickyHeader={ds.stickyHeader}
+          markets={hasMarkets ? markets.map((m) => ({ slug: m.slug, name: m.name, currency: m.currency })) : undefined}
+          activeMarketSlug={activeMarket?.slug}
+        />
         <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
         <StoreFooter storeName={store.name} socialInstagram={ds.socialInstagram} socialTiktok={ds.socialTiktok} socialFacebook={ds.socialFacebook} socialWhatsapp={ds.socialWhatsapp} />
         {ds.showFloatingCart && <FloatingCartButton />}

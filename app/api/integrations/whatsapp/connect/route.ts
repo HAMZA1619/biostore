@@ -72,7 +72,6 @@ export async function POST(request: Request) {
     })
 
     const rawBody = await createRes.text()
-    console.log("Evolution create response:", rawBody.substring(0, 500))
 
     let createData: Record<string, unknown> = {}
     try {
@@ -101,7 +100,6 @@ export async function POST(request: Request) {
 
       if (connectRes.ok) {
         const connectRaw = await connectRes.text()
-        console.log("Evolution connect response:", connectRaw.substring(0, 500))
         try {
           const connectData = JSON.parse(connectRaw)
           qrBase64 = extractQrBase64(connectData)

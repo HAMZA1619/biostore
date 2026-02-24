@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { cookies } from "next/headers"
 import { formatPriceSymbol, getImageUrl } from "@/lib/utils"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { ProductImageGallery } from "@/components/store/product-image-gallery"
@@ -6,7 +7,9 @@ import { VariantSelector } from "@/components/store/variant-selector"
 import { PixelViewContent } from "@/components/store/pixel-view-content"
 import { TiktokPixelViewContent } from "@/components/store/tiktok-pixel-view-content"
 import { getT } from "@/lib/i18n/storefront"
-import { getStoreBySlug, getProduct, getProductVariants, resolveImageUrls } from "@/lib/storefront/cache"
+import { getStoreBySlug, getProduct, getProductVariants, getStoreMarkets, getMarketPrices, resolveImageUrls } from "@/lib/storefront/cache"
+import { resolvePrice } from "@/lib/market/resolve-price"
+import type { MarketInfo } from "@/lib/market/resolve-price"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -66,6 +69,45 @@ export default async function ProductPage({
 
   if (!product) notFound()
 
+  // Market price resolution
+  const cookieStore = await cookies()
+  const marketSlug = cookieStore.get("biostore-market")?.value
+  const markets = await getStoreMarkets(store.id)
+  let activeMarket: MarketInfo | null = null
+  if (markets && markets.length > 0) {
+    const found = marketSlug
+      ? markets.find((m) => m.slug === marketSlug)
+      : markets.find((m) => m.is_default)
+    if (found) {
+      activeMarket = {
+        id: found.id,
+        currency: found.currency,
+        pricing_mode: found.pricing_mode as "fixed" | "auto",
+        price_adjustment: Number(found.price_adjustment),
+      }
+    }
+  }
+
+  let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()
+  if (activeMarket?.pricing_mode === "fixed") {
+    const mp = await getMarketPrices(activeMarket.id, [productId])
+    for (const row of mp || []) {
+      const key = row.variant_id ? `${row.product_id}:${row.variant_id}` : row.product_id
+      marketPricesMap.set(key, { price: Number(row.price), compare_at_price: row.compare_at_price ? Number(row.compare_at_price) : null })
+    }
+  }
+
+  const displayCurrency = activeMarket?.currency || store.currency
+
+  // Resolve base product price
+  const resolvedProduct = resolvePrice(
+    Number(product.price),
+    product.compare_at_price ? Number(product.compare_at_price) : null,
+    store.currency,
+    activeMarket,
+    marketPricesMap.get(productId) || null,
+  )
+
   // Resolve image IDs to URLs
   const imageIds: string[] = product.image_urls || []
   let resolvedImageUrls: string[] = []
@@ -80,15 +122,24 @@ export default async function ProductPage({
   if (hasOptions) {
     const data = await getProductVariants(productId)
 
-    variants = (data || []).map((v) => ({
-      id: v.id,
-      options: v.options as Record<string, string>,
-      price: v.price,
-      compare_at_price: v.compare_at_price,
-      sku: v.sku,
-      stock: v.stock,
-      is_available: v.is_available,
-    }))
+    variants = (data || []).map((v) => {
+      const variantResolved = resolvePrice(
+        Number(v.price),
+        v.compare_at_price ? Number(v.compare_at_price) : null,
+        store.currency,
+        activeMarket,
+        marketPricesMap.get(`${productId}:${v.id}`) || null,
+      )
+      return {
+        id: v.id,
+        options: v.options as Record<string, string>,
+        price: variantResolved.price,
+        compare_at_price: variantResolved.compare_at_price,
+        sku: v.sku,
+        stock: v.stock,
+        is_available: v.is_available,
+      }
+    })
   }
 
   const productInStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
@@ -96,8 +147,8 @@ export default async function ProductPage({
 
   return (
     <div className="space-y-6">
-      <PixelViewContent productName={product.name} productId={product.id} price={product.price} currency={store.currency} />
-      <TiktokPixelViewContent productName={product.name} productId={product.id} price={product.price} currency={store.currency} />
+      <PixelViewContent productName={product.name} productId={product.id} price={resolvedProduct.price} currency={displayCurrency} />
+      <TiktokPixelViewContent productName={product.name} productId={product.id} price={resolvedProduct.price} currency={displayCurrency} />
       <ProductImageGallery images={resolvedImageUrls} productName={product.name} />
 
       <div className="space-y-3">
@@ -109,11 +160,11 @@ export default async function ProductPage({
         {!hasOptions && (
           <div className="flex items-center gap-3">
             <span className="text-2xl font-bold" style={{ color: "var(--store-primary)" }}>
-              {formatPriceSymbol(product.price, store.currency)}
+              {formatPriceSymbol(resolvedProduct.price, displayCurrency)}
             </span>
-            {product.compare_at_price && (
+            {resolvedProduct.compare_at_price && (
               <span className="text-lg text-muted-foreground line-through">
-                {formatPriceSymbol(product.compare_at_price, store.currency)}
+                {formatPriceSymbol(resolvedProduct.compare_at_price, displayCurrency)}
               </span>
             )}
           </div>
@@ -128,7 +179,7 @@ export default async function ProductPage({
             product={{
               id: product.id,
               name: product.name,
-              price: product.price,
+              price: resolvedProduct.price,
               imageUrl: resolvedImageUrls[0] || null,
             }}
             options={product.options as { name: string; values: string[] }[]}
@@ -140,7 +191,7 @@ export default async function ProductPage({
             product={{
               id: product.id,
               name: product.name,
-              price: product.price,
+              price: resolvedProduct.price,
               imageUrl: resolvedImageUrls[0] || null,
               isAvailable: productInStock,
             }}

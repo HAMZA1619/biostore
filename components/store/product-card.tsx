@@ -3,6 +3,7 @@
 import { cn, formatPriceSymbol } from "@/lib/utils"
 import { useCartStore } from "@/lib/store/cart-store"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
+import { useMarket } from "@/lib/hooks/use-market"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ImageIcon, ShoppingCart } from "lucide-react"
@@ -31,6 +32,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
   const currency = useStoreCurrency()
+  const market = useMarket()
   const buttonStyle = useButtonStyle()
   const hasVariants = product.options && product.options.length > 0
   const inStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
@@ -58,7 +60,8 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
         price: product.price,
         imageUrl: product.image_urls[0] || null,
       },
-      storeSlug
+      storeSlug,
+      market?.slug
     )
   }
 
