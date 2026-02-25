@@ -32,6 +32,8 @@ interface DesignControlsProps {
   storeId: string
   previewTab: PreviewTab
   onPreviewTabChange: (tab: PreviewTab) => void
+  description: string
+  onDescriptionChange: (value: string) => void
 }
 
 const themes = [
@@ -51,7 +53,7 @@ const defaultSectionForTab: Record<PreviewTab, SectionId> = {
   thankyou: "thankyou",
 }
 
-export function DesignControls({ state, onChange, storeId, previewTab, onPreviewTabChange }: DesignControlsProps) {
+export function DesignControls({ state, onChange, storeId, previewTab, onPreviewTabChange, description, onDescriptionChange }: DesignControlsProps) {
   const { t } = useTranslation()
   const [activeSection, setActiveSection] = useState<SectionId>("branding")
 
@@ -61,7 +63,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
     if (currentSection && currentSection.previewTab !== previewTab) {
       setActiveSection(defaultSectionForTab[previewTab])
     }
-  }, [previewTab])
+  }, [previewTab, activeSection])
 
   function handleSectionChange(id: SectionId) {
     setActiveSection(id)
@@ -170,6 +172,19 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                     <SelectItem value="ar">{t("language.ar")}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-sm font-medium">{t("design.storeDescription")}</h3>
+                <p className="text-[11px] text-muted-foreground">{t("design.storeDescriptionHint")}</p>
+                <Textarea
+                  value={description}
+                  onChange={(e) => onDescriptionChange(e.target.value)}
+                  placeholder={t("design.storeDescriptionPlaceholder")}
+                  rows={3}
+                  className="text-sm"
+                  maxLength={500}
+                />
               </div>
             </>
           )}
@@ -381,7 +396,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                         className="h-8 w-8 border-2 border-muted-foreground/40 bg-muted"
                         style={{ borderRadius: opt.css }}
                       />
-                      <span className="text-[10px] font-medium">{opt.label}</span>
+                      <span className="text-[10px] font-medium">{t(`design.radius${opt.label.replace(/ /g, "")}`)}</span>
                     </button>
                   ))}
                 </div>
@@ -407,7 +422,7 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                         className="h-8 w-full rounded bg-background"
                         style={{ boxShadow: opt.css }}
                       />
-                      <span className="text-[10px] font-medium">{opt.label}</span>
+                      <span className="text-[10px] font-medium">{t(`design.shadow${opt.label}`)}</span>
                     </button>
                   ))}
                 </div>

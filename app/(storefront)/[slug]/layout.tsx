@@ -142,7 +142,7 @@ export default async function StoreLayout({
 
   return (
     <div
-      className="min-h-screen"
+      className="storefront min-h-screen"
       dir={isRtl ? "rtl" : "ltr"}
       lang={storeLang}
       data-base-href={baseHref}
@@ -197,29 +197,14 @@ export default async function StoreLayout({
       }
     >
       <style dangerouslySetInnerHTML={{ __html: `
-        :root {
-          --background: ${bg};
-          --foreground: ${text};
-          --card: ${bg};
-          --card-foreground: ${text};
-          --popover: ${bg};
-          --popover-foreground: ${text};
-          --primary: ${primary};
-          --primary-foreground: ${btnText};
-          --secondary: color-mix(in srgb, ${bg} 90%, ${text});
-          --secondary-foreground: ${text};
-          --muted: color-mix(in srgb, ${bg} 90%, ${text});
-          --muted-foreground: color-mix(in srgb, ${text} 50%, ${bg});
-          --accent: color-mix(in srgb, ${bg} 85%, ${primary});
-          --accent-foreground: ${text};
-          --border: color-mix(in srgb, ${text} 15%, ${bg});
-          --input: color-mix(in srgb, ${text} 15%, ${bg});
-          --ring: ${primary};
-        }
+        .product-grid { container-type: inline-size; }
+        .store-card { font-size: clamp(0.8125rem, 4.25cqw, 1rem); }
+        .store-card .text-xs { font-size: clamp(0.625rem, 3cqw, 0.75rem); }
+        .store-card .text-sm { font-size: clamp(0.72rem, 3.5cqw, 0.875rem); }
       `}} />
       <link rel="stylesheet" href={fontHref} />
       {ds.customCss && (
-        <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "") }} />
+        <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "").replace(/javascript:/gi, "").replace(/expression\s*\(/gi, "") }} />
       )}
       <TrackingScripts gaId={gaId} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
       <StorefrontI18nProvider lang={storeLang}>

@@ -7,7 +7,7 @@ import { VariantSelector } from "@/components/store/variant-selector"
 import { PixelViewContent } from "@/components/store/pixel-view-content"
 import { TiktokPixelViewContent } from "@/components/store/tiktok-pixel-view-content"
 import { getT } from "@/lib/i18n/storefront"
-import { getStoreBySlug, getProduct, getProductVariants, getStoreMarkets, getMarketPrices, resolveImageUrls } from "@/lib/storefront/cache"
+import { getStoreBySlug, getProduct, getProductVariants, getStoreMarkets, getMarketPrices, getMarketExclusions, resolveImageUrls } from "@/lib/storefront/cache"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
 import type { Metadata } from "next"
@@ -34,7 +34,7 @@ export async function generateMetadata({
   const title = `${product.name} — ${store.name}`
   const description = product.description
     ? product.description.slice(0, 160)
-    : `${product.name} — ${formatPriceSymbol(product.price, store.currency)}`
+    : `${product.name} — ${formatPriceSymbol(Number(product.price), store.currency)}`
 
   return {
     title,
@@ -86,6 +86,12 @@ export default async function ProductPage({
         price_adjustment: Number(found.price_adjustment),
       }
     }
+  }
+
+  // Check if product is excluded from this market
+  if (activeMarket) {
+    const exclusions = await getMarketExclusions(activeMarket.id)
+    if (exclusions.includes(productId)) notFound()
   }
 
   let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()

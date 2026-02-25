@@ -91,7 +91,9 @@ export function getStoreProducts(
   pageSize: number,
   collectionId?: string | null,
   search?: string | null,
+  excludedProductIds?: string[] | null,
 ) {
+  const exclusionKey = excludedProductIds?.length ? excludedProductIds.sort().join(",") : ""
   return unstable_cache(
     async () => {
       const supabase = createStaticClient()
@@ -114,10 +116,14 @@ export function getStoreProducts(
         query = query.ilike("name", `%${search}%`)
       }
 
+      if (excludedProductIds && excludedProductIds.length > 0) {
+        query = query.not("id", "in", `(${excludedProductIds.join(",")})`)
+      }
+
       const { data } = await query
       return data
     },
-    [`products-${storeId}-${page}-${pageSize}-${collectionId ?? ""}-${search ?? ""}`],
+    [`products-${storeId}-${page}-${pageSize}-${collectionId ?? ""}-${search ?? ""}-${exclusionKey}`],
     { tags: [`products:${storeId}`], revalidate: REVALIDATE },
   )()
 }
@@ -227,6 +233,21 @@ export function getMarketPrices(marketId: string, productIds: string[]) {
     },
     [`market-prices-${marketId}-${sortedIds.join(",")}`],
     { tags: [`market-prices:${marketId}`], revalidate: REVALIDATE },
+  )()
+}
+
+export function getMarketExclusions(marketId: string) {
+  return unstable_cache(
+    async () => {
+      const supabase = createStaticClient()
+      const { data } = await supabase
+        .from("market_exclusions")
+        .select("product_id")
+        .eq("market_id", marketId)
+      return (data || []).map((row) => row.product_id)
+    },
+    [`market-exclusions-${marketId}`],
+    { tags: [`market-exclusions:${marketId}`], revalidate: REVALIDATE },
   )()
 }
 

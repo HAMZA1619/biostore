@@ -6,7 +6,6 @@ import { storeSchema } from "@/lib/validations/store"
 import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
@@ -58,7 +57,6 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
     defaultValues: {
       name: initialData?.name || "",
       slug: initialData?.slug || "",
-      description: initialData?.description || "",
       language: (initialData?.language as "en" | "fr" | "ar") || "en",
       currency: initialData?.currency || "MAD",
       payment_methods: ["cod"] as const,
@@ -77,9 +75,10 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
     setLoading(true)
 
     if (initialData) {
+      const { description: _desc, ...updateData } = data
       const { error } = await supabase
         .from("stores")
-        .update({ ...data, updated_at: new Date().toISOString() })
+        .update({ ...updateData, updated_at: new Date().toISOString() })
         .eq("id", initialData.id)
 
       if (error) {
@@ -151,11 +150,11 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="published">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
                   {t("storeForm.published")}
                 </SelectItem>
                 <SelectItem value="draft">
-                  <span className="h-2 w-2 rounded-full bg-red-400" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-red-400" />
                   {t("storeForm.draft")}
                 </SelectItem>
               </SelectContent>
@@ -217,15 +216,6 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">{t("storeForm.description")}</Label>
-            <Textarea
-              id="description"
-              {...register("description")}
-              placeholder={t("storeForm.descriptionPlaceholder")}
-              rows={3}
-            />
-          </div>
         </div>
       </div>
 

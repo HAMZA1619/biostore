@@ -19,7 +19,8 @@
     "discounts": "Réductions",
     "markets": "Marchés",
     "abandonedCheckouts": "Paniers abandonnés",
-    "checkouts": "Paniers"
+    "checkouts": "Paniers",
+    "helpCenter": "Centre d'aide"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -296,6 +297,9 @@
     "logoSize": "512x512px",
     "banner": "Bannière",
     "bannerSize": "1200x400px",
+    "storeDescription": "Description de la boutique",
+    "storeDescriptionPlaceholder": "Dites aux clients ce que vous vendez...",
+    "storeDescriptionHint": "Affichée sous l'en-tête sur la page d'accueil de votre boutique.",
     "font": "Police",
     "colorPrimary": "Primaire",
     "colorAccent": "Accent",
@@ -303,6 +307,11 @@
     "colorText": "Texte",
     "colorButtonText": "Texte du bouton",
     "borderRadius": "Rayon de bordure",
+    "radiusNone": "Aucun",
+    "radiusSmall": "Petit",
+    "radiusMedium": "Moyen",
+    "radiusLarge": "Grand",
+    "radiusExtraLarge": "Très grand",
     "theme": "Thème",
     "themeDefault": "Défaut",
     "themeModern": "Moderne",
@@ -358,6 +367,10 @@
     "buttonStyleOutline": "Contour",
     "buttonStylePill": "Pilule",
     "cardShadow": "Ombre des cartes",
+    "shadowNone": "Aucune",
+    "shadowSmall": "Petite",
+    "shadowMedium": "Moyenne",
+    "shadowLarge": "Grande",
     "headingFont": "Police des titres",
     "headingFontPlaceholder": "Même que le corps",
     "productImageRatio": "Ratio d'image",
@@ -607,6 +620,16 @@
     "deleteDescription": "Cela déconnectera le domaine de votre boutique. Les visiteurs ne pourront plus accéder à votre boutique via ce domaine.",
     "cancel": "Annuler",
     "confirmDelete": "Supprimer"
+  },
+  "docs": {
+    "title": "Centre d'aide",
+    "subtitle": "Apprenez à utiliser BioStore avec des guides étape par étape.",
+    "searchPlaceholder": "Rechercher de l'aide...",
+    "noResults": "Aucun résultat trouvé.",
+    "articles": "articles",
+    "article": "article",
+    "backToHelp": "Retour au Centre d'aide",
+    "step": "Étape"
   },
   "landing": {
     "signIn": "Se connecter",
@@ -1015,7 +1038,22 @@
       "hideVariants": "Masquer les variantes",
       "variant": "variante",
       "variants": "variantes"
-    }
+    },
+    "exclusions": {
+      "title": "Disponibilité des produits",
+      "subtitle": "Choisissez quels produits sont visibles dans ce marché.",
+      "visible": "Visible",
+      "hidden": "Masqué",
+      "searchPlaceholder": "Rechercher des produits...",
+      "noProducts": "Aucun produit.",
+      "noResults": "Aucun produit ne correspond.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "saved": "Disponibilité mise à jour",
+      "saveFailed": "Échec de la mise à jour",
+      "hiddenCount": "{{count}} masqué(s)"
+    },
+    "manageAvailability": "Disponibilité des produits"
   },
   "billing": {
     "title": "Facturation",

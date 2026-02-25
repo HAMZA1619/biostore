@@ -21,32 +21,9 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient()
 
-    let query = supabase
-      .from("products")
-      .select("id, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price)")
-      .eq("store_id", storeId)
-      .eq("status", "active")
-      .order("sort_order")
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
-
-    if (collectionId) {
-      query = query.eq("collection_id", collectionId)
-    }
-
-    if (search) {
-      query = query.ilike("name", `%${search}%`)
-    }
-
-    const { data: rawProducts, error } = await query
-
-    if (error) {
-      return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
-    }
-
-    // Fetch market info and store currency for price resolution
+    // Resolve market and exclusions before building the product query
     let activeMarket: MarketInfo | null = null
-    let storeCurrency = "MAD"
-    let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()
+    let excludedProductIds: string[] = []
 
     if (marketId) {
       const { data: market } = await supabase
@@ -64,19 +41,55 @@ export async function GET(request: NextRequest) {
           price_adjustment: Number(market.price_adjustment),
         }
 
-        if (market.pricing_mode === "fixed" && rawProducts && rawProducts.length > 0) {
-          const productIds = rawProducts.map((p) => p.id)
-          const { data: mp } = await supabase
-            .from("market_prices")
-            .select("product_id, variant_id, price, compare_at_price")
-            .eq("market_id", marketId)
-            .in("product_id", productIds)
+        const { data: exclusions } = await supabase
+          .from("market_exclusions")
+          .select("product_id")
+          .eq("market_id", marketId)
 
-          for (const row of mp || []) {
-            if (!row.variant_id) {
-              marketPricesMap.set(row.product_id, { price: Number(row.price), compare_at_price: row.compare_at_price ? Number(row.compare_at_price) : null })
-            }
-          }
+        excludedProductIds = (exclusions || []).map((e) => e.product_id)
+      }
+    }
+
+    let query = supabase
+      .from("products")
+      .select("id, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price)")
+      .eq("store_id", storeId)
+      .eq("status", "active")
+      .order("sort_order")
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+
+    if (collectionId) {
+      query = query.eq("collection_id", collectionId)
+    }
+
+    if (search) {
+      query = query.ilike("name", `%${search}%`)
+    }
+
+    if (excludedProductIds.length > 0) {
+      query = query.not("id", "in", `(${excludedProductIds.join(",")})`)
+    }
+
+    const { data: rawProducts, error } = await query
+
+    if (error) {
+      return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
+    }
+
+    let storeCurrency = "MAD"
+    let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()
+
+    if (activeMarket?.pricing_mode === "fixed" && rawProducts && rawProducts.length > 0) {
+      const productIds = rawProducts.map((p) => p.id)
+      const { data: mp } = await supabase
+        .from("market_prices")
+        .select("product_id, variant_id, price, compare_at_price")
+        .eq("market_id", marketId!)
+        .in("product_id", productIds)
+
+      for (const row of mp || []) {
+        if (!row.variant_id) {
+          marketPricesMap.set(row.product_id, { price: Number(row.price), compare_at_price: row.compare_at_price ? Number(row.compare_at_price) : null })
         }
       }
     }

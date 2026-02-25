@@ -541,6 +541,9 @@ function LandingContent() {
               <p className="mt-2 text-sm text-muted-foreground">{t("landing.footerTagline")}</p>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <Link href="/docs" className="transition-colors hover:text-foreground">
+                {t("docs.title")}
+              </Link>
               <Link href="/privacy" className="transition-colors hover:text-foreground">
                 {t("landing.privacyPolicy")}
               </Link>

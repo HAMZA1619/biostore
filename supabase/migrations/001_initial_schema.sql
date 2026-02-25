@@ -106,6 +106,41 @@ CREATE UNIQUE INDEX idx_discounts_code ON discounts(store_id, code) WHERE code I
 CREATE INDEX idx_discounts_store ON discounts(store_id);
 CREATE INDEX idx_discounts_active ON discounts(store_id, is_active) WHERE is_active = true;
 
+-- Markets (multi-market support per store)
+CREATE TABLE markets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  countries TEXT[] NOT NULL DEFAULT '{}',
+  currency TEXT NOT NULL,
+  pricing_mode TEXT NOT NULL DEFAULT 'auto' CHECK (pricing_mode IN ('fixed', 'auto')),
+  price_adjustment DECIMAL(5,2) NOT NULL DEFAULT 0,
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(store_id, slug)
+);
+CREATE INDEX idx_markets_store ON markets(store_id);
+CREATE INDEX idx_markets_active ON markets(store_id, is_active) WHERE is_active = true;
+
+-- Market Prices (per-market fixed pricing overrides)
+CREATE TABLE market_prices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  market_id UUID NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  variant_id UUID REFERENCES product_variants(id) ON DELETE CASCADE,
+  price DECIMAL(10,2) NOT NULL,
+  compare_at_price DECIMAL(10,2)
+);
+CREATE UNIQUE INDEX idx_market_prices_product_unique
+  ON market_prices(market_id, product_id) WHERE variant_id IS NULL;
+CREATE UNIQUE INDEX idx_market_prices_variant_unique
+  ON market_prices(market_id, product_id, variant_id) WHERE variant_id IS NOT NULL;
+CREATE INDEX idx_market_prices_market ON market_prices(market_id);
+CREATE INDEX idx_market_prices_product ON market_prices(product_id);
+
 -- Orders
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -325,41 +360,6 @@ CREATE POLICY "Owners can insert store images" ON store_images FOR INSERT
 CREATE POLICY "Owners can delete store images" ON store_images FOR DELETE
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_images.store_id AND stores.owner_id = (select auth.uid())));
 
--- Markets (multi-market support per store)
-CREATE TABLE markets (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL,
-  countries TEXT[] NOT NULL DEFAULT '{}',
-  currency TEXT NOT NULL,
-  pricing_mode TEXT NOT NULL DEFAULT 'auto' CHECK (pricing_mode IN ('fixed', 'auto')),
-  price_adjustment DECIMAL(5,2) NOT NULL DEFAULT 0,
-  is_default BOOLEAN NOT NULL DEFAULT false,
-  is_active BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(store_id, slug)
-);
-CREATE INDEX idx_markets_store ON markets(store_id);
-CREATE INDEX idx_markets_active ON markets(store_id, is_active) WHERE is_active = true;
-
--- Market Prices (per-market fixed pricing overrides)
-CREATE TABLE market_prices (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  market_id UUID NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  variant_id UUID REFERENCES product_variants(id) ON DELETE CASCADE,
-  price DECIMAL(10,2) NOT NULL,
-  compare_at_price DECIMAL(10,2)
-);
-CREATE UNIQUE INDEX idx_market_prices_product_unique
-  ON market_prices(market_id, product_id) WHERE variant_id IS NULL;
-CREATE UNIQUE INDEX idx_market_prices_variant_unique
-  ON market_prices(market_id, product_id, variant_id) WHERE variant_id IS NOT NULL;
-CREATE INDEX idx_market_prices_market ON market_prices(market_id);
-CREATE INDEX idx_market_prices_product ON market_prices(product_id);
-
 -- Markets
 ALTER TABLE markets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view active markets of published stores" ON markets
@@ -421,6 +421,46 @@ CREATE POLICY "Owners can delete market prices" ON market_prices
     SELECT 1 FROM markets
     JOIN stores ON stores.id = markets.store_id
     WHERE markets.id = market_prices.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+
+-- Market Exclusions (products hidden per market)
+CREATE TABLE market_exclusions (
+  market_id UUID NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  PRIMARY KEY (market_id, product_id)
+);
+CREATE INDEX idx_market_exclusions_market ON market_exclusions(market_id);
+CREATE INDEX idx_market_exclusions_product ON market_exclusions(product_id);
+
+ALTER TABLE market_exclusions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can view market exclusions of published stores" ON market_exclusions
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_exclusions.market_id
+    AND markets.is_active = true
+    AND stores.is_published = true
+  ));
+CREATE POLICY "Owners can view own market exclusions" ON market_exclusions
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_exclusions.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can insert market exclusions" ON market_exclusions
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_exclusions.market_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can delete market exclusions" ON market_exclusions
+  FOR DELETE USING (EXISTS (
+    SELECT 1 FROM markets
+    JOIN stores ON stores.id = markets.store_id
+    WHERE markets.id = market_exclusions.market_id
     AND stores.owner_id = (select auth.uid())
   ));
 
@@ -540,6 +580,7 @@ BEGIN
           'subtotal', NEW.subtotal,
           'discount_id', NEW.discount_id,
           'discount_amount', NEW.discount_amount,
+          'note', NEW.note,
           'ip_address', NEW.ip_address,
           'market_id', NEW.market_id,
           'currency', NEW.currency,

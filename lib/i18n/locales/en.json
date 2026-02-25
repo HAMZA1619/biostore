@@ -19,7 +19,8 @@
     "discounts": "Discounts",
     "markets": "Markets",
     "abandonedCheckouts": "Abandoned Carts",
-    "checkouts": "Checkouts"
+    "checkouts": "Checkouts",
+    "helpCenter": "Help Center"
   },
   "dashboard": {
     "welcome": "Welcome to BioStore",
@@ -296,6 +297,9 @@
     "logoSize": "512x512px",
     "banner": "Banner",
     "bannerSize": "1200x400px",
+    "storeDescription": "Store Description",
+    "storeDescriptionPlaceholder": "Tell customers what you sell...",
+    "storeDescriptionHint": "Shown below the header on your storefront homepage.",
     "font": "Font",
     "colorPrimary": "Primary",
     "colorAccent": "Accent",
@@ -303,6 +307,11 @@
     "colorText": "Text",
     "colorButtonText": "Button Text",
     "borderRadius": "Border Radius",
+    "radiusNone": "None",
+    "radiusSmall": "Small",
+    "radiusMedium": "Medium",
+    "radiusLarge": "Large",
+    "radiusExtraLarge": "Extra Large",
     "theme": "Theme",
     "themeDefault": "Default",
     "themeModern": "Modern",
@@ -358,6 +367,10 @@
     "buttonStyleOutline": "Outline",
     "buttonStylePill": "Pill",
     "cardShadow": "Card Shadow",
+    "shadowNone": "None",
+    "shadowSmall": "Small",
+    "shadowMedium": "Medium",
+    "shadowLarge": "Large",
     "headingFont": "Heading Font",
     "headingFontPlaceholder": "Same as body font",
     "productImageRatio": "Image Ratio",
@@ -607,6 +620,16 @@
     "deleteDescription": "This will disconnect the domain from your store. Visitors will no longer be able to access your store via this domain.",
     "cancel": "Cancel",
     "confirmDelete": "Remove"
+  },
+  "docs": {
+    "title": "Help Center",
+    "subtitle": "Learn how to use BioStore with step-by-step guides.",
+    "searchPlaceholder": "Search for help...",
+    "noResults": "No results found.",
+    "articles": "articles",
+    "article": "article",
+    "backToHelp": "Back to Help Center",
+    "step": "Step"
   },
   "landing": {
     "signIn": "Sign in",
@@ -1015,7 +1038,22 @@
       "hideVariants": "Hide variants",
       "variant": "variant",
       "variants": "variants"
-    }
+    },
+    "exclusions": {
+      "title": "Product Availability",
+      "subtitle": "Choose which products are visible in this market.",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "searchPlaceholder": "Search products...",
+      "noProducts": "No products yet.",
+      "noResults": "No products match your search.",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "saved": "Product availability updated",
+      "saveFailed": "Failed to update",
+      "hiddenCount": "{{count}} hidden"
+    },
+    "manageAvailability": "Product availability"
   },
   "billing": {
     "title": "Billing",

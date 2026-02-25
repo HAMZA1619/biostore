@@ -19,7 +19,8 @@
     "discounts": "التخفيضات",
     "markets": "الأسواق",
     "abandonedCheckouts": "السلات المتروكة",
-    "checkouts": "السلات"
+    "checkouts": "السلات",
+    "helpCenter": "مركز المساعدة"
   },
   "dashboard": {
     "welcome": "مرحبا بك في BioStore",
@@ -296,6 +297,9 @@
     "logoSize": "512x512px",
     "banner": "البانر",
     "bannerSize": "1200x400px",
+    "storeDescription": "وصف المتجر",
+    "storeDescriptionPlaceholder": "أخبر العملاء بما تبيعه...",
+    "storeDescriptionHint": "يظهر أسفل الرأس في الصفحة الرئيسية لمتجرك.",
     "font": "الخط",
     "colorPrimary": "أساسي",
     "colorAccent": "ثانوي",
@@ -303,6 +307,11 @@
     "colorText": "النص",
     "colorButtonText": "نص الزر",
     "borderRadius": "استدارة الحواف",
+    "radiusNone": "بدون",
+    "radiusSmall": "صغير",
+    "radiusMedium": "متوسط",
+    "radiusLarge": "كبير",
+    "radiusExtraLarge": "كبير جداً",
     "theme": "القالب",
     "themeDefault": "افتراضي",
     "themeModern": "عصري",
@@ -358,6 +367,10 @@
     "buttonStyleOutline": "محيط",
     "buttonStylePill": "كبسولة",
     "cardShadow": "ظل البطاقة",
+    "shadowNone": "بدون",
+    "shadowSmall": "صغير",
+    "shadowMedium": "متوسط",
+    "shadowLarge": "كبير",
     "headingFont": "خط العناوين",
     "headingFontPlaceholder": "نفس خط النص",
     "productImageRatio": "نسبة الصورة",
@@ -607,6 +620,16 @@
     "deleteDescription": "سيتم فصل النطاق عن متجرك. لن يتمكن الزوار من الوصول إلى متجرك عبر هذا النطاق بعد الآن.",
     "cancel": "إلغاء",
     "confirmDelete": "إزالة"
+  },
+  "docs": {
+    "title": "مركز المساعدة",
+    "subtitle": "تعلّم كيفية استخدام BioStore مع أدلة خطوة بخطوة.",
+    "searchPlaceholder": "ابحث عن مساعدة...",
+    "noResults": "لم يتم العثور على نتائج.",
+    "articles": "مقالات",
+    "article": "مقال",
+    "backToHelp": "العودة إلى مركز المساعدة",
+    "step": "خطوة"
   },
   "landing": {
     "signIn": "تسجيل الدخول",
@@ -1015,7 +1038,22 @@
       "hideVariants": "إخفاء المتغيرات",
       "variant": "متغير",
       "variants": "متغيرات"
-    }
+    },
+    "exclusions": {
+      "title": "توفر المنتجات",
+      "subtitle": "اختر المنتجات المرئية في هذا السوق.",
+      "visible": "مرئي",
+      "hidden": "مخفي",
+      "searchPlaceholder": "بحث عن منتجات...",
+      "noProducts": "لا توجد منتجات بعد.",
+      "noResults": "لا توجد منتجات مطابقة.",
+      "save": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "saved": "تم تحديث توفر المنتجات",
+      "saveFailed": "فشل التحديث",
+      "hiddenCount": "{{count}} مخفي"
+    },
+    "manageAvailability": "توفر المنتجات"
   },
   "billing": {
     "title": "الفوترة",

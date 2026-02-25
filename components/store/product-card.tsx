@@ -118,7 +118,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
               <Button
                 asChild
                 size="sm"
-                className="mt-2 w-full"
+                className="mt-2 w-full text-xs"
                 style={getButtonStyleProps(buttonStyle)}
               >
                 <Link href={`/${storeSlug}/products/${product.id}`}>
@@ -129,11 +129,11 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
               <Button
                 onClick={handleAdd}
                 size="sm"
-                className="mt-2 w-full"
+                className="mt-2 w-full text-xs"
                 disabled={!inStock}
                 style={getButtonStyleProps(buttonStyle)}
               >
-                <ShoppingCart className="me-2 h-3 w-3" />
+                <ShoppingCart className="hidden min-[375px]:block h-3 w-3" />
                 {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}
               </Button>
             )}

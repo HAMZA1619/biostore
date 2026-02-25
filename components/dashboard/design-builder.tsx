@@ -19,6 +19,7 @@ interface StoreDesignData {
   slug: string
   currency: string
   design_settings: Record<string, unknown>
+  description: string | null
 }
 
 interface DesignBuilderProps {
@@ -29,10 +30,12 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
   const { t } = useTranslation()
   const initialState = useRef(parseDesignSettings(store.design_settings))
   const [state, setState] = useState<DesignState>(initialState.current)
+  const initialDescription = useRef(store.description || "")
+  const [description, setDescription] = useState(store.description || "")
   const [previewTab, setPreviewTab] = useState<PreviewTab>("store")
   const [saving, setSaving] = useState(false)
   const [showMobilePreview, setShowMobilePreview] = useState(false)
-  const isDirty = JSON.stringify(state) !== JSON.stringify(initialState.current)
+  const isDirty = JSON.stringify(state) !== JSON.stringify(initialState.current) || description !== initialDescription.current
   const router = useRouter()
   const supabase = createClient()
 
@@ -47,6 +50,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
       .update({
         design_settings: state,
         language: state.language,
+        description: description || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", store.id)
@@ -56,6 +60,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
     } else {
       toast.success(t("design.designSaved"))
       initialState.current = { ...state }
+      initialDescription.current = description
       router.refresh()
     }
     setSaving(false)
@@ -77,7 +82,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
         </div>
         {isDirty && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setState({ ...initialState.current })}>
+            <Button variant="outline" size="sm" onClick={() => { setState({ ...initialState.current }); setDescription(initialDescription.current) }}>
               {t("design.cancel")}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
@@ -93,6 +98,7 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
           <DesignPreview
             state={state}
             storeName={store.name}
+            storeDescription={description}
             currency={store.currency}
             previewTab={previewTab}
             onTabChange={setPreviewTab}
@@ -102,12 +108,13 @@ export function DesignBuilder({ store }: DesignBuilderProps) {
 
       <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
         <div className="min-w-0 flex-1">
-          <DesignControls state={state} onChange={handleChange} storeId={store.id} previewTab={previewTab} onPreviewTabChange={setPreviewTab} />
+          <DesignControls state={state} onChange={handleChange} storeId={store.id} previewTab={previewTab} onPreviewTabChange={setPreviewTab} description={description} onDescriptionChange={setDescription} />
         </div>
         <div className="hidden w-[360px] shrink-0 lg:block lg:sticky lg:top-20 lg:self-start">
           <DesignPreview
             state={state}
             storeName={store.name}
+            storeDescription={description}
             currency={store.currency}
             previewTab={previewTab}
             onTabChange={setPreviewTab}

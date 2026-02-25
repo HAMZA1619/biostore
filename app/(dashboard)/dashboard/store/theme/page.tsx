@@ -9,7 +9,7 @@ export default async function DesignPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, name, slug, currency, design_settings")
+    .select("id, name, slug, currency, design_settings, description")
     .eq("owner_id", user.id)
     .single()
 

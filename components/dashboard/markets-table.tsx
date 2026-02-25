@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { DollarSign, MapPin, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
+import { DollarSign, EyeOff, MapPin, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
@@ -167,6 +167,12 @@ export function MarketsTable({ initialMarkets }: MarketsTableProps) {
                             </Link>
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/markets/${market.id}/exclusions`}>
+                            <EyeOff className="me-2 h-4 w-4" />
+                            {t("markets.manageAvailability")}
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteId(market.id)}

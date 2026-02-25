@@ -5,7 +5,7 @@ import { CollectionTabs } from "@/components/store/collection-tabs"
 import { SearchInput } from "@/components/store/search-input"
 import { ViewTracker } from "@/components/store/view-tracker"
 import { ProductGrid } from "@/components/store/product-grid"
-import { getStoreBySlug, getStoreCollections, getStoreProducts, getStoreMarkets, getMarketPrices, resolveImageUrls } from "@/lib/storefront/cache"
+import { getStoreBySlug, getStoreCollections, getStoreProducts, getStoreMarkets, getMarketPrices, getMarketExclusions, resolveImageUrls } from "@/lib/storefront/cache"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
 
@@ -33,9 +33,7 @@ export default async function StorePage({
     if (activeCollection) activeCollectionId = activeCollection.id
   }
 
-  const rawProducts = await getStoreProducts(store.id, 0, PAGE_SIZE, activeCollectionId, search)
-
-  // Market price resolution
+  // Market resolution (before product fetch so we can apply exclusions)
   const cookieStore = await cookies()
   const marketSlug = cookieStore.get("biostore-market")?.value
   const markets = await getStoreMarkets(store.id)
@@ -53,6 +51,9 @@ export default async function StorePage({
       }
     }
   }
+
+  const excludedProductIds = activeMarket ? await getMarketExclusions(activeMarket.id) : []
+  const rawProducts = await getStoreProducts(store.id, 0, PAGE_SIZE, activeCollectionId, search, excludedProductIds.length > 0 ? excludedProductIds : null)
 
   let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()
   if (activeMarket?.pricing_mode === "fixed" && rawProducts && rawProducts.length > 0) {

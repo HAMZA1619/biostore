@@ -56,6 +56,7 @@ export interface DesignState {
 interface DesignPreviewProps {
   state: DesignState
   storeName: string
+  storeDescription: string
   currency: string
   previewTab: PreviewTab
   onTabChange: (tab: PreviewTab) => void
@@ -148,7 +149,7 @@ const tabs: { value: PreviewTab; labelKey: string }[] = [
   { value: "thankyou", labelKey: "designPreview.tabThankYou" },
 ]
 
-export function DesignPreview({ state, storeName, currency, previewTab, onTabChange }: DesignPreviewProps) {
+export function DesignPreview({ state, storeName, storeDescription, currency, previewTab, onTabChange }: DesignPreviewProps) {
   const { t, i18n } = useTranslation()
   const st = i18n.getFixedT(state.language)
   const radiusCss = getRadiusCss(state.borderRadius)
@@ -245,6 +246,7 @@ export function DesignPreview({ state, storeName, currency, previewTab, onTabCha
             <StorePreview
               state={state}
               storeName={storeName}
+              storeDescription={storeDescription}
               currency={currency}
               radiusCss={radiusCss}
               st={st}
@@ -289,6 +291,7 @@ interface PreviewCartItem {
 function StorePreview({
   state,
   storeName,
+  storeDescription,
   currency,
   radiusCss,
   st,
@@ -299,6 +302,7 @@ function StorePreview({
 }: {
   state: DesignState
   storeName: string
+  storeDescription: string
   currency: string
   radiusCss: string
   st: TFunction
@@ -325,6 +329,9 @@ function StorePreview({
         </div>
       )}
       <main className="p-2">
+        {storeDescription && (
+          <p className="mb-1.5 text-[8px] leading-relaxed opacity-50">{storeDescription}</p>
+        )}
         {state.showSearch && (
           <div className="relative mb-1.5">
             <div className="flex h-6 w-full items-center rounded-md border border-current/10 bg-current/5 ps-6 text-[8px] opacity-50" style={{ borderRadius: radiusCss }}>
