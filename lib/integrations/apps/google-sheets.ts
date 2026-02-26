@@ -50,6 +50,8 @@ export const AVAILABLE_FIELDS: AvailableField[] = [
   { key: "status", defaultHeader: "Status" },
   { key: "note", defaultHeader: "Note" },
   { key: "ip_address", defaultHeader: "IP Address" },
+  { key: "currency", defaultHeader: "Currency" },
+  { key: "delivery_fee", defaultHeader: "Delivery Fee" },
   { key: "event_type", defaultHeader: "Event" },
   { key: "checkout_status", defaultHeader: "Recovery" },
 ]
@@ -85,6 +87,8 @@ export interface EventPayload {
   discount_amount?: number
   note?: string
   ip_address?: string | null
+  currency?: string
+  delivery_fee?: number
   created_at?: string
   items?: OrderItem[]
   [key: string]: unknown
@@ -132,6 +136,10 @@ function getOrderFieldValue(
       return payload.note || ""
     case "ip_address":
       return payload.ip_address || ""
+    case "currency":
+      return payload.currency || currency
+    case "delivery_fee":
+      return payload.delivery_fee ? `${payload.delivery_fee} ${currency}` : ""
     case "event_type":
       return (payload as Record<string, unknown>).event_type as string || "Order"
     case "checkout_status":

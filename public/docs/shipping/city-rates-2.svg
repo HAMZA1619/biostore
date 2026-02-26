@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+<defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</defs>
+<rect width="800" height="450" fill="#f4f5f7" rx="8"/><rect x="0" y="0" width="180" height="450" fill="#ffffff" rx="0"/><line x1="180" y1="0" x2="180" y2="450" stroke="#e5e7eb" stroke-width="1"/><circle cx="28" cy="67" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="71" font-size="12" fill="#6b7280" font-weight="400">Overview</text><circle cx="28" cy="103" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="107" font-size="12" fill="#6b7280" font-weight="400">Store</text><circle cx="28" cy="139" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="143" font-size="12" fill="#6b7280" font-weight="400">Design</text><circle cx="28" cy="175" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="179" font-size="12" fill="#6b7280" font-weight="400">Products</text><circle cx="28" cy="211" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="215" font-size="12" fill="#6b7280" font-weight="400">Collections</text><circle cx="28" cy="247" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="251" font-size="12" fill="#6b7280" font-weight="400">Orders</text><rect x="8" y="268" width="164" height="30" rx="6" fill="#ecfdf5"/><circle cx="28" cy="283" r="4" fill="#10b981" opacity="0.5"/><text x="42" y="287" font-size="12" fill="#10b981" font-weight="600">Shipping</text><circle cx="28" cy="319" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="323" font-size="12" fill="#6b7280" font-weight="400">Discounts</text><circle cx="28" cy="355" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="359" font-size="12" fill="#6b7280" font-weight="400">Markets</text><circle cx="28" cy="391" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="395" font-size="12" fill="#6b7280" font-weight="400">Integrations</text><circle cx="28" cy="427" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="431" font-size="12" fill="#6b7280" font-weight="400">Settings</text><rect x="180" y="0" width="620" height="44" fill="#ffffff"/><line x1="180" y1="44" x2="800" y2="44" stroke="#e5e7eb" stroke-width="1"/><text x="200" y="27" font-size="11" fill="#10b981">View store ↗</text><text x="710" y="27" font-size="10" fill="#6b7280">you@example.com</text><circle cx="776" cy="22" r="14" fill="#d1fae5"/><text x="776" y="26" font-size="9" fill="#059669" text-anchor="middle" font-weight="600">JD</text>
+<!-- Storefront checkout mockup (phone frame) -->
+<rect x="280" y="55" width="320" height="380" rx="20" fill="#ffffff" stroke="#d1d5db" stroke-width="2"/>
+<!-- Phone header -->
+<rect x="280" y="55" width="320" height="40" rx="20" fill="#f9fafb"/>
+<rect x="280" y="85" width="320" height="10" fill="#f9fafb"/>
+<text x="440" y="80" font-size="12" font-weight="600" fill="#1f2937" text-anchor="middle">Checkout</text>
+<!-- Order summary -->
+<text x="300" y="116" font-size="11" font-weight="600" fill="#1f2937">Order Summary</text>
+<line x1="300" y1="124" x2="580" y2="124" stroke="#f0f0f0" stroke-width="1"/>
+<text x="300" y="142" font-size="10" fill="#6b7280">Classic T-Shirt × 2</text>
+<text x="560" y="142" font-size="10" fill="#1f2937" text-anchor="end">$40.00</text>
+<text x="300" y="160" font-size="10" fill="#6b7280">Sneakers × 1</text>
+<text x="560" y="160" font-size="10" fill="#1f2937" text-anchor="end">$85.00</text>
+<line x1="300" y1="172" x2="580" y2="172" stroke="#f0f0f0" stroke-width="1"/>
+<text x="300" y="190" font-size="10" fill="#6b7280">Subtotal</text>
+<text x="560" y="190" font-size="10" fill="#1f2937" text-anchor="end">$125.00</text>
+<!-- Delivery fee line - highlighted -->
+<text x="300" y="210" font-size="10" fill="#1f2937" font-weight="600">Delivery</text>
+<text x="560" y="210" font-size="10" fill="#1f2937" font-weight="600" text-anchor="end">$5.00</text>
+<line x1="300" y1="222" x2="580" y2="222" stroke="#f0f0f0" stroke-width="1"/>
+<text x="300" y="242" font-size="12" fill="#1f2937" font-weight="700">Total</text>
+<text x="560" y="242" font-size="12" fill="#1f2937" font-weight="700" text-anchor="end">$130.00</text>
+<!-- Delivery info form -->
+<line x1="300" y1="260" x2="580" y2="260" stroke="#e5e7eb" stroke-width="1"/>
+<text x="300" y="280" font-size="11" font-weight="600" fill="#1f2937">Delivery Information</text>
+<text x="300" y="300" font-size="9" fill="#6b7280">Country</text>
+<rect x="300" y="305" width="260" height="26" rx="4" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<text x="310" y="322" font-size="9" fill="#1f2937">United States</text>
+<text x="300" y="345" font-size="9" fill="#6b7280">City</text>
+<rect x="300" y="350" width="260" height="26" rx="4" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<text x="310" y="367" font-size="9" fill="#1f2937">New York</text>
+<!-- Submit button -->
+<rect x="300" y="390" width="260" height="32" rx="6" fill="#10b981"/><text x="430" y="410" font-size="11" fill="#ffffff" font-weight="600" text-anchor="middle">Place Order</text>
+<!-- Annotations -->
+<g class="doc-annotations">
+<rect x="296" y="198" width="268" height="20" fill="#ef4444" opacity="0.1" rx="3"/>
+<circle cx="440" cy="208" r="16" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/><rect x="456" y="196" width="100" height="17" rx="4" fill="#ef4444"/><text x="461" y="208" font-size="9" fill="#fff" font-weight="600">Delivery fee</text>
+</g>
+</svg>

@@ -26,7 +26,7 @@ export function FloatingCartButton() {
 
   useEffect(() => setMounted(true), [])
 
-  const isCartPage = pathname === `/${slug}/cart` || pathname === "/cart"
+  const isCartPage = pathname === `${baseHref}/cart` || pathname === `/${slug}/cart`
   const count = getItemCount()
   const show = mounted && count > 0 && !isCartPage
 

@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 interface CollectionTabsProps {
   storeSlug: string
@@ -10,6 +12,7 @@ interface CollectionTabsProps {
 }
 
 export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const activeCollection = searchParams.get("collection")
 
@@ -29,7 +32,7 @@ export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) 
         )}
         style={!activeCollection ? activeStyle : undefined}
       >
-        All
+        {t("storefront.all")}
       </Link>
       {collections.map((c) => (
         <Link

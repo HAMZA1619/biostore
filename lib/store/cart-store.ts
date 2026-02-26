@@ -53,7 +53,7 @@ export const useCartStore = create<CartStore>()(
         const { items, storeSlug: currentSlug, marketSlug: currentMarket } = get()
 
         // Clear cart if switching stores or markets
-        if ((currentSlug && currentSlug !== storeSlug) || (currentMarket && marketSlug && currentMarket !== marketSlug)) {
+        if ((currentSlug && currentSlug !== storeSlug) || ((currentMarket || null) !== (marketSlug || null))) {
           set({ items: [{ ...item, quantity: 1 }], storeSlug, marketSlug, appliedDiscount: null })
           return
         }

@@ -16,7 +16,7 @@ export function StorefrontI18nProvider({
   useEffect(() => {
     loadLocale(lang).then(() => {
       i18n.changeLanguage(lang)
-    })
+    }).catch(() => {})
     document.documentElement.dir = RTL_LANGS.has(lang) ? "rtl" : "ltr"
     document.documentElement.lang = lang
   }, [lang])

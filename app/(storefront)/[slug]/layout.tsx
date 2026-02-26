@@ -6,6 +6,7 @@ import { FloatingCartButton } from "@/components/store/floating-cart-button"
 import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { TrackingScripts } from "@/components/store/tracking-scripts"
 import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
+import { StoreConfigProvider } from "@/lib/store/store-config"
 import { cn, parseDesignSettings, getImageUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess, getStoreMarkets } from "@/lib/storefront/cache"
@@ -142,11 +143,11 @@ export default async function StoreLayout({
 
   return (
     <div
-      className="storefront min-h-screen"
+      className="storefront min-h-[100dvh]"
       dir={isRtl ? "rtl" : "ltr"}
       lang={storeLang}
       data-base-href={baseHref}
-      data-currency={activeCurrency || "MAD"}
+      data-currency={activeCurrency || store.currency}
       data-market-id={activeMarket?.id || ""}
       data-market-slug={activeMarket?.slug || ""}
       data-theme={ds.theme}
@@ -198,15 +199,28 @@ export default async function StoreLayout({
     >
       <style dangerouslySetInnerHTML={{ __html: `
         .product-grid { container-type: inline-size; }
-        .store-card { font-size: clamp(0.8125rem, 4.25cqw, 1rem); }
-        .store-card .text-xs { font-size: clamp(0.625rem, 3cqw, 0.75rem); }
-        .store-card .text-sm { font-size: clamp(0.72rem, 3.5cqw, 0.875rem); }
+        .store-card { container-type: inline-size; font-size: clamp(0.8125rem, 4.25cqw, 1rem); }
+        .store-card .text-xs { font-size: clamp(0.625rem, 5.5cqw, 0.8125rem); }
+        .store-card .text-sm { font-size: clamp(0.72rem, 6.5cqw, 0.9375rem); }
+        .store-card button svg { width: 1em; height: 1em; }
       `}} />
       <link rel="stylesheet" href={fontHref} />
       {ds.customCss && (
         <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "").replace(/javascript:/gi, "").replace(/expression\s*\(/gi, "") }} />
       )}
+      <script dangerouslySetInnerHTML={{ __html: `(function(){var u=navigator.userAgent||"";if(!/FBAN|FBAV|Instagram|TikTok|Snapchat|Twitter|Line\\/|MicroMessenger|WhatsApp/i.test(u))return;var S=/INPUT|TEXTAREA|SELECT/;var w=document.querySelector(".storefront");if(!w)return;function adjust(){var el=document.activeElement;if(!el||!S.test(el.tagName)){w.style.transform="";return}var r=el.getBoundingClientRect();var vh=window.innerHeight;if(r.top>vh*0.4){var s=r.top-vh*0.3;w.style.transition="transform 0.25s ease-out";w.style.transform="translateY(-"+s+"px)"}}function reset(){setTimeout(function(){if(!document.activeElement||!S.test(document.activeElement.tagName)){w.style.transform=""}},100)}document.addEventListener("focusin",function(e){if(S.test(e.target.tagName))setTimeout(adjust,300)});document.addEventListener("focusout",reset);if(window.visualViewport){visualViewport.addEventListener("resize",function(){if(document.activeElement&&S.test(document.activeElement.tagName)){adjust()}else{w.style.transform=""}})}})()` }} />
       <TrackingScripts gaId={gaId} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
+      <StoreConfigProvider config={{
+        currency: activeCurrency || store.currency,
+        buttonStyle: ds.buttonStyle || "filled",
+        baseHref,
+        market: activeMarket ? { id: activeMarket.id, slug: activeMarket.slug } : null,
+        showEmail: ds.checkoutShowEmail !== false,
+        showCountry: ds.checkoutShowCountry !== false,
+        showCity: ds.checkoutShowCity !== false,
+        showNote: ds.checkoutShowNote !== false,
+        thankYouMessage: ds.thankYouMessage || "",
+      }}>
       <StorefrontI18nProvider lang={storeLang}>
         {ds.announcementText && (
           <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
@@ -247,6 +261,7 @@ export default async function StoreLayout({
           </a>
         )}
       </StorefrontI18nProvider>
+      </StoreConfigProvider>
     </div>
   )
 }

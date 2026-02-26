@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import Link from "next/link"
-import { Check, ChevronsUpDown, Loader2, X } from "lucide-react"
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, X } from "lucide-react"
 import { cn, slugify } from "@/lib/utils"
 import { COUNTRIES, CURRENCIES } from "@/lib/constants"
 import { marketSchema, type MarketFormData } from "@/lib/validations/market"
@@ -134,9 +134,14 @@ export function MarketForm({ storeId, initialData }: MarketFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-1 sm:px-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold sm:text-2xl">
-          {isEdit ? t("markets.editTitle") : t("markets.newTitle")}
-        </h1>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" size="icon-sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-bold sm:text-2xl">
+            {isEdit ? t("markets.editTitle") : t("markets.newTitle")}
+          </h1>
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => router.back()}>
             {t("markets.cancel")}

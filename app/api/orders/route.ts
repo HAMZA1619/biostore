@@ -1,6 +1,8 @@
 import urlJoin from "url-join"
 import { createClient } from "@supabase/supabase-js"
 import { getImageUrl } from "@/lib/utils"
+import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { COUNTRIES } from "@/lib/constants"
 import { NextResponse } from "next/server"
 
 export const maxDuration = 60
@@ -86,7 +88,7 @@ export async function POST(request: Request) {
     // Resolve market for currency
     let orderCurrency = store.currency
     let orderMarketId: string | null = null
-    let marketInfo: { pricing_mode: string; price_adjustment: number } | null = null
+    let marketInfo: { pricing_mode: string; exchange_rate: number; price_adjustment: number } | null = null
     let marketPricesMap = new Map<string, number>()
 
     if (market_id) {
@@ -100,7 +102,24 @@ export async function POST(request: Request) {
       if (market && market.store_id === store.id) {
         orderCurrency = market.currency
         orderMarketId = market.id
-        marketInfo = { pricing_mode: market.pricing_mode, price_adjustment: Number(market.price_adjustment) }
+        const rate = market.pricing_mode === "auto"
+          ? await getExchangeRate(store.currency, market.currency)
+          : 1
+        marketInfo = { pricing_mode: market.pricing_mode, exchange_rate: rate, price_adjustment: Number(market.price_adjustment) }
+      }
+    }
+
+    // Enforce market exclusions
+    if (orderMarketId) {
+      const productIds = items.map((i: { product_id: string }) => i.product_id)
+      const { data: exclusions } = await supabase
+        .from("market_exclusions")
+        .select("product_id")
+        .eq("market_id", orderMarketId)
+        .in("product_id", productIds)
+
+      if (exclusions && exclusions.length > 0) {
+        return NextResponse.json({ error: "Some products are not available in this market" }, { status: 400 })
       }
     }
 
@@ -213,7 +232,11 @@ export async function POST(request: Request) {
           price = marketPricesMap.get(marketKey)!
         } else if (marketInfo.pricing_mode === "auto") {
           const multiplier = 1 + marketInfo.price_adjustment / 100
-          price = Math.round(price * multiplier * 100) / 100
+          price = Math.round(price * marketInfo.exchange_rate * multiplier * 100) / 100
+        } else if (marketInfo.pricing_mode === "fixed" && !marketPricesMap.has(marketKey)) {
+          // No fixed price set for this product — fall back to store base currency
+          orderCurrency = store.currency
+          orderMarketId = null
         }
       }
 
@@ -241,7 +264,7 @@ export async function POST(request: Request) {
         .select("*")
         .eq("store_id", store.id)
         .eq("type", "code")
-        .ilike("code", discount_code.trim())
+        .ilike("code", discount_code.trim().replace(/%/g, "\\%").replace(/_/g, "\\_"))
         .eq("is_active", true)
         .single()
 
@@ -261,7 +284,7 @@ export async function POST(request: Request) {
               .eq("discount_id", discount.id)
               .eq("customer_phone", customer_phone)
 
-            if (!count || count < discount.max_uses_per_customer) {
+            if (count == null || count < discount.max_uses_per_customer) {
               discountId = discount.id
             }
           } else {
@@ -280,12 +303,71 @@ export async function POST(request: Request) {
       }
     }
 
-    const total = subtotal - discountAmount
+    // Look up shipping rate server-side
+    let deliveryFee = 0
+    const resolvedCountry = customer_country || await detectCountryFromIP(request)
+    if (resolvedCountry) {
+      const countryCode = COUNTRIES.find(
+        (c) => c.name.toLowerCase() === resolvedCountry.toLowerCase()
+      )?.code || ""
+
+      // Try matching by country name first, then by country code
+      let zone = null
+      const { data: zoneByName } = await supabase
+        .from("shipping_zones")
+        .select("id, default_rate")
+        .eq("store_id", store.id)
+        .eq("is_active", true)
+        .ilike("country_name", resolvedCountry.replace(/%/g, "\\%").replace(/_/g, "\\_"))
+        .single()
+
+      if (zoneByName) {
+        zone = zoneByName
+      } else if (countryCode) {
+        const { data: zoneByCode } = await supabase
+          .from("shipping_zones")
+          .select("id, default_rate")
+          .eq("store_id", store.id)
+          .eq("is_active", true)
+          .eq("country_code", countryCode)
+          .single()
+        zone = zoneByCode
+      }
+
+      if (zone) {
+        deliveryFee = Number(zone.default_rate)
+
+        if (customer_city) {
+          const escapedCity = customer_city.trim().replace(/%/g, "\\%").replace(/_/g, "\\_")
+          const { data: cityRate } = await supabase
+            .from("shipping_city_rates")
+            .select("rate, is_excluded")
+            .eq("zone_id", zone.id)
+            .ilike("city_name", escapedCity)
+            .single()
+
+          if (cityRate) {
+            if (cityRate.is_excluded) {
+              return NextResponse.json({ error: "Delivery is not available to this city" }, { status: 400 })
+            }
+            deliveryFee = Number(cityRate.rate)
+          }
+        }
+      }
+    }
+
+    // Apply market exchange rate to delivery fee if auto-pricing
+    if (marketInfo && marketInfo.pricing_mode === "auto" && deliveryFee > 0) {
+      const multiplier = 1 + marketInfo.price_adjustment / 100
+      deliveryFee = Math.round(deliveryFee * marketInfo.exchange_rate * multiplier * 100) / 100
+    }
+
+    const total = subtotal - discountAmount + deliveryFee
 
     // Detect country and IP
     const forwarded = request.headers.get("x-forwarded-for")
     const ipAddress = forwarded ? forwarded.split(",")[0].trim() : null
-    const country = customer_country || await detectCountryFromIP(request)
+    const country = resolvedCountry
 
     // Insert order
     const { data: order, error: orderError } = await supabase
@@ -302,6 +384,7 @@ export async function POST(request: Request) {
         note: note || null,
         ip_address: ipAddress,
         subtotal,
+        delivery_fee: deliveryFee,
         discount_id: discountId,
         discount_amount: discountAmount,
         total,

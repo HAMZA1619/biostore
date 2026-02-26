@@ -6,7 +6,7 @@ const PAGE_SIZE = 20
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl
-    const page = parseInt(searchParams.get("page") || "0", 10)
+    const page = Math.max(0, parseInt(searchParams.get("page") || "0", 10) || 0)
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
       if (!isNaN(orderNum)) {
         query = query.eq("order_number", orderNum)
       } else {
-        query = query.or(`customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`)
+        const escaped = search.replace(/%/g, "\\%").replace(/_/g, "\\_")
+        query = query.or(`customer_name.ilike.%${escaped}%,customer_phone.ilike.%${escaped}%`)
       }
     }
 

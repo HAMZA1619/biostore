@@ -10,6 +10,7 @@ import { getT } from "@/lib/i18n/storefront"
 import { getStoreBySlug, getProduct, getProductVariants, getStoreMarkets, getMarketPrices, getMarketExclusions, resolveImageUrls } from "@/lib/storefront/cache"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
+import { getExchangeRate } from "@/lib/market/exchange-rates"
 import type { Metadata } from "next"
 
 export async function generateMetadata({
@@ -79,10 +80,14 @@ export default async function ProductPage({
       ? markets.find((m) => m.slug === marketSlug)
       : markets.find((m) => m.is_default)
     if (found) {
+      const rate = found.pricing_mode === "auto"
+        ? await getExchangeRate(store.currency, found.currency)
+        : 1
       activeMarket = {
         id: found.id,
         currency: found.currency,
         pricing_mode: found.pricing_mode as "fixed" | "auto",
+        exchange_rate: rate,
         price_adjustment: Number(found.price_adjustment),
       }
     }

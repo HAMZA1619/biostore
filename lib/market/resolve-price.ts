@@ -2,6 +2,7 @@ export interface MarketInfo {
   id: string
   currency: string
   pricing_mode: "fixed" | "auto"
+  exchange_rate: number
   price_adjustment: number
 }
 
@@ -38,10 +39,11 @@ export function resolvePrice(
   }
 
   if (market.pricing_mode === "auto") {
-    const multiplier = 1 + market.price_adjustment / 100
-    const adjustedPrice = Math.round(basePrice * multiplier * 100) / 100
+    const rate = market.exchange_rate
+    const adjustment = 1 + market.price_adjustment / 100
+    const adjustedPrice = Math.round(basePrice * rate * adjustment * 100) / 100
     const adjustedCompare = baseCompareAtPrice
-      ? Math.round(baseCompareAtPrice * multiplier * 100) / 100
+      ? Math.round(baseCompareAtPrice * rate * adjustment * 100) / 100
       : null
     return {
       price: adjustedPrice,
@@ -50,5 +52,5 @@ export function resolvePrice(
     }
   }
 
-  return { price: basePrice, compare_at_price: baseCompareAtPrice, currency: market.currency }
+  return { price: basePrice, compare_at_price: baseCompareAtPrice, currency: baseCurrency }
 }

@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       .select("*")
       .eq("store_id", store.id)
       .eq("type", "code")
-      .ilike("code", code.trim())
+      .ilike("code", code.trim().replace(/%/g, "\\%").replace(/_/g, "\\_"))
       .eq("is_active", true)
       .single()
 
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         .eq("discount_id", discount.id)
         .eq("customer_phone", customer_phone)
 
-      if (count && count >= discount.max_uses_per_customer) {
+      if (count != null && count >= discount.max_uses_per_customer) {
         return NextResponse.json({ valid: false, error: "per_customer_limit" })
       }
     }

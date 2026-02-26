@@ -6,7 +6,7 @@ const PAGE_SIZE = 20
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl
-    const page = parseInt(searchParams.get("page") || "0", 10)
+    const page = Math.max(0, parseInt(searchParams.get("page") || "0", 10) || 0)
     const q = searchParams.get("q") || ""
 
     const supabase = await createClient()
@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
     if (q.trim()) {
-      query = query.ilike("name", `%${q.trim()}%`)
+      const escaped = q.trim().replace(/%/g, "\\%").replace(/_/g, "\\_")
+      query = query.ilike("name", `%${escaped}%`)
     }
 
     const { data: products, error } = await query

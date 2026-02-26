@@ -2,16 +2,19 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useStoreConfig } from "@/lib/store/store-config"
 
 export function useButtonStyle(): string {
-  const [style, setStyle] = useState("filled")
+  const config = useStoreConfig()
+  const [style, setStyle] = useState(config?.buttonStyle || "filled")
 
   useEffect(() => {
+    if (config) return
     const value = document.querySelector("[data-button-style]")?.getAttribute("data-button-style") || "filled"
     setStyle(value)
-  }, [])
+  }, [config])
 
-  return style
+  return config?.buttonStyle || style
 }
 
 export function getButtonStyleProps(buttonStyle: string): React.CSSProperties {

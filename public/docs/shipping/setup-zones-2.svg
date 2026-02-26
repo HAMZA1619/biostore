@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+<defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</defs>
+<rect width="800" height="450" fill="#f4f5f7" rx="8"/><rect x="0" y="0" width="180" height="450" fill="#ffffff" rx="0"/><line x1="180" y1="0" x2="180" y2="450" stroke="#e5e7eb" stroke-width="1"/><circle cx="28" cy="67" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="71" font-size="12" fill="#6b7280" font-weight="400">Overview</text><circle cx="28" cy="103" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="107" font-size="12" fill="#6b7280" font-weight="400">Store</text><circle cx="28" cy="139" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="143" font-size="12" fill="#6b7280" font-weight="400">Design</text><circle cx="28" cy="175" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="179" font-size="12" fill="#6b7280" font-weight="400">Products</text><circle cx="28" cy="211" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="215" font-size="12" fill="#6b7280" font-weight="400">Collections</text><circle cx="28" cy="247" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="251" font-size="12" fill="#6b7280" font-weight="400">Orders</text><rect x="8" y="268" width="164" height="30" rx="6" fill="#ecfdf5"/><circle cx="28" cy="283" r="4" fill="#10b981" opacity="0.5"/><text x="42" y="287" font-size="12" fill="#10b981" font-weight="600">Shipping</text><circle cx="28" cy="319" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="323" font-size="12" fill="#6b7280" font-weight="400">Discounts</text><circle cx="28" cy="355" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="359" font-size="12" fill="#6b7280" font-weight="400">Markets</text><circle cx="28" cy="391" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="395" font-size="12" fill="#6b7280" font-weight="400">Integrations</text><circle cx="28" cy="427" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="431" font-size="12" fill="#6b7280" font-weight="400">Settings</text><rect x="180" y="0" width="620" height="44" fill="#ffffff"/><line x1="180" y1="44" x2="800" y2="44" stroke="#e5e7eb" stroke-width="1"/><text x="200" y="27" font-size="11" fill="#10b981">View store ↗</text><text x="710" y="27" font-size="10" fill="#6b7280">you@example.com</text><circle cx="776" cy="22" r="14" fill="#d1fae5"/><text x="776" y="26" font-size="9" fill="#059669" text-anchor="middle" font-weight="600">JD</text>
+<!-- Modal overlay -->
+<rect x="180" y="44" width="620" height="406" fill="#000000" opacity="0.3"/>
+<!-- Add Zone dialog -->
+<rect x="310" y="100" width="340" height="260" rx="10" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+<text x="330" y="130" font-size="16" font-weight="700" fill="#1f2937">Add Shipping Zone</text>
+<text x="330" y="160" font-size="11" fill="#6b7280">Country</text>
+<rect x="330" y="168" width="300" height="34" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<text x="342" y="189" font-size="11" fill="#1f2937">United States</text>
+<text x="618" y="189" font-size="10" fill="#9ca3af">▼</text>
+<text x="330" y="224" font-size="11" fill="#6b7280">Default delivery rate</text>
+<rect x="330" y="232" width="300" height="34" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+<text x="342" y="253" font-size="11" fill="#1f2937">5.00</text>
+<rect x="510" y="290" width="120" height="34" rx="6" fill="#10b981"/><text x="541" y="311" font-size="12" fill="#ffffff" font-weight="600">Save Zone</text>
+<rect x="330" y="290" width="80" height="34" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/><text x="352" y="311" font-size="12" fill="#6b7280">Cancel</text>
+<!-- Annotations -->
+<g class="doc-annotations">
+<rect x="326" y="164" width="308" height="42" fill="#ef4444" opacity="0.06" rx="4"/>
+<circle cx="490" cy="185" r="16" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/><rect x="504" y="170" width="90" height="17" rx="4" fill="#ef4444"/><text x="509" y="182" font-size="9" fill="#fff" font-weight="600">Pick country</text>
+<rect x="326" y="228" width="308" height="42" fill="#ef4444" opacity="0.06" rx="4"/>
+<circle cx="490" cy="249" r="16" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/><rect x="504" y="240" width="80" height="17" rx="4" fill="#ef4444"/><text x="509" y="252" font-size="9" fill="#fff" font-weight="600">Enter rate</text>
+</g>
+</svg>

@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { formatPrice, getImageUrl } from "@/lib/utils"
-import { ImageIcon, ChevronRight, Phone, Mail, LinkIcon, Clock } from "lucide-react"
+import { ArrowLeft, ImageIcon, ChevronRight, Phone, Mail, LinkIcon, Clock } from "lucide-react"
 import { T } from "@/components/dashboard/translated-text"
 import { CopyButton } from "@/components/dashboard/copy-button"
 import { FormattedDate, FormattedDateTime } from "@/components/dashboard/formatted-date"
@@ -107,7 +107,10 @@ export default async function AbandonedCheckoutDetailPage({
 
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/abandoned-checkouts" className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <h1 className="text-2xl font-bold truncate">
             {checkout.customer_name || checkout.customer_phone}
           </h1>

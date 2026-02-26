@@ -73,7 +73,7 @@ export function IntegrationEventsTable({ appName, integrationId, initialEvents, 
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/integrations"
-          className="flex h-8 w-8 items-center justify-center rounded-md border hover:bg-muted"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>

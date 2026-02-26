@@ -22,7 +22,7 @@ CREATE TABLE stores (
   description TEXT,
   design_settings JSONB NOT NULL DEFAULT '{}',
   language TEXT NOT NULL DEFAULT 'en' CHECK (language IN ('en', 'fr', 'ar')),
-  currency TEXT NOT NULL DEFAULT 'MAD',
+  currency TEXT NOT NULL DEFAULT 'USD',
   payment_methods TEXT[] DEFAULT '{cod}' CHECK (payment_methods = '{cod}'),
   is_published BOOLEAN NOT NULL DEFAULT false,
   custom_domain TEXT UNIQUE,
@@ -162,7 +162,7 @@ CREATE TABLE orders (
   note TEXT,
   ip_address TEXT,
   market_id UUID REFERENCES markets(id) ON DELETE SET NULL,
-  currency TEXT NOT NULL DEFAULT 'MAD',
+  currency TEXT NOT NULL DEFAULT 'USD',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -464,6 +464,97 @@ CREATE POLICY "Owners can delete market exclusions" ON market_exclusions
     AND stores.owner_id = (select auth.uid())
   ));
 
+-- Shipping Zones (per-country delivery fee config)
+CREATE TABLE shipping_zones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  country_code TEXT NOT NULL,
+  country_name TEXT NOT NULL,
+  default_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(store_id, country_code)
+);
+CREATE INDEX idx_shipping_zones_store ON shipping_zones(store_id);
+CREATE INDEX idx_shipping_zones_active ON shipping_zones(store_id, is_active) WHERE is_active = true;
+
+-- Shipping City Rates (per-city overrides within a zone)
+CREATE TABLE shipping_city_rates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  zone_id UUID NOT NULL REFERENCES shipping_zones(id) ON DELETE CASCADE,
+  city_name TEXT NOT NULL,
+  rate DECIMAL(10,2),
+  is_excluded BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(zone_id, city_name)
+);
+CREATE INDEX idx_shipping_city_rates_zone ON shipping_city_rates(zone_id);
+
+ALTER TABLE shipping_zones ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can view active shipping zones of published stores" ON shipping_zones
+  FOR SELECT USING (
+    is_active = true AND EXISTS (
+      SELECT 1 FROM stores WHERE stores.id = shipping_zones.store_id AND stores.is_published = true
+    )
+  );
+CREATE POLICY "Owners can view own shipping zones" ON shipping_zones
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = shipping_zones.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can insert shipping zones" ON shipping_zones
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = shipping_zones.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can update shipping zones" ON shipping_zones
+  FOR UPDATE USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = shipping_zones.store_id AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can delete shipping zones" ON shipping_zones
+  FOR DELETE USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = shipping_zones.store_id AND stores.owner_id = (select auth.uid())
+  ));
+
+ALTER TABLE shipping_city_rates ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can view city rates of published stores" ON shipping_city_rates
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM shipping_zones
+    JOIN stores ON stores.id = shipping_zones.store_id
+    WHERE shipping_zones.id = shipping_city_rates.zone_id
+    AND shipping_zones.is_active = true
+    AND stores.is_published = true
+  ));
+CREATE POLICY "Owners can view own city rates" ON shipping_city_rates
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM shipping_zones
+    JOIN stores ON stores.id = shipping_zones.store_id
+    WHERE shipping_zones.id = shipping_city_rates.zone_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can insert city rates" ON shipping_city_rates
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM shipping_zones
+    JOIN stores ON stores.id = shipping_zones.store_id
+    WHERE shipping_zones.id = shipping_city_rates.zone_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can update city rates" ON shipping_city_rates
+  FOR UPDATE USING (EXISTS (
+    SELECT 1 FROM shipping_zones
+    JOIN stores ON stores.id = shipping_zones.store_id
+    WHERE shipping_zones.id = shipping_city_rates.zone_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+CREATE POLICY "Owners can delete city rates" ON shipping_city_rates
+  FOR DELETE USING (EXISTS (
+    SELECT 1 FROM shipping_zones
+    JOIN stores ON stores.id = shipping_zones.store_id
+    WHERE shipping_zones.id = shipping_city_rates.zone_id
+    AND stores.owner_id = (select auth.uid())
+  ));
+
 -- Store Integrations (installed apps per store)
 CREATE TABLE store_integrations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -663,7 +754,7 @@ CREATE OR REPLACE FUNCTION public.upsert_abandoned_checkout(
   p_cart_items JSONB DEFAULT '[]',
   p_subtotal DECIMAL DEFAULT 0,
   p_total DECIMAL DEFAULT 0,
-  p_currency TEXT DEFAULT 'MAD'
+  p_currency TEXT DEFAULT 'USD'
 ) RETURNS UUID AS $$
 DECLARE v_id UUID;
 BEGIN

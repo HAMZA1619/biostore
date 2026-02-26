@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator"
 import { formatPrice } from "@/lib/utils"
 import { OrderStatusSelect } from "@/components/dashboard/order-status-select"
 import {
+  ArrowLeft,
   ImageIcon,
   ChevronRight,
   Phone,
@@ -67,7 +68,10 @@ export default async function OrderDetailPage({
 
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard/orders" className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <h1 className="text-2xl font-bold">#{order.order_number}</h1>
           <OrderStatusSelect orderId={order.id} status={order.status} />
         </div>

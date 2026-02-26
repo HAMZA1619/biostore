@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+<defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</defs>
+<rect width="800" height="450" fill="#f4f5f7" rx="8"/><rect x="0" y="0" width="180" height="450" fill="#ffffff" rx="0"/><line x1="180" y1="0" x2="180" y2="450" stroke="#e5e7eb" stroke-width="1"/><circle cx="28" cy="67" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="71" font-size="12" fill="#6b7280" font-weight="400">Overview</text><circle cx="28" cy="103" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="107" font-size="12" fill="#6b7280" font-weight="400">Store</text><circle cx="28" cy="139" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="143" font-size="12" fill="#6b7280" font-weight="400">Design</text><circle cx="28" cy="175" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="179" font-size="12" fill="#6b7280" font-weight="400">Products</text><circle cx="28" cy="211" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="215" font-size="12" fill="#6b7280" font-weight="400">Collections</text><circle cx="28" cy="247" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="251" font-size="12" fill="#6b7280" font-weight="400">Orders</text><rect x="8" y="268" width="164" height="30" rx="6" fill="#ecfdf5"/><circle cx="28" cy="283" r="4" fill="#10b981" opacity="0.5"/><text x="42" y="287" font-size="12" fill="#10b981" font-weight="600">Shipping</text><circle cx="28" cy="319" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="323" font-size="12" fill="#6b7280" font-weight="400">Discounts</text><circle cx="28" cy="355" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="359" font-size="12" fill="#6b7280" font-weight="400">Markets</text><circle cx="28" cy="391" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="395" font-size="12" fill="#6b7280" font-weight="400">Integrations</text><circle cx="28" cy="427" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="431" font-size="12" fill="#6b7280" font-weight="400">Settings</text><rect x="180" y="0" width="620" height="44" fill="#ffffff"/><line x1="180" y1="44" x2="800" y2="44" stroke="#e5e7eb" stroke-width="1"/><text x="200" y="27" font-size="11" fill="#10b981">View store ↗</text><text x="710" y="27" font-size="10" fill="#6b7280">you@example.com</text><circle cx="776" cy="22" r="14" fill="#d1fae5"/><text x="776" y="26" font-size="9" fill="#059669" text-anchor="middle" font-weight="600">JD</text><text x="210" y="80" font-size="20" font-weight="700" fill="#1f2937">Shipping</text><rect x="640" y="62" width="120" height="32" rx="6" fill="#10b981"/><text x="670" y="82" font-size="11" fill="#ffffff" font-weight="600">+ Add Zone</text>
+<!-- Expanded zone card -->
+<rect x="210" y="110" width="560" height="310" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+<text x="230" y="137" font-size="13" font-weight="600" fill="#1f2937">▾ France</text>
+<text x="310" y="137" font-size="11" fill="#6b7280">Default rate: €7.50</text>
+<rect x="680" y="120" width="36" height="20" rx="10" fill="#10b981"/><circle cx="702" cy="130" r="8" fill="#ffffff"/>
+<text x="748" y="134" font-size="14" fill="#9ca3af">⋯</text>
+<!-- City overrides header -->
+<text x="230" y="170" font-size="12" font-weight="600" fill="#1f2937">City Overrides</text>
+<rect x="610" y="155" width="80" height="26" rx="5" fill="#ffffff" stroke="#10b981" stroke-width="1"/><text x="623" y="172" font-size="10" fill="#10b981" font-weight="500">+ Add City</text>
+<rect x="700" y="155" width="55" height="26" rx="5" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/><text x="714" y="172" font-size="10" fill="#6b7280">Bulk</text>
+<!-- Table header -->
+<rect x="230" y="190" width="520" height="26" rx="0" fill="#f9fafb"/>
+<text x="240" y="207" font-size="10" font-weight="500" fill="#6b7280">City</text>
+<text x="440" y="207" font-size="10" font-weight="500" fill="#6b7280">Rate</text>
+<text x="560" y="207" font-size="10" font-weight="500" fill="#6b7280">Status</text>
+<text x="690" y="207" font-size="10" font-weight="500" fill="#6b7280">Actions</text>
+<!-- Row 1 -->
+<line x1="230" y1="240" x2="750" y2="240" stroke="#f0f0f0" stroke-width="1"/>
+<text x="240" y="234" font-size="11" fill="#1f2937">Paris</text>
+<text x="440" y="234" font-size="11" fill="#1f2937">€5.00</text>
+<rect x="558" y="222" width="55" height="18" rx="9" fill="#d1fae5"/><text x="566" y="234" font-size="9" fill="#059669">Custom</text>
+<text x="700" y="234" font-size="11" fill="#ef4444">✕</text>
+<!-- Row 2 -->
+<line x1="230" y1="268" x2="750" y2="268" stroke="#f0f0f0" stroke-width="1"/>
+<text x="240" y="262" font-size="11" fill="#1f2937">Lyon</text>
+<text x="440" y="262" font-size="11" fill="#1f2937">€6.00</text>
+<rect x="558" y="250" width="55" height="18" rx="9" fill="#d1fae5"/><text x="566" y="262" font-size="9" fill="#059669">Custom</text>
+<text x="700" y="262" font-size="11" fill="#ef4444">✕</text>
+<!-- Row 3 - excluded -->
+<line x1="230" y1="296" x2="750" y2="296" stroke="#f0f0f0" stroke-width="1"/>
+<text x="240" y="290" font-size="11" fill="#1f2937">Corsica</text>
+<text x="440" y="290" font-size="11" fill="#9ca3af">—</text>
+<rect x="558" y="278" width="62" height="18" rx="9" fill="#fee2e2"/><text x="565" y="290" font-size="9" fill="#dc2626">Excluded</text>
+<text x="700" y="290" font-size="11" fill="#ef4444">✕</text>
+<!-- No city overrides note -->
+<text x="240" y="320" font-size="10" fill="#9ca3af">All other cities use the default rate (€7.50)</text>
+<!-- Annotations -->
+<g class="doc-annotations">
+<rect x="226" y="218" width="528" height="84" fill="#ef4444" opacity="0.06" rx="4"/>
+<rect x="440" y="300" width="100" height="17" rx="4" fill="#ef4444"/><text x="445" y="312" font-size="9" fill="#fff" font-weight="600">City overrides</text>
+</g>
+</svg>

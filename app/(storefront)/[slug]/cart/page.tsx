@@ -23,6 +23,7 @@ import { useMarket } from "@/lib/hooks/use-market"
 import { usePixel } from "@/lib/hooks/use-pixel"
 import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
+import { useStoreConfig } from "@/lib/store/store-config"
 import Script from "next/script"
 import "@/lib/i18n"
 
@@ -47,6 +48,11 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
   const [hasDiscounts, setHasDiscounts] = useState(false)
+  const [deliveryFee, setDeliveryFee] = useState<number | null>(null)
+  const [deliveryLoading, setDeliveryLoading] = useState(false)
+  const [deliveryExcluded, setDeliveryExcluded] = useState(false)
+  const [hasShipping, setHasShipping] = useState(false)
+  const [availableCities, setAvailableCities] = useState<string[]>([])
 
   const [form, setForm] = useState({
     customer_name: "",
@@ -67,6 +73,7 @@ export default function CartPage() {
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (!data) return
+        const activeMarketSlug = document.querySelector("[data-market-slug]")?.getAttribute("data-market-slug") || null
         useCartStore.setState({
           items: (data.cart_items || []).map((item: { product_id?: string; variant_id?: string | null; product_name: string; product_price: number; quantity: number; variant_options?: string | null; image_url?: string | null }) => ({
             productId: item.product_id || item.product_name,
@@ -78,6 +85,7 @@ export default function CartPage() {
             imageUrl: item.image_url || null,
           })),
           storeSlug: slug,
+          marketSlug: activeMarketSlug,
           appliedDiscount: null,
         })
         setForm((prev) => ({
@@ -142,23 +150,13 @@ export default function CartPage() {
     }).catch(() => {})
   }, [slug, form, items, getTotal, getDiscountedTotal, market])
 
-  const [showFields, setShowFields] = useState({
-    email: true,
-    country: true,
-    city: true,
-    note: true,
-  })
-
-  useEffect(() => {
-    const el = document.querySelector("[data-theme]")
-    if (!el) return
-    setShowFields({
-      email: el.getAttribute("data-show-email") !== "false",
-      country: el.getAttribute("data-show-country") !== "false",
-      city: el.getAttribute("data-show-city") !== "false",
-      note: el.getAttribute("data-show-note") !== "false",
-    })
-  }, [])
+  const storeConfig = useStoreConfig()
+  const showFields = {
+    email: storeConfig?.showEmail ?? true,
+    country: storeConfig?.showCountry ?? true,
+    city: storeConfig?.showCity ?? true,
+    note: storeConfig?.showNote ?? true,
+  }
 
   useEffect(() => {
     if (items.length === 0) return
@@ -178,8 +176,8 @@ export default function CartPage() {
   // Check if store has active discounts
   useEffect(() => {
     fetch(`/api/discounts/validate?slug=${slug}`)
-      .then((r) => r.json())
-      .then((d) => setHasDiscounts(d.has_discounts))
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d) setHasDiscounts(d.has_discounts) })
       .catch(() => {})
   }, [slug])
 
@@ -196,6 +194,39 @@ export default function CartPage() {
       })
       .catch(() => {})
   }, [])
+
+  // Debounced shipping rate lookup when country/city changes
+  useEffect(() => {
+    if (!form.customer_country) {
+      setDeliveryFee(null)
+      setHasShipping(false)
+      setDeliveryExcluded(false)
+      setAvailableCities([])
+      return
+    }
+    setDeliveryLoading(true)
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ slug, country: form.customer_country })
+        if (form.customer_city) params.set("city", form.customer_city)
+        const res = await fetch(`/api/shipping/lookup?${params}`)
+        if (!res.ok) throw new Error("lookup failed")
+        const data = await res.json()
+        setHasShipping(data.has_shipping)
+        setDeliveryExcluded(data.excluded || false)
+        setDeliveryFee(data.excluded ? null : (data.delivery_fee ?? null))
+        if (data.cities) setAvailableCities(data.cities)
+      } catch {
+        setDeliveryFee(null)
+        setHasShipping(false)
+        setDeliveryExcluded(false)
+        setAvailableCities([])
+      } finally {
+        setDeliveryLoading(false)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [form.customer_country, form.customer_city, slug])
 
   // Debounced re-save checkout session when form/cart changes
   useEffect(() => {
@@ -232,8 +263,8 @@ export default function CartPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ slug, code: appliedDiscount.code, subtotal }),
         })
-          .then((r) => r.json())
-          .then((d) => { if (!d.valid) setDiscount(null) })
+          .then((r) => r.ok ? r.json() : null)
+          .then((d) => { if (d && !d.valid) setDiscount(null) })
           .catch(() => {})
       }
     }
@@ -296,6 +327,10 @@ export default function CartPage() {
       toast.error(t("storefront.fillRequired"))
       return
     }
+    if (deliveryExcluded) {
+      toast.error(t("storefront.deliveryNotAvailable"))
+      return
+    }
 
     setLoading(true)
 
@@ -318,6 +353,7 @@ export default function CartPage() {
           payment_method: "cod",
           discount_code: appliedDiscount?.code || undefined,
           market_id: market?.id || undefined,
+          delivery_fee: deliveryFee || 0,
           items: items.map((i) => ({
             product_id: i.productId,
             variant_id: i.variantId || null,
@@ -471,9 +507,24 @@ export default function CartPage() {
             <span>-{formatPriceSymbol(appliedDiscount.discountAmount, currency)}</span>
           </div>
         )}
+        {deliveryLoading && (
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{t("storefront.deliveryFee")}</span>
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        )}
+        {!deliveryLoading && hasShipping && deliveryFee !== null && (
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{t("storefront.deliveryFee")}</span>
+            <span>{deliveryFee === 0 ? t("storefront.freeDelivery") : formatPriceSymbol(deliveryFee, currency)}</span>
+          </div>
+        )}
+        {!deliveryLoading && deliveryExcluded && (
+          <p className="text-sm text-destructive">{t("storefront.deliveryNotAvailable")}</p>
+        )}
         <div className="flex justify-between text-lg font-bold">
           <span>{t("storefront.total")}</span>
-          <span>{formatPriceSymbol(getDiscountedTotal(), currency)}</span>
+          <span>{formatPriceSymbol(getDiscountedTotal() + (deliveryFee || 0), currency)}</span>
         </div>
       </div>
 
@@ -531,10 +582,10 @@ export default function CartPage() {
         {showFields.city && (
           <div className="space-y-2">
             <Label htmlFor="city">{t("storefront.city")}</Label>
-            <Input
-              id="city"
+            <CityAutocomplete
               value={form.customer_city}
-              onChange={(e) => setForm({ ...form, customer_city: e.target.value })}
+              onChange={(v) => setForm({ ...form, customer_city: v })}
+              cities={availableCities}
               placeholder={t("storefront.cityPlaceholder")}
               required
             />
@@ -654,5 +705,62 @@ function CountryCombobox({
         </Command>
       </PopoverContent>
     </Popover>
+  )
+}
+
+function CityAutocomplete({
+  value,
+  onChange,
+  cities,
+  placeholder,
+  required,
+}: {
+  value: string
+  onChange: (value: string) => void
+  cities: string[]
+  placeholder: string
+  required?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+
+  const filtered = cities.filter((c) =>
+    c.toLowerCase().includes(value.toLowerCase())
+  )
+
+  const exactMatch = filtered.length === 1 && filtered[0].toLowerCase() === value.toLowerCase()
+  const showDropdown = open && filtered.length > 0 && !exactMatch
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        placeholder={placeholder}
+        required={required}
+        autoComplete="off"
+      />
+      {showDropdown && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+          <div className="max-h-48 overflow-y-auto p-1">
+            {filtered.map((city) => (
+              <button
+                key={city}
+                type="button"
+                className="w-full rounded-sm px-2 py-1.5 text-start text-sm hover:bg-accent hover:text-accent-foreground"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onChange(city)
+                  setOpen(false)
+                }}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

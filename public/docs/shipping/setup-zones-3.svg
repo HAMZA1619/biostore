@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+<defs>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+</defs>
+<rect width="800" height="450" fill="#f4f5f7" rx="8"/><rect x="0" y="0" width="180" height="450" fill="#ffffff" rx="0"/><line x1="180" y1="0" x2="180" y2="450" stroke="#e5e7eb" stroke-width="1"/><circle cx="28" cy="67" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="71" font-size="12" fill="#6b7280" font-weight="400">Overview</text><circle cx="28" cy="103" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="107" font-size="12" fill="#6b7280" font-weight="400">Store</text><circle cx="28" cy="139" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="143" font-size="12" fill="#6b7280" font-weight="400">Design</text><circle cx="28" cy="175" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="179" font-size="12" fill="#6b7280" font-weight="400">Products</text><circle cx="28" cy="211" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="215" font-size="12" fill="#6b7280" font-weight="400">Collections</text><circle cx="28" cy="247" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="251" font-size="12" fill="#6b7280" font-weight="400">Orders</text><rect x="8" y="268" width="164" height="30" rx="6" fill="#ecfdf5"/><circle cx="28" cy="283" r="4" fill="#10b981" opacity="0.5"/><text x="42" y="287" font-size="12" fill="#10b981" font-weight="600">Shipping</text><circle cx="28" cy="319" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="323" font-size="12" fill="#6b7280" font-weight="400">Discounts</text><circle cx="28" cy="355" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="359" font-size="12" fill="#6b7280" font-weight="400">Markets</text><circle cx="28" cy="391" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="395" font-size="12" fill="#6b7280" font-weight="400">Integrations</text><circle cx="28" cy="427" r="4" fill="#6b7280" opacity="0.5"/><text x="42" y="431" font-size="12" fill="#6b7280" font-weight="400">Settings</text><rect x="180" y="0" width="620" height="44" fill="#ffffff"/><line x1="180" y1="44" x2="800" y2="44" stroke="#e5e7eb" stroke-width="1"/><text x="200" y="27" font-size="11" fill="#10b981">View store ↗</text><text x="710" y="27" font-size="10" fill="#6b7280">you@example.com</text><circle cx="776" cy="22" r="14" fill="#d1fae5"/><text x="776" y="26" font-size="9" fill="#059669" text-anchor="middle" font-weight="600">JD</text><text x="210" y="80" font-size="20" font-weight="700" fill="#1f2937">Shipping</text><rect x="640" y="62" width="120" height="32" rx="6" fill="#10b981"/><text x="670" y="82" font-size="11" fill="#ffffff" font-weight="600">+ Add Zone</text>
+<!-- Zone card 1 -->
+<rect x="210" y="110" width="560" height="70" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+<text x="230" y="137" font-size="13" font-weight="600" fill="#1f2937">United States</text>
+<text x="230" y="157" font-size="11" fill="#6b7280">Default rate: $5.00</text>
+<text x="500" y="137" font-size="10" fill="#6b7280">0 city overrides</text>
+<!-- Active toggle -->
+<rect x="680" y="128" width="36" height="20" rx="10" fill="#10b981"/><circle cx="702" cy="138" r="8" fill="#ffffff"/>
+<text x="660" y="162" font-size="9" fill="#10b981" text-anchor="middle">Active</text>
+<text x="748" y="142" font-size="14" fill="#9ca3af">⋯</text>
+<!-- Zone card 2 -->
+<rect x="210" y="194" width="560" height="70" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+<text x="230" y="221" font-size="13" font-weight="600" fill="#1f2937">France</text>
+<text x="230" y="241" font-size="11" fill="#6b7280">Default rate: €7.50</text>
+<text x="500" y="221" font-size="10" fill="#6b7280">3 city overrides</text>
+<rect x="680" y="212" width="36" height="20" rx="10" fill="#10b981"/><circle cx="702" cy="222" r="8" fill="#ffffff"/>
+<text x="660" y="246" font-size="9" fill="#10b981" text-anchor="middle">Active</text>
+<text x="748" y="226" font-size="14" fill="#9ca3af">⋯</text>
+<!-- Zone card 3 - inactive -->
+<rect x="210" y="278" width="560" height="70" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1" opacity="0.7"/>
+<text x="230" y="305" font-size="13" font-weight="600" fill="#9ca3af">Germany</text>
+<text x="230" y="325" font-size="11" fill="#9ca3af">Default rate: €8.00</text>
+<text x="500" y="305" font-size="10" fill="#9ca3af">0 city overrides</text>
+<rect x="680" y="296" width="36" height="20" rx="10" fill="#d1d5db"/><circle cx="694" cy="306" r="8" fill="#ffffff"/>
+<text x="660" y="330" font-size="9" fill="#9ca3af" text-anchor="middle">Inactive</text>
+<text x="748" y="310" font-size="14" fill="#9ca3af">⋯</text>
+<!-- Annotations -->
+<g class="doc-annotations">
+<circle cx="698" cy="138" r="22" fill="#ef4444" opacity="0.08"/><circle cx="698" cy="138" r="22" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 2"/><rect x="720" y="122" width="52" height="17" rx="4" fill="#ef4444"/><text x="725" y="134" font-size="9" fill="#fff" font-weight="600">Toggle</text>
+</g>
+</svg>

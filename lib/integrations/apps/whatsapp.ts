@@ -38,6 +38,7 @@ interface EventPayload {
   subtotal?: number
   discount_id?: string | null
   discount_amount?: number
+  delivery_fee?: number
   status?: string
   old_status?: string
   new_status?: string
@@ -156,12 +157,15 @@ async function generateAIMessage(
     const subtotalLine = payload.subtotal != null && payload.discount_amount && payload.discount_amount > 0
       ? `\nSubtotal: ${payload.subtotal} ${currency}`
       : ""
+    const deliveryLine = payload.delivery_fee && payload.delivery_fee > 0
+      ? `\nDelivery fee: ${payload.delivery_fee} ${currency}`
+      : ""
 
     context = `Event: New order placed
 Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
-${addressParts || "Address: Not provided"}${subtotalLine}${discountLine}
+${addressParts || "Address: Not provided"}${subtotalLine}${discountLine}${deliveryLine}
 Total: ${payload.total} ${currency}
 Items ordered:
 ${itemsList}`
@@ -222,10 +226,11 @@ Rules:
   5. Each item on its own line with quantity and price.
   6. Blank line.
   7. If a discount was applied, show subtotal, discount, then total. Otherwise just show total.
-  8. Blank line.
-  9. Delivery details: address and country (include city only if provided).
-  10. Blank line.
-  11. A short closing.
+  8. If a delivery fee is provided, show it before the total.
+  9. Blank line.
+  10. Delivery details: address and country (include city only if provided).
+  11. Blank line.
+  12. A short closing.
 - Keep it concise — sound like a real person, not a robot.
 - Vary your wording naturally each time.
 - Do NOT include links, emojis, or placeholder text.
@@ -348,6 +353,9 @@ export function buildWhatsAppMessage(
     if (payload.discount_amount && payload.discount_amount > 0 && payload.subtotal != null) {
       lines.push(`Subtotal: ${payload.subtotal} ${currency}`)
       lines.push(`Discount: -${payload.discount_amount} ${currency}`)
+    }
+    if (payload.delivery_fee && payload.delivery_fee > 0) {
+      lines.push(`Delivery fee: ${payload.delivery_fee} ${currency}`)
     }
     lines.push(`*Total: ${payload.total} ${currency}*`)
 

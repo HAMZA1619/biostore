@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation"
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Globe, Loader2, Plus, Trash2, Wand2 } from "lucide-react"
+import { ArrowLeft, Globe, Loader2, Plus, Trash2, Wand2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -357,6 +357,9 @@ export function ProductForm({ storeId, currency, title, initialData, initialVari
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-1 sm:px-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" size="icon-sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <h1 className="text-xl font-bold sm:text-2xl">{t(title)}</h1>
           <Select
             value={watch("status")}

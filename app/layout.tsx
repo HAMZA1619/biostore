@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://biostore.app"
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {

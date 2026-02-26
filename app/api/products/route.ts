@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { resolveImageUrls } from "@/lib/storefront/cache"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
+import { getExchangeRate } from "@/lib/market/exchange-rates"
 
 const PAGE_SIZE = 12
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const storeId = searchParams.get("store_id")
     const collectionId = searchParams.get("collection_id")
     const search = searchParams.get("search")
-    const page = parseInt(searchParams.get("page") || "0", 10)
+    const page = Math.max(0, parseInt(searchParams.get("page") || "0", 10) || 0)
     const marketId = searchParams.get("market_id")
 
     if (!storeId) {
@@ -34,10 +35,16 @@ export async function GET(request: NextRequest) {
         .single()
 
       if (market && market.store_id === storeId) {
+        const { data: sd } = await supabase.from("stores").select("currency").eq("id", storeId).single()
+        const baseCur = sd?.currency || "USD"
+        const rate = market.pricing_mode === "auto"
+          ? await getExchangeRate(baseCur, market.currency)
+          : 1
         activeMarket = {
           id: market.id,
           currency: market.currency,
           pricing_mode: market.pricing_mode as "fixed" | "auto",
+          exchange_rate: rate,
           price_adjustment: Number(market.price_adjustment),
         }
 
@@ -63,11 +70,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.ilike("name", `%${search}%`)
+      const escaped = search.replace(/%/g, "\\%").replace(/_/g, "\\_")
+      query = query.ilike("name", `%${escaped}%`)
     }
 
     if (excludedProductIds.length > 0) {
-      query = query.not("id", "in", `(${excludedProductIds.join(",")})`)
+      query = query.not("id", "in", `(${excludedProductIds.map((id) => `"${id}"`).join(",")})`)
     }
 
     const { data: rawProducts, error } = await query
@@ -76,7 +84,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
     }
 
-    let storeCurrency = "MAD"
+    let storeCurrency = "USD"
     let marketPricesMap = new Map<string, { price: number; compare_at_price: number | null }>()
 
     if (activeMarket?.pricing_mode === "fixed" && rawProducts && rawProducts.length > 0) {
@@ -116,7 +124,7 @@ export async function GET(request: NextRequest) {
       // Apply market auto-adjustment to variant display prices ("From X")
       const adjustedVariants = activeMarket?.pricing_mode === "auto" && p.product_variants?.length
         ? p.product_variants.map((v: { price: number }) => ({
-            price: Math.round(v.price * (1 + activeMarket.price_adjustment / 100) * 100) / 100,
+            price: Math.round(v.price * activeMarket.exchange_rate * (1 + activeMarket.price_adjustment / 100) * 100) / 100,
           }))
         : p.product_variants
       return {

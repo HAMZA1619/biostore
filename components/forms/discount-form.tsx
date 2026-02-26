@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getCurrencySymbol } from "@/lib/utils"
+import { cn, getCurrencySymbol } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { Loader2, RefreshCw } from "lucide-react"
+import { ArrowLeft, Loader2, RefreshCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -62,7 +62,8 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
+    reset,
   } = useForm<DiscountFormData>({
     resolver: zodResolver(discountSchema),
     defaultValues: {
@@ -73,14 +74,26 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
       minimum_order_amount: initialData?.minimum_order_amount ?? undefined,
       max_uses: initialData?.max_uses ?? undefined,
       max_uses_per_customer: initialData?.max_uses_per_customer ?? undefined,
-      starts_at: initialData?.starts_at ? initialData.starts_at.slice(0, 10) : null,
-      ends_at: initialData?.ends_at ? initialData.ends_at.slice(0, 10) : null,
+      starts_at: initialData?.starts_at ? initialData.starts_at.slice(0, 16) : null,
+      ends_at: initialData?.ends_at ? initialData.ends_at.slice(0, 16) : null,
       is_active: initialData?.is_active ?? true,
     },
   })
 
   const discountType = watch("discount_type")
   const isActive = watch("is_active")
+
+  const hasChanges = isDirty
+    || showDates !== !!(initialData?.starts_at || initialData?.ends_at)
+    || showLimit !== !!initialData?.max_uses
+    || oneTimePerUser !== (initialData?.max_uses_per_customer === 1)
+
+  function handleCancel() {
+    reset()
+    setShowDates(!!(initialData?.starts_at || initialData?.ends_at))
+    setShowLimit(!!initialData?.max_uses)
+    setOneTimePerUser(initialData?.max_uses_per_customer === 1)
+  }
 
   async function onSubmit(data: DiscountFormData) {
     setLoading(true)
@@ -118,24 +131,54 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
-          {isEdit ? t("discountForm.editDiscount") : t("discountForm.newDiscount")}
-        </h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 px-1 sm:px-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <Label htmlFor="is_active" className="text-sm text-muted-foreground">
-            {t("discountForm.active")}
-          </Label>
-          <Switch
-            id="is_active"
-            checked={isActive}
-            onCheckedChange={(v) => setValue("is_active", v)}
-          />
+          <Button type="button" variant="ghost" size="icon-sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-bold sm:text-2xl">
+            {isEdit ? t("discountForm.editDiscount") : t("discountForm.newDiscount")}
+          </h1>
+          <Select
+            value={isActive ? "active" : "draft"}
+            onValueChange={(v) => setValue("is_active", v === "active", { shouldDirty: true })}
+          >
+            <SelectTrigger
+              size="sm"
+              className={cn(
+                "h-7 gap-1.5 rounded-full px-2.5 text-xs font-medium shadow-none",
+                isActive
+                  ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                  : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+              )}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">
+                <span className="h-2 w-2 rounded-full bg-green-500" />
+                {t("products.statusActive")}
+              </SelectItem>
+              <SelectItem value="draft">
+                <span className="h-2 w-2 rounded-full bg-red-400" />
+                {t("products.statusDraft")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {isEdit && hasChanges && (
+            <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
+              {t("discountForm.cancel")}
+            </Button>
+          )}
+          <Button type="submit" size="sm" disabled={loading || (isEdit && !hasChanges)}>
+            {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+            {isEdit ? t("discountForm.updateDiscount") : t("discountForm.createDiscount")}
+          </Button>
         </div>
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Label */}
         <div className="space-y-2">
           <Label htmlFor="label">{t("discountForm.label")}</Label>
@@ -172,14 +215,14 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
         </div>
 
         {/* Type + Value */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="flex gap-4">
+          <div className="space-y-2 shrink-0">
             <Label>{t("discountForm.discountType")}</Label>
             <Select
               value={discountType}
-              onValueChange={(v) => setValue("discount_type", v as "percentage" | "fixed")}
+              onValueChange={(v) => setValue("discount_type", v as "percentage" | "fixed", { shouldDirty: true })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-auto">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -188,7 +231,7 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1">
             <Label htmlFor="discount_value">{t("discountForm.value")}</Label>
             <div className="relative">
               <Input
@@ -219,7 +262,16 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
               <Switch
                 id="show_dates"
                 checked={showDates}
-                onCheckedChange={setShowDates}
+                onCheckedChange={(v) => {
+                  setShowDates(v)
+                  if (v && !watch("starts_at")) {
+                    const now = new Date()
+                    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+                    const fmt = (d: Date) => d.toISOString().slice(0, 16)
+                    setValue("starts_at", fmt(now), { shouldDirty: true })
+                    setValue("ends_at", fmt(tomorrow), { shouldDirty: true })
+                  }
+                }}
               />
             </div>
             {showDates && (
@@ -230,7 +282,7 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
                   </Label>
                   <Input
                     id="starts_at"
-                    type="date"
+                    type="datetime-local"
                     {...register("starts_at")}
                   />
                 </div>
@@ -240,7 +292,7 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
                   </Label>
                   <Input
                     id="ends_at"
-                    type="date"
+                    type="datetime-local"
                     {...register("ends_at")}
                   />
                 </div>
@@ -289,17 +341,6 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="flex gap-3 pt-2">
-          <Button type="submit" disabled={loading}>
-            {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-            {isEdit ? t("discountForm.updateDiscount") : t("discountForm.createDiscount")}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            {t("discountForm.cancel")}
-          </Button>
-        </div>
-      </form>
-    </div>
+    </form>
   )
 }

@@ -83,6 +83,16 @@ export const CATEGORIES: DocCategory[] = [
     icon: "ShoppingCart",
   },
   {
+    slug: "shipping",
+    title: { en: "Shipping", ar: "الشحن", fr: "Livraison" },
+    description: {
+      en: "Configure delivery fees by country and city.",
+      ar: "اضبط رسوم التوصيل حسب البلد والمدينة.",
+      fr: "Configurez les frais de livraison par pays et par ville.",
+    },
+    icon: "Truck",
+  },
+  {
     slug: "markets",
     title: { en: "Markets", ar: "الأسواق", fr: "Marchés" },
     description: {
@@ -545,6 +555,153 @@ export const ARTICLES: DocArticle[] = [
           fr: "Utilisez le menu déroulant de statut sur la page de détails pour suivre la progression du traitement. Les statuts disponibles sont : En attente (nouvelle commande, pas encore traitée), Confirmée (vous avez accepté et préparez la commande), Expédiée (la commande est en route vers le client) et Livrée (le client a reçu sa commande). Mettre à jour le statut vous aide à rester organisé et tient les clients informés si les notifications WhatsApp sont activées.",
         },
         image: "/docs/orders/view-orders-3.svg",
+      },
+    ],
+  },
+
+  // ── Shipping ─────────────────────────────────────────────────────────
+  {
+    slug: "setup-zones",
+    category: "shipping",
+    title: {
+      en: "Setting up shipping zones",
+      ar: "إعداد مناطق الشحن",
+      fr: "Configurer les zones de livraison",
+    },
+    description: {
+      en: "Create shipping zones with default delivery rates for each country.",
+      ar: "أنشئ مناطق شحن بأسعار توصيل افتراضية لكل بلد.",
+      fr: "Créez des zones de livraison avec des tarifs par défaut pour chaque pays.",
+    },
+    steps: [
+      {
+        title: {
+          en: "Open the Shipping page",
+          ar: "افتح صفحة الشحن",
+          fr: "Ouvrez la page Livraison",
+        },
+        description: {
+          en: "Click \"Shipping\" in the dashboard sidebar. This page lists all your shipping zones — one per country. If you haven't created any zones yet, you'll see an empty state with a button to add your first zone.",
+          ar: "انقر على \"الشحن\" في الشريط الجانبي للوحة التحكم. تعرض هذه الصفحة جميع مناطق الشحن — واحدة لكل بلد. إذا لم تنشئ أي مناطق بعد، سترى حالة فارغة مع زر لإضافة أول منطقة.",
+          fr: "Cliquez sur « Livraison » dans la barre latérale du tableau de bord. Cette page liste toutes vos zones de livraison — une par pays. Si vous n'avez pas encore créé de zone, vous verrez un état vide avec un bouton pour ajouter votre première zone.",
+        },
+        image: "/docs/shipping/setup-zones-1.svg",
+      },
+      {
+        title: {
+          en: "Add a shipping zone",
+          ar: "أضف منطقة شحن",
+          fr: "Ajoutez une zone de livraison",
+        },
+        description: {
+          en: "Click \"Add Zone\" and select a country from the dropdown. Enter the default delivery rate — this is the fee charged to customers in that country unless overridden at the city level. Click save to create the zone.",
+          ar: "انقر على \"إضافة منطقة\" واختر بلداً من القائمة. أدخل سعر التوصيل الافتراضي — هذا هو الرسم المفروض على العملاء في ذلك البلد ما لم يتم تعديله على مستوى المدينة. انقر حفظ لإنشاء المنطقة.",
+          fr: "Cliquez sur « Ajouter une zone » et sélectionnez un pays dans la liste. Entrez le tarif de livraison par défaut — c'est le frais facturé aux clients de ce pays sauf s'il est remplacé au niveau de la ville. Cliquez sur enregistrer pour créer la zone.",
+        },
+        image: "/docs/shipping/setup-zones-2.svg",
+      },
+      {
+        title: {
+          en: "Toggle zone active or inactive",
+          ar: "تفعيل أو تعطيل المنطقة",
+          fr: "Activer ou désactiver la zone",
+        },
+        description: {
+          en: "Each zone has an active toggle. When a zone is inactive, customers from that country won't see any delivery fee and the zone is ignored at checkout. This is useful for temporarily pausing delivery to a country without deleting the zone and its city overrides.",
+          ar: "لكل منطقة زر تفعيل. عندما تكون المنطقة غير مفعلة، لن يرى العملاء من ذلك البلد أي رسوم توصيل وسيتم تجاهل المنطقة عند الدفع. هذا مفيد لإيقاف التوصيل مؤقتاً إلى بلد دون حذف المنطقة وتعديلات المدن.",
+          fr: "Chaque zone a un bouton d'activation. Lorsqu'une zone est inactive, les clients de ce pays ne verront aucun frais de livraison et la zone est ignorée lors du paiement. C'est utile pour suspendre temporairement la livraison vers un pays sans supprimer la zone et ses ajustements de villes.",
+        },
+        image: "/docs/shipping/setup-zones-3.svg",
+      },
+      {
+        title: {
+          en: "Edit or delete zones",
+          ar: "تعديل أو حذف المناطق",
+          fr: "Modifier ou supprimer des zones",
+        },
+        description: {
+          en: "You can update the default rate of any zone at any time. To remove a zone entirely, click the delete button — this will also remove all city-level overrides for that zone. If you set a zone's default rate to 0, customers in that country will see \"Free delivery\" at checkout.",
+          ar: "يمكنك تحديث السعر الافتراضي لأي منطقة في أي وقت. لحذف منطقة بالكامل، انقر زر الحذف — سيؤدي هذا أيضاً إلى إزالة جميع تعديلات المدن لتلك المنطقة. إذا ضبطت السعر الافتراضي للمنطقة على 0، سيرى العملاء في ذلك البلد \"توصيل مجاني\" عند الدفع.",
+          fr: "Vous pouvez modifier le tarif par défaut d'une zone à tout moment. Pour supprimer une zone entièrement, cliquez sur le bouton supprimer — cela supprimera aussi tous les ajustements de villes pour cette zone. Si vous mettez le tarif par défaut à 0, les clients de ce pays verront « Livraison gratuite » au moment du paiement.",
+        },
+      },
+    ],
+  },
+  {
+    slug: "city-rates",
+    category: "shipping",
+    title: {
+      en: "City-level delivery rates",
+      ar: "أسعار التوصيل حسب المدينة",
+      fr: "Tarifs de livraison par ville",
+    },
+    description: {
+      en: "Override delivery fees for specific cities or exclude cities from delivery.",
+      ar: "عدّل رسوم التوصيل لمدن محددة أو استثنِ مدناً من التوصيل.",
+      fr: "Remplacez les frais de livraison pour des villes spécifiques ou excluez des villes de la livraison.",
+    },
+    steps: [
+      {
+        title: {
+          en: "Expand a shipping zone",
+          ar: "وسّع منطقة الشحن",
+          fr: "Développez une zone de livraison",
+        },
+        description: {
+          en: "Click on any shipping zone to expand it and see its city-level overrides. By default, all cities in a zone use the zone's default rate. You can add individual city overrides to charge different rates or block delivery to specific cities.",
+          ar: "انقر على أي منطقة شحن لتوسيعها ورؤية تعديلات المدن. بشكل افتراضي، جميع المدن في المنطقة تستخدم السعر الافتراضي للمنطقة. يمكنك إضافة تعديلات لمدن معينة لتحصيل أسعار مختلفة أو حظر التوصيل لمدن محددة.",
+          fr: "Cliquez sur une zone de livraison pour la développer et voir ses ajustements de villes. Par défaut, toutes les villes d'une zone utilisent le tarif par défaut. Vous pouvez ajouter des ajustements individuels pour facturer des tarifs différents ou bloquer la livraison vers des villes spécifiques.",
+        },
+        image: "/docs/shipping/city-rates-1.svg",
+      },
+      {
+        title: {
+          en: "Add a city override",
+          ar: "أضف تعديل مدينة",
+          fr: "Ajoutez un ajustement de ville",
+        },
+        description: {
+          en: "Click \"Add City\" and type the city name. Enter a custom delivery rate for that city. This rate will be used instead of the zone's default rate when a customer enters this city at checkout. City names are matched case-insensitively, so \"new york\" and \"New York\" will both match.",
+          ar: "انقر \"إضافة مدينة\" واكتب اسم المدينة. أدخل سعر توصيل مخصص لتلك المدينة. سيتم استخدام هذا السعر بدلاً من السعر الافتراضي للمنطقة عندما يدخل العميل هذه المدينة عند الدفع. تتم مطابقة أسماء المدن بغض النظر عن حالة الأحرف.",
+          fr: "Cliquez « Ajouter une ville » et tapez le nom de la ville. Entrez un tarif de livraison personnalisé. Ce tarif sera utilisé à la place du tarif par défaut lorsqu'un client entre cette ville au moment du paiement. Les noms de villes sont insensibles à la casse.",
+        },
+      },
+      {
+        title: {
+          en: "Exclude a city from delivery",
+          ar: "استثنِ مدينة من التوصيل",
+          fr: "Exclure une ville de la livraison",
+        },
+        description: {
+          en: "When adding a city, check the \"Exclude\" option instead of entering a rate. Excluded cities will show a \"Delivery not available\" message at checkout and customers won't be able to place an order. This is useful for remote areas or cities you don't serve yet.",
+          ar: "عند إضافة مدينة، حدد خيار \"استثناء\" بدلاً من إدخال سعر. المدن المستثناة ستظهر رسالة \"التوصيل غير متاح\" عند الدفع ولن يتمكن العملاء من إتمام الطلب. هذا مفيد للمناطق النائية أو المدن التي لا تخدمها بعد.",
+          fr: "Lors de l'ajout d'une ville, cochez l'option « Exclure » au lieu d'entrer un tarif. Les villes exclues afficheront un message « Livraison non disponible » et les clients ne pourront pas passer commande. C'est utile pour les zones éloignées ou les villes que vous ne desservez pas encore.",
+        },
+      },
+      {
+        title: {
+          en: "Bulk add cities",
+          ar: "إضافة مدن بالجملة",
+          fr: "Ajouter des villes en masse",
+        },
+        description: {
+          en: "To add many cities at once, use the bulk add feature. Enter one city name per line and set a rate or exclusion that applies to all of them. This saves time when setting up delivery for a country with many cities.",
+          ar: "لإضافة عدة مدن دفعة واحدة، استخدم ميزة الإضافة بالجملة. أدخل اسم مدينة واحد في كل سطر وحدد سعراً أو استثناءً ينطبق على الجميع. هذا يوفر الوقت عند إعداد التوصيل لبلد يحتوي على مدن كثيرة.",
+          fr: "Pour ajouter plusieurs villes à la fois, utilisez la fonction d'ajout en masse. Entrez un nom de ville par ligne et définissez un tarif ou une exclusion qui s'applique à toutes. Cela fait gagner du temps lors de la configuration de la livraison pour un pays avec de nombreuses villes.",
+        },
+      },
+      {
+        title: {
+          en: "How customers see delivery fees",
+          ar: "كيف يرى العملاء رسوم التوصيل",
+          fr: "Comment les clients voient les frais de livraison",
+        },
+        description: {
+          en: "At checkout, after the customer enters their country and city, the delivery fee is automatically calculated and shown in the order summary. If the store uses multi-market pricing, the delivery fee is converted to the market's currency at the same exchange rate as product prices. The fee is included in the order total and verified server-side when the order is placed.",
+          ar: "عند الدفع، بعد أن يدخل العميل بلده ومدينته، يتم حساب رسوم التوصيل تلقائياً وعرضها في ملخص الطلب. إذا كان المتجر يستخدم تسعير متعدد الأسواق، يتم تحويل رسوم التوصيل إلى عملة السوق بنفس سعر صرف أسعار المنتجات. يتم تضمين الرسوم في إجمالي الطلب والتحقق منها على الخادم عند تقديم الطلب.",
+          fr: "Au moment du paiement, après que le client entre son pays et sa ville, les frais de livraison sont automatiquement calculés et affichés dans le récapitulatif. Si la boutique utilise la tarification multi-marché, les frais sont convertis dans la devise du marché au même taux de change que les prix des produits. Les frais sont inclus dans le total et vérifiés côté serveur lors de la commande.",
+        },
+        image: "/docs/shipping/city-rates-2.svg",
       },
     ],
   },

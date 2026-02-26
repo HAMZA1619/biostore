@@ -34,6 +34,7 @@ import {
   Store,
   Ticket,
   TrendingUp,
+  Truck,
   Zap,
 } from "lucide-react"
 import "@/lib/i18n"
@@ -72,6 +73,7 @@ const features = [
   { icon: Zap, titleKey: "landing.featureReady", descKey: "landing.featureReadyDesc" },
   { icon: Smartphone, titleKey: "landing.featureMobile", descKey: "landing.featureMobileDesc" },
   { icon: ShoppingCart, titleKey: "landing.featureCod", descKey: "landing.featureCodDesc" },
+  { icon: Truck, titleKey: "landing.featureShipping", descKey: "landing.featureShippingDesc" },
   { icon: Palette, titleKey: "landing.featureDesign", descKey: "landing.featureDesignDesc" },
   { icon: Layers, titleKey: "landing.featureCollections", descKey: "landing.featureCollectionsDesc" },
   { icon: BarChart3, titleKey: "landing.featureAnalytics", descKey: "landing.featureAnalyticsDesc" },
@@ -95,6 +97,7 @@ const pricingFeatures = [
   "landing.pricingFeature5",
   "landing.pricingFeature6",
   "landing.pricingFeature7",
+  "landing.pricingFeature8",
 ]
 
 const faqItems = [
@@ -104,6 +107,7 @@ const faqItems = [
   { qKey: "landing.faq4Question", aKey: "landing.faq4Answer" },
   { qKey: "landing.faq5Question", aKey: "landing.faq5Answer" },
   { qKey: "landing.faq6Question", aKey: "landing.faq6Answer" },
+  { qKey: "landing.faq7Question", aKey: "landing.faq7Answer" },
 ]
 
 export default function LandingPage() {
