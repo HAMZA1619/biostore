@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -21,7 +20,6 @@ interface MarketPickerProps {
 
 export function MarketPicker({ markets, activeMarketSlug }: MarketPickerProps) {
   const [open, setOpen] = useState(false)
-  const router = useRouter()
 
   const activeMarket = markets.find((m) => m.slug === activeMarketSlug) || markets[0]
 
@@ -33,7 +31,7 @@ export function MarketPicker({ markets, activeMarketSlug }: MarketPickerProps) {
     }
     document.cookie = `biostore-market=${slug};path=/;max-age=31536000;SameSite=Lax`
     setOpen(false)
-    router.refresh()
+    window.location.reload()
   }
 
   if (markets.length <= 1) return null

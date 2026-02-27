@@ -50,6 +50,7 @@ export interface DesignState {
   socialWhatsapp: string
   // Preferences
   showCardAddToCart: boolean
+  requireCaptcha: boolean
   whatsappFloat: string
 }
 

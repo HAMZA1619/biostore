@@ -63,11 +63,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Verify hCaptcha
-    if (!captcha_token || !(await verifyCaptcha(captcha_token))) {
-      return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 })
-    }
-
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -76,13 +71,20 @@ export async function POST(request: Request) {
     // Get store
     const { data: store, error: storeError } = await supabase
       .from("stores")
-      .select("id, name, currency, owner_id")
+      .select("id, name, currency, owner_id, design_settings")
       .eq("slug", slug)
       .eq("is_published", true)
       .single()
 
     if (storeError || !store) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
+    }
+
+    // Verify hCaptcha if enabled
+    const ds = (store.design_settings || {}) as Record<string, unknown>
+    const requireCaptcha = typeof ds.requireCaptcha === "boolean" ? ds.requireCaptcha : true
+    if (requireCaptcha && (!captcha_token || !(await verifyCaptcha(captcha_token)))) {
+      return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 })
     }
 
     // Resolve market for currency

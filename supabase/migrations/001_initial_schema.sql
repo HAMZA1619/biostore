@@ -704,8 +704,12 @@ CREATE TABLE abandoned_checkouts (
   customer_address TEXT,
   cart_items JSONB NOT NULL DEFAULT '[]',
   subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
+  delivery_fee DECIMAL(10,2) NOT NULL DEFAULT 0,
+  discount_code TEXT,
+  discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   total DECIMAL(10,2) NOT NULL DEFAULT 0,
   currency TEXT NOT NULL,
+  market_id UUID REFERENCES markets(id) ON DELETE SET NULL,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'sent', 'recovered', 'expired')),
   recovered_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
@@ -754,18 +758,24 @@ CREATE OR REPLACE FUNCTION public.upsert_abandoned_checkout(
   p_cart_items JSONB DEFAULT '[]',
   p_subtotal DECIMAL DEFAULT 0,
   p_total DECIMAL DEFAULT 0,
-  p_currency TEXT DEFAULT 'USD'
+  p_currency TEXT DEFAULT 'USD',
+  p_delivery_fee DECIMAL DEFAULT 0,
+  p_discount_code TEXT DEFAULT NULL,
+  p_discount_amount DECIMAL DEFAULT 0,
+  p_market_id UUID DEFAULT NULL
 ) RETURNS UUID AS $$
 DECLARE v_id UUID;
 BEGIN
   INSERT INTO public.abandoned_checkouts (
     store_id, customer_phone, customer_name, customer_email,
     customer_country, customer_city, customer_address,
-    cart_items, subtotal, total, currency, status, updated_at
+    cart_items, subtotal, delivery_fee, discount_code, discount_amount,
+    total, currency, market_id, status, updated_at
   ) VALUES (
     p_store_id, p_customer_phone, p_customer_name, p_customer_email,
     p_customer_country, p_customer_city, p_customer_address,
-    p_cart_items, p_subtotal, p_total, p_currency, 'pending', now()
+    p_cart_items, p_subtotal, p_delivery_fee, p_discount_code, p_discount_amount,
+    p_total, p_currency, p_market_id, 'pending', now()
   )
   ON CONFLICT (store_id, customer_phone)
     WHERE status = 'pending' OR status = 'sent'
@@ -777,8 +787,12 @@ BEGIN
     customer_address = COALESCE(EXCLUDED.customer_address, abandoned_checkouts.customer_address),
     cart_items = EXCLUDED.cart_items,
     subtotal = EXCLUDED.subtotal,
+    delivery_fee = EXCLUDED.delivery_fee,
+    discount_code = EXCLUDED.discount_code,
+    discount_amount = EXCLUDED.discount_amount,
     total = EXCLUDED.total,
     currency = EXCLUDED.currency,
+    market_id = EXCLUDED.market_id,
     status = 'pending',
     updated_at = now()
   RETURNING id INTO v_id;

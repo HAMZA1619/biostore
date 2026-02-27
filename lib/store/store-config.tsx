@@ -12,6 +12,7 @@ export interface StoreConfig {
   showCity: boolean
   showNote: boolean
   thankYouMessage: string
+  requireCaptcha: boolean
 }
 
 const StoreConfigContext = createContext<StoreConfig | null>(null)

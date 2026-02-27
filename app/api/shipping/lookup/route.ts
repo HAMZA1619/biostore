@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
+import { getExchangeRate } from "@/lib/market/exchange-rates"
 import { NextRequest, NextResponse } from "next/server"
 import { COUNTRIES } from "@/lib/constants"
 
@@ -8,6 +9,7 @@ export async function GET(request: NextRequest) {
     const slug = searchParams.get("slug")
     const country = searchParams.get("country")
     const city = searchParams.get("city")
+    const marketId = searchParams.get("market_id")
 
     if (!slug || !country) {
       return NextResponse.json({ delivery_fee: 0, has_shipping: false, excluded: false, currency: null, cities: [] })
@@ -27,6 +29,32 @@ export async function GET(request: NextRequest) {
 
     if (!store) {
       return NextResponse.json({ delivery_fee: 0, has_shipping: false, excluded: false, currency: null, cities: [] })
+    }
+
+    // Resolve market for delivery fee conversion
+    let marketRate = 1
+    let marketAdjustment = 0
+    let shouldConvert = false
+
+    if (marketId) {
+      const { data: market } = await supabase
+        .from("markets")
+        .select("id, currency, pricing_mode, price_adjustment, store_id")
+        .eq("id", marketId)
+        .eq("is_active", true)
+        .single()
+
+      if (market && market.store_id === store.id && market.pricing_mode === "auto") {
+        marketRate = await getExchangeRate(store.currency, market.currency)
+        marketAdjustment = Number(market.price_adjustment)
+        shouldConvert = true
+      }
+    }
+
+    function convertFee(fee: number): number {
+      if (!shouldConvert || fee === 0) return fee
+      const multiplier = 1 + marketAdjustment / 100
+      return Math.round(fee * marketRate * multiplier * 100) / 100
     }
 
     // Try matching by country name first, then by country code
@@ -84,7 +112,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ delivery_fee: null, has_shipping: true, excluded: true, currency: store.currency, cities })
         }
         return NextResponse.json({
-          delivery_fee: Number(cityRate.rate),
+          delivery_fee: convertFee(Number(cityRate.rate)),
           has_shipping: true,
           excluded: false,
           currency: store.currency,
@@ -94,7 +122,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      delivery_fee: Number(zone.default_rate),
+      delivery_fee: convertFee(Number(zone.default_rate)),
       has_shipping: true,
       excluded: false,
       currency: store.currency,

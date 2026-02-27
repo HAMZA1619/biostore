@@ -144,13 +144,17 @@ export default function CartPage() {
         customer_address: form.customer_address || undefined,
         cart_items: cartItems,
         subtotal: getTotal(),
-        total: getDiscountedTotal(),
+        total: getDiscountedTotal() + (deliveryFee || 0),
         market_id: market?.id || undefined,
+        discount_code: appliedDiscount?.code || undefined,
+        discount_amount: appliedDiscount?.discountAmount || 0,
+        delivery_fee: deliveryFee || 0,
       }),
     }).catch(() => {})
-  }, [slug, form, items, getTotal, getDiscountedTotal, market])
+  }, [slug, form, items, getTotal, getDiscountedTotal, market, appliedDiscount, deliveryFee])
 
   const storeConfig = useStoreConfig()
+  const requireCaptcha = storeConfig?.requireCaptcha ?? true
   const showFields = {
     email: storeConfig?.showEmail ?? true,
     country: storeConfig?.showCountry ?? true,
@@ -209,6 +213,7 @@ export default function CartPage() {
       try {
         const params = new URLSearchParams({ slug, country: form.customer_country })
         if (form.customer_city) params.set("city", form.customer_city)
+        if (market?.id) params.set("market_id", market.id)
         const res = await fetch(`/api/shipping/lookup?${params}`)
         if (!res.ok) throw new Error("lookup failed")
         const data = await res.json()
@@ -226,7 +231,7 @@ export default function CartPage() {
       }
     }, 500)
     return () => clearTimeout(timer)
-  }, [form.customer_country, form.customer_city, slug])
+  }, [form.customer_country, form.customer_city, slug, market])
 
   // Debounced re-save checkout session when form/cart changes
   useEffect(() => {
@@ -306,7 +311,7 @@ export default function CartPage() {
     }
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !loading) {
     return (
       <div className="py-12 text-center">
         <p className="text-muted-foreground">{t("storefront.cartEmpty")}</p>
@@ -336,11 +341,13 @@ export default function CartPage() {
 
     try {
       // Execute invisible hCaptcha — passes silently or shows challenge if risky
-      const hcaptcha = (window as unknown as { hcaptcha?: { execute: (id: string, opts: { async: boolean }) => Promise<{ response: string }>, reset: (id: string) => void } }).hcaptcha
       let captchaToken = ""
-      if (hcaptcha && widgetIdRef.current !== null) {
-        const { response } = await hcaptcha.execute(widgetIdRef.current, { async: true })
-        captchaToken = response
+      if (requireCaptcha) {
+        const hcaptcha = (window as unknown as { hcaptcha?: { execute: (id: string, opts: { async: boolean }) => Promise<{ response: string }>, reset: (id: string) => void } }).hcaptcha
+        if (hcaptcha && widgetIdRef.current !== null) {
+          const { response } = await hcaptcha.execute(widgetIdRef.current, { async: true })
+          captchaToken = response
+        }
       }
 
       const res = await fetch("/api/orders", {
@@ -365,7 +372,10 @@ export default function CartPage() {
       if (!res.ok) {
         const data = await res.json().catch(() => null)
         toast.error(data?.error || t("storefront.failedPlaceOrder"))
-        if (hcaptcha && widgetIdRef.current !== null) hcaptcha.reset(widgetIdRef.current)
+        if (requireCaptcha) {
+          const hc = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
+          if (hc && widgetIdRef.current !== null) hc.reset(widgetIdRef.current)
+        }
         setLoading(false)
         return
       }
@@ -375,8 +385,10 @@ export default function CartPage() {
       router.push(urlJoin(baseHref, "order-confirmed") + `?order=${data.order_number}`)
     } catch {
       toast.error(t("storefront.failedPlaceOrder"))
-      const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
-      if (hcaptcha && widgetIdRef.current !== null) hcaptcha.reset(widgetIdRef.current)
+      if (requireCaptcha) {
+        const hc = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha
+        if (hc && widgetIdRef.current !== null) hc.reset(widgetIdRef.current)
+      }
       setLoading(false)
     }
   }
@@ -617,12 +629,16 @@ export default function CartPage() {
           </div>
         )}
 
-        <Script
-          src="https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off"
-          strategy="afterInteractive"
-          onReady={renderCaptcha}
-        />
-        <div ref={captchaRef} />
+        {requireCaptcha && (
+          <>
+            <Script
+              src="https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off"
+              strategy="afterInteractive"
+              onReady={renderCaptcha}
+            />
+            <div ref={captchaRef} />
+          </>
+        )}
 
         <Button
           type="submit"

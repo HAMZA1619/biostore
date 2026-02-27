@@ -639,6 +639,18 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                 />
               </div>
 
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="require-captcha" className="text-sm">{t("design.requireCaptcha")}</Label>
+                  <p className="text-[11px] text-muted-foreground">{t("design.requireCaptchaHint")}</p>
+                </div>
+                <Switch
+                  id="require-captcha"
+                  checked={state.requireCaptcha}
+                  onCheckedChange={(v) => onChange({ requireCaptcha: v })}
+                />
+              </div>
+
               {/* Announcement Bar */}
               <div className="space-y-1.5">
                 <Label htmlFor="announcement-text" className="text-sm">{t("design.announcementBar")}</Label>

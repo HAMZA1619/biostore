@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
@@ -14,7 +13,6 @@ interface MarketSuggestionBannerProps {
 
 export function MarketSuggestionBanner({ suggestedMarket, currentMarketSlug }: MarketSuggestionBannerProps) {
   const [dismissed, setDismissed] = useState(false)
-  const router = useRouter()
   const { t } = useTranslation()
 
   if (dismissed) return null
@@ -28,8 +26,7 @@ export function MarketSuggestionBanner({ suggestedMarket, currentMarketSlug }: M
   function handleSwitch() {
     clearCart()
     setMarketCookie(suggestedMarket.slug)
-    router.refresh()
-    setDismissed(true)
+    window.location.reload()
   }
 
   function handleDismiss() {

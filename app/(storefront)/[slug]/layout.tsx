@@ -220,6 +220,7 @@ export default async function StoreLayout({
         showCity: ds.checkoutShowCity !== false,
         showNote: ds.checkoutShowNote !== false,
         thankYouMessage: ds.thankYouMessage || "",
+        requireCaptcha: ds.requireCaptcha !== false,
       }}>
       <StorefrontI18nProvider lang={storeLang}>
         {ds.announcementText && (

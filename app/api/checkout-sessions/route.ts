@@ -15,6 +15,10 @@ export async function POST(request: Request) {
       cart_items,
       subtotal,
       total,
+      market_id,
+      discount_code,
+      discount_amount,
+      delivery_fee,
     } = body
 
     if (!slug || !customer_phone || !cart_items?.length) {
@@ -37,6 +41,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
+    // Resolve currency from market if provided
+    let checkoutCurrency = store.currency
+    let resolvedMarketId: string | null = null
+
+    if (market_id) {
+      const { data: market } = await supabase
+        .from("markets")
+        .select("id, currency, store_id")
+        .eq("id", market_id)
+        .eq("is_active", true)
+        .single()
+
+      if (market && market.store_id === store.id) {
+        checkoutCurrency = market.currency
+        resolvedMarketId = market.id
+      }
+    }
+
     const { error: rpcError } = await supabase.rpc("upsert_abandoned_checkout", {
       p_store_id: store.id,
       p_customer_phone: customer_phone,
@@ -48,7 +70,11 @@ export async function POST(request: Request) {
       p_cart_items: cart_items,
       p_subtotal: subtotal || 0,
       p_total: total || 0,
-      p_currency: store.currency,
+      p_currency: checkoutCurrency,
+      p_delivery_fee: delivery_fee || 0,
+      p_discount_code: discount_code || null,
+      p_discount_amount: discount_amount || 0,
+      p_market_id: resolvedMarketId,
     })
 
     if (rpcError) {
