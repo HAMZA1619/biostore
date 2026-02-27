@@ -68,6 +68,9 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const admin = createAdminClient()
+
     // Get store
     const { data: store, error: storeError } = await supabase
       .from("stores")
@@ -77,6 +80,7 @@ export async function POST(request: Request) {
       .single()
 
     if (storeError || !store) {
+      console.error("[orders] Store lookup failed:", storeError)
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
@@ -134,6 +138,7 @@ export async function POST(request: Request) {
       .eq("store_id", store.id)
 
     if (productsError) {
+      console.error("[orders] Products fetch failed:", productsError)
       return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
     }
 
@@ -182,6 +187,7 @@ export async function POST(request: Request) {
         .in("id", variantIds)
 
       if (varError || !variants) {
+        console.error("[orders] Variants fetch failed:", varError)
         return NextResponse.json({ error: "Failed to fetch variants" }, { status: 500 })
       }
 
@@ -372,7 +378,7 @@ export async function POST(request: Request) {
     const country = resolvedCountry
 
     // Insert order
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
         store_id: store.id,
@@ -397,11 +403,12 @@ export async function POST(request: Request) {
       .single()
 
     if (orderError) {
-      return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
+      console.error("[orders] Order insert failed:", orderError)
+      return NextResponse.json({ error: "Failed to create order", details: orderError.message, code: orderError.code }, { status: 500 })
     }
 
     // Insert order items
-    const { error: itemsError } = await supabase.from("order_items").insert(
+    const { error: itemsError } = await admin.from("order_items").insert(
       orderItems.map((item: { product_id: string; variant_id: string | null; product_name: string; product_price: number; variant_options: Record<string, string> | null; quantity: number; image_url: string | null }) => ({
         ...item,
         order_id: order.id,
@@ -409,7 +416,8 @@ export async function POST(request: Request) {
     )
 
     if (itemsError) {
-      return NextResponse.json({ error: "Order created but failed to add items" }, { status: 500 })
+      console.error("[orders] Order items insert failed:", itemsError)
+      return NextResponse.json({ error: "Order created but failed to add items", details: itemsError.message, code: itemsError.code }, { status: 500 })
     }
 
     // Increment discount usage
@@ -419,8 +427,6 @@ export async function POST(request: Request) {
 
     // Mark any abandoned checkout as recovered
     try {
-      const { createAdminClient } = await import("@/lib/supabase/admin")
-      const admin = createAdminClient()
       await admin
         .from("abandoned_checkouts")
         .update({
@@ -441,7 +447,8 @@ export async function POST(request: Request) {
       items: orderItems,
       total,
     })
-  } catch {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  } catch (err) {
+    console.error("[orders] Unhandled error:", err)
+    return NextResponse.json({ error: "Internal server error", details: err instanceof Error ? err.message : String(err) }, { status: 500 })
   }
 }
