@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Outfit, Geist_Mono } from "next/font/google"
+import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
@@ -59,8 +60,10 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        {children}
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

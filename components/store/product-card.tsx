@@ -133,7 +133,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
                 disabled={!inStock}
                 style={getButtonStyleProps(buttonStyle)}
               >
-                <ShoppingCart className="hidden min-[375px]:block h-3 w-3" />
+                <ShoppingCart className="h-3 w-3" />
                 {inStock ? t("storefront.addToCart") : t("storefront.soldOut")}
               </Button>
             )}

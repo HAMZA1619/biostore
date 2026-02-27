@@ -1,5 +1,5 @@
 import urlJoin from "url-join"
-import { createClient } from "@supabase/supabase-js"
+import { createStaticClient } from "@/lib/supabase/static"
 import { getImageUrl } from "@/lib/utils"
 import { getExchangeRate } from "@/lib/market/exchange-rates"
 import { COUNTRIES } from "@/lib/constants"
@@ -63,10 +63,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createStaticClient()
 
     const { createAdminClient } = await import("@/lib/supabase/admin")
     const admin = createAdminClient()

@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createStaticClient } from "@/lib/supabase/static"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
@@ -7,10 +7,7 @@ export async function GET(request: Request) {
     const slug = searchParams.get("slug")
     if (!slug) return NextResponse.json({ has_discounts: false })
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createStaticClient()
 
     const { data: store } = await supabase
       .from("stores")
@@ -42,10 +39,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ valid: false, error: "Missing required fields" }, { status: 400 })
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createStaticClient()
 
     const { data: store } = await supabase
       .from("stores")

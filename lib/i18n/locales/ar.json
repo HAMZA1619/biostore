@@ -406,6 +406,8 @@
     "showCardAddToCartHint": "عرض زر الإضافة للسلة على بطاقات المنتجات",
     "requireCaptcha": "التحقق بـ CAPTCHA",
     "requireCaptchaHint": "طلب التحقق عند الدفع لمنع الطلبات العشوائية",
+    "mobileOnly": "وضع الجوال فقط",
+    "mobileOnlyHint": "عرض المتجر في إطار هاتف على سطح المكتب مع رمز QR للمسح",
     "whatsappFloat": "زر واتساب",
     "whatsappFloatHint": "عرض زر واتساب عائم برقم هاتفك",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
@@ -579,7 +581,9 @@
     "dismiss": "إغلاق",
     "deliveryFee": "التوصيل",
     "deliveryNotAvailable": "التوصيل غير متاح لهذه المدينة",
-    "freeDelivery": "مجاني"
+    "freeDelivery": "مجاني",
+    "scanToShop": "امسح الرمز للتسوق من هاتفك",
+    "continueOnDesktop": "المتابعة على الكمبيوتر"
   },
   "auth": {
     "welcomeBack": "مرحباً بعودتك",

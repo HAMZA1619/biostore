@@ -5,6 +5,14 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
+    const secret = process.env.INTEGRATION_WEBHOOK_SECRET
+    if (secret) {
+      const auth = request.headers.get("authorization")
+      if (auth !== `Bearer ${secret}`) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+    }
+
     const body = await request.json()
     const event = body.record
 

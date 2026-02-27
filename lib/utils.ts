@@ -112,5 +112,6 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     showCardAddToCart: typeof raw.showCardAddToCart === "boolean" ? raw.showCardAddToCart : true,
     requireCaptcha: typeof raw.requireCaptcha === "boolean" ? raw.requireCaptcha : true,
     whatsappFloat: (raw.whatsappFloat as string) || "",
+    mobileOnly: typeof raw.mobileOnly === "boolean" ? raw.mobileOnly : true,
   }
 }

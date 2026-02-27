@@ -6,6 +6,7 @@ import { FloatingCartButton } from "@/components/store/floating-cart-button"
 import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provider"
 import { TrackingScripts } from "@/components/store/tracking-scripts"
 import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
+import { DesktopPhoneFrame } from "@/components/store/desktop-phone-frame"
 import { StoreConfigProvider } from "@/lib/store/store-config"
 import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
@@ -141,6 +142,17 @@ export default async function StoreLayout({
   const accent = ds.accentColor
   const btnText = ds.buttonTextColor
 
+  const storeUrl = isCustomDomain
+    ? `https://${headersList.get("host") || ""}`
+    : `${process.env.NEXT_PUBLIC_APP_URL || ""}/${slug}`
+
+  const storeContent = (content: React.ReactNode) =>
+    ds.mobileOnly ? (
+      <DesktopPhoneFrame storeName={store.name} logoPath={ds.logoPath} storeUrl={storeUrl}>
+        {content}
+      </DesktopPhoneFrame>
+    ) : content
+
   return (
     <div
       className="storefront min-h-[100dvh]"
@@ -222,43 +234,47 @@ export default async function StoreLayout({
         requireCaptcha: ds.requireCaptcha !== false,
       }}>
       <StorefrontI18nProvider lang={storeLang}>
-        {ds.announcementText && (
-          <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
-            {ds.announcementLink && isValidHttpUrl(ds.announcementLink) ? (
-              <a href={ds.announcementLink} className="hover:underline">{ds.announcementText}</a>
-            ) : (
-              ds.announcementText
+        {storeContent(
+          <>
+            {ds.announcementText && (
+              <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
+                {ds.announcementLink && isValidHttpUrl(ds.announcementLink) ? (
+                  <a href={ds.announcementLink} className="hover:underline">{ds.announcementText}</a>
+                ) : (
+                  ds.announcementText
+                )}
+              </div>
             )}
-          </div>
-        )}
-        {suggestedMarket && (
-          <MarketSuggestionBanner
-            suggestedMarket={{ slug: suggestedMarket.slug, name: suggestedMarket.name, currency: suggestedMarket.currency }}
-            currentMarketSlug={activeMarket?.slug}
-          />
-        )}
-        <StoreHeader
-          slug={store.slug}
-          name={store.name}
-          logoPath={ds.logoPath}
-          bannerPath={ds.bannerPath}
-          stickyHeader={ds.stickyHeader}
-          markets={hasMarkets ? markets.map((m) => ({ slug: m.slug, name: m.name, currency: m.currency })) : undefined}
-          activeMarketSlug={activeMarket?.slug}
-        />
-        <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
-        <StoreFooter storeName={store.name} socialInstagram={ds.socialInstagram} socialTiktok={ds.socialTiktok} socialFacebook={ds.socialFacebook} socialWhatsapp={ds.socialWhatsapp} />
-        {ds.showFloatingCart && <FloatingCartButton />}
-        {ds.whatsappFloat && (
-          <a
-            href={`https://wa.me/${ds.whatsappFloat.replace(/[^0-9+]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn("fixed end-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-transform hover:scale-110", ds.showFloatingCart ? "bottom-20" : "bottom-4")}
-            aria-label="WhatsApp"
-          >
-            <svg className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.607-1.476A11.937 11.937 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-2.168 0-4.186-.581-5.932-1.594l-.424-.253-2.731.876.864-2.655-.278-.44A9.79 9.79 0 012.182 12c0-5.418 4.4-9.818 9.818-9.818 5.418 0 9.818 4.4 9.818 9.818 0 5.418-4.4 9.818-9.818 9.818z"/></svg>
-          </a>
+            {suggestedMarket && (
+              <MarketSuggestionBanner
+                suggestedMarket={{ slug: suggestedMarket.slug, name: suggestedMarket.name, currency: suggestedMarket.currency }}
+                currentMarketSlug={activeMarket?.slug}
+              />
+            )}
+            <StoreHeader
+              slug={store.slug}
+              name={store.name}
+              logoPath={ds.logoPath}
+              bannerPath={ds.bannerPath}
+              stickyHeader={ds.stickyHeader}
+              markets={hasMarkets ? markets.map((m) => ({ slug: m.slug, name: m.name, currency: m.currency })) : undefined}
+              activeMarketSlug={activeMarket?.slug}
+            />
+            <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+            <StoreFooter storeName={store.name} socialInstagram={ds.socialInstagram} socialTiktok={ds.socialTiktok} socialFacebook={ds.socialFacebook} socialWhatsapp={ds.socialWhatsapp} />
+            {ds.showFloatingCart && <FloatingCartButton />}
+            {ds.whatsappFloat && (
+              <a
+                href={`https://wa.me/${ds.whatsappFloat.replace(/[^0-9+]/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn("fixed end-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-lg transition-transform hover:scale-110", ds.showFloatingCart ? "bottom-20" : "bottom-4")}
+                aria-label="WhatsApp"
+              >
+                <svg className="h-7 w-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.607-1.476A11.937 11.937 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-2.168 0-4.186-.581-5.932-1.594l-.424-.253-2.731.876.864-2.655-.278-.44A9.79 9.79 0 012.182 12c0-5.418 4.4-9.818 9.818-9.818 5.418 0 9.818 4.4 9.818 9.818 0 5.418-4.4 9.818-9.818 9.818z"/></svg>
+              </a>
+            )}
+          </>
         )}
       </StorefrontI18nProvider>
       </StoreConfigProvider>

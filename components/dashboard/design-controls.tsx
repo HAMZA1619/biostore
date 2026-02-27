@@ -651,6 +651,18 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                 />
               </div>
 
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="mobile-only" className="text-sm">{t("design.mobileOnly")}</Label>
+                  <p className="text-[11px] text-muted-foreground">{t("design.mobileOnlyHint")}</p>
+                </div>
+                <Switch
+                  id="mobile-only"
+                  checked={state.mobileOnly}
+                  onCheckedChange={(v) => onChange({ mobileOnly: v })}
+                />
+              </div>
+
               {/* Announcement Bar */}
               <div className="space-y-1.5">
                 <Label htmlFor="announcement-text" className="text-sm">{t("design.announcementBar")}</Label>

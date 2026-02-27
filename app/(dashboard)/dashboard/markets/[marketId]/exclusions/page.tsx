@@ -31,7 +31,7 @@ export default async function MarketExclusionsPage({
   if (!market) notFound()
 
   // Fetch all active products and current exclusions in parallel
-  const [{ data: products }, { data: exclusions }, { data: imgs }] = await Promise.all([
+  const [{ data: products }, { data: exclusions }] = await Promise.all([
     supabase
       .from("products")
       .select("id, name, image_urls")
@@ -42,21 +42,13 @@ export default async function MarketExclusionsPage({
       .from("market_exclusions")
       .select("product_id")
       .eq("market_id", marketId),
-    (() => {
-      // We'll resolve images after we have the product list
-      return supabase
-        .from("products")
-        .select("id, image_urls")
-        .eq("store_id", store.id)
-        .eq("status", "active")
-        .then(({ data }) => {
-          const imageIds = (data || []).flatMap((p) => ((p.image_urls as string[]) || []).slice(0, 1))
-          return imageIds.length > 0
-            ? supabase.from("store_images").select("id, storage_path").in("id", imageIds)
-            : Promise.resolve({ data: null })
-        })
-    })(),
   ])
+
+  // Resolve product images
+  const imageIds = (products || []).flatMap((p) => ((p.image_urls as string[]) || []).slice(0, 1))
+  const { data: imgs } = imageIds.length > 0
+    ? await supabase.from("store_images").select("id, storage_path").in("id", imageIds)
+    : { data: null }
 
   // Build image map
   const imgMap = new Map((imgs || []).map((i: { id: string; storage_path: string }) => [i.id, i.storage_path]))

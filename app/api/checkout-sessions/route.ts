@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createStaticClient } from "@/lib/supabase/static"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -25,10 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createStaticClient()
 
     const { data: store, error: storeError } = await supabase
       .from("stores")

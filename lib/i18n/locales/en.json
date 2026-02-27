@@ -406,6 +406,8 @@
     "showCardAddToCartHint": "Show the add to cart button on product cards",
     "requireCaptcha": "CAPTCHA verification",
     "requireCaptchaHint": "Require CAPTCHA on checkout to prevent spam orders",
+    "mobileOnly": "Mobile only mode",
+    "mobileOnlyHint": "Show store in a phone frame on desktop with a QR code to scan",
     "whatsappFloat": "WhatsApp button",
     "whatsappFloatHint": "Show a floating WhatsApp button with your phone number",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
@@ -579,7 +581,9 @@
     "dismiss": "Dismiss",
     "deliveryFee": "Delivery",
     "deliveryNotAvailable": "Delivery is not available to this city",
-    "freeDelivery": "Free"
+    "freeDelivery": "Free",
+    "scanToShop": "Scan to shop on your phone",
+    "continueOnDesktop": "Continue on desktop"
   },
   "auth": {
     "welcomeBack": "Welcome back",

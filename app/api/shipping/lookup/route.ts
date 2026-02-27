@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createStaticClient } from "@/lib/supabase/static"
 import { getExchangeRate } from "@/lib/market/exchange-rates"
 import { NextRequest, NextResponse } from "next/server"
 import { COUNTRIES } from "@/lib/constants"
@@ -15,10 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ delivery_fee: 0, has_shipping: false, excluded: false, currency: null, cities: [] })
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createStaticClient()
 
     const { data: store } = await supabase
       .from("stores")

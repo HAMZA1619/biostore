@@ -406,6 +406,8 @@
     "showCardAddToCartHint": "Afficher le bouton d'ajout au panier sur les cartes produits",
     "requireCaptcha": "Vérification CAPTCHA",
     "requireCaptchaHint": "Exiger un CAPTCHA lors du paiement pour éviter les commandes spam",
+    "mobileOnly": "Mode mobile uniquement",
+    "mobileOnlyHint": "Afficher la boutique dans un cadre de téléphone sur ordinateur avec un QR code",
     "whatsappFloat": "Bouton WhatsApp",
     "whatsappFloatHint": "Afficher un bouton WhatsApp flottant avec votre numéro",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
@@ -579,7 +581,9 @@
     "dismiss": "Fermer",
     "deliveryFee": "Livraison",
     "deliveryNotAvailable": "La livraison n'est pas disponible pour cette ville",
-    "freeDelivery": "Gratuite"
+    "freeDelivery": "Gratuite",
+    "scanToShop": "Scannez pour acheter sur votre téléphone",
+    "continueOnDesktop": "Continuer sur ordinateur"
   },
   "auth": {
     "welcomeBack": "Bon retour",

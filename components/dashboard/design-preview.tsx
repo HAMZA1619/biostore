@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { CheckCircle, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { cn, getImageUrl } from "@/lib/utils"
+import { cn, getImageUrl, sanitizeCss } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import type { TFunction } from "i18next"
 import "@/lib/i18n"
@@ -52,6 +52,7 @@ export interface DesignState {
   showCardAddToCart: boolean
   requireCaptcha: boolean
   whatsappFloat: string
+  mobileOnly: boolean
 }
 
 interface DesignPreviewProps {
@@ -101,10 +102,6 @@ function pickImages(storeName: string): [string, string] {
 }
 
 const DEFAULT_THANK_YOU = "Thank you for your order! We've received it and will confirm it shortly."
-
-function sanitizeCss(css: string): string {
-  return css.replace(/<\/style>/gi, "").replace(/<script/gi, "").replace(/javascript:/gi, "").replace(/expression\s*\(/gi, "")
-}
 
 function scopeCss(css: string, scope: string): string {
   const sanitized = sanitizeCss(css)
