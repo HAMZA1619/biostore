@@ -104,6 +104,44 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false)
   const captchaRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // In-app browser keyboard fix: add bottom padding when any input is focused
+  useEffect(() => {
+    const ua = navigator.userAgent
+    const isInApp = /FBAN|FBAV|Instagram|Line|Twitter|Snapchat|TikTok/i.test(ua)
+    if (!isInApp) return
+
+    const form = formRef.current
+    if (!form) return
+
+    const isInput = (el: Element | null) =>
+      el?.tagName === "INPUT" || el?.tagName === "TEXTAREA" || el?.tagName === "SELECT"
+
+    const onFocusIn = (e: FocusEvent) => {
+      if (isInput(e.target as Element)) {
+        form.style.paddingBottom = "40vh"
+        setTimeout(() => {
+          (e.target as HTMLElement).scrollIntoView({ block: "center", behavior: "smooth" })
+        }, 300)
+      }
+    }
+
+    const onFocusOut = () => {
+      setTimeout(() => {
+        if (!isInput(document.activeElement)) {
+          form.style.paddingBottom = ""
+        }
+      }, 100)
+    }
+
+    document.addEventListener("focusin", onFocusIn)
+    document.addEventListener("focusout", onFocusOut)
+    return () => {
+      document.removeEventListener("focusin", onFocusIn)
+      document.removeEventListener("focusout", onFocusOut)
+    }
+  }, [])
 
   const renderCaptcha = useCallback(() => {
     const hcaptcha = (window as unknown as { hcaptcha?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string } }).hcaptcha
@@ -542,7 +580,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
         <h2 className="text-lg font-bold">{t("storefront.deliveryInformation")}</h2>
 
         <div className="space-y-2">

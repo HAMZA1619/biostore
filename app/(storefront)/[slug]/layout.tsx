@@ -208,7 +208,6 @@ export default async function StoreLayout({
       {ds.customCss && (
         <style dangerouslySetInnerHTML={{ __html: sanitizeCss(ds.customCss) }} />
       )}
-      <script dangerouslySetInnerHTML={{ __html: `(function(){var u=navigator.userAgent||"";if(!/FBAN|FBAV|Instagram|TikTok|Snapchat|Twitter|Line\\/|MicroMessenger|WhatsApp/i.test(u))return;var w=document.querySelector(".storefront");if(!w)return;w.style.minHeight=window.innerHeight+"px";var S=/INPUT|TEXTAREA|SELECT/;document.addEventListener("focusin",function(e){if(!S.test(e.target.tagName))return;w.style.paddingBottom="50vh";setTimeout(function(){e.target.scrollIntoView({block:"center",behavior:"smooth"})},300)});document.addEventListener("focusout",function(){setTimeout(function(){if(!document.activeElement||!S.test(document.activeElement.tagName)){w.style.paddingBottom=""}},150)})})()` }} />
       <TrackingScripts gaId={gaId} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
       <StoreConfigProvider config={{
         currency: activeCurrency || store.currency,
