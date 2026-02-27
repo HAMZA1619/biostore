@@ -150,7 +150,9 @@ export default function CartPage() {
         discount_amount: appliedDiscount?.discountAmount || 0,
         delivery_fee: deliveryFee || 0,
       }),
-    }).catch(() => {})
+    })
+      .then((r) => { if (!r.ok) r.json().then((d) => console.error("[checkout-session]", d)).catch(() => {}) })
+      .catch((err) => console.error("[checkout-session] network error:", err))
   }, [slug, form, items, getTotal, getDiscountedTotal, market, appliedDiscount, deliveryFee])
 
   const storeConfig = useStoreConfig()
