@@ -30,7 +30,7 @@ export default async function OrderDetailPage({
   if (!user) redirect("/login")
 
   const [{ data: store }, { data: items }] = await Promise.all([
-    supabase.from("stores").select("id, currency").eq("owner_id", user.id).single(),
+    supabase.from("stores").select("id").eq("owner_id", user.id).single(),
     supabase.from("order_items").select("*").eq("order_id", orderId),
   ])
 
@@ -120,12 +120,12 @@ export default async function OrderDetailPage({
                   </div>
                   <div className="text-end shrink-0 text-sm">
                     <span className="text-muted-foreground">
-                      {formatPrice(item.product_price, store.currency)} × {item.quantity}
+                      {formatPrice(item.product_price, order.currency)} × {item.quantity}
                     </span>
                     <p className="font-medium mt-0.5">
                       {formatPrice(
                         item.product_price * item.quantity,
-                        store.currency
+                        order.currency
                       )}
                     </p>
                   </div>
@@ -159,14 +159,14 @@ export default async function OrderDetailPage({
                     <T k={itemCount === 1 ? "orderDetail.item" : "orderDetail.items_plural"} values={{ count: String(itemCount) }} />
                   </span>
                 </span>
-                <span>{formatPrice(order.subtotal, store.currency)}</span>
+                <span>{formatPrice(order.subtotal, order.currency)}</span>
               </div>
 
               {order.delivery_fee > 0 && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground"><T k="orderDetail.delivery" /></span>
                   <span>
-                    {formatPrice(order.delivery_fee, store.currency)}
+                    {formatPrice(order.delivery_fee, order.currency)}
                   </span>
                 </div>
               )}
@@ -174,7 +174,7 @@ export default async function OrderDetailPage({
               {order.discount_amount > 0 && (
                 <div className="flex items-center justify-between text-green-600">
                   <span><T k="orderDetail.discount" /></span>
-                  <span>-{formatPrice(order.discount_amount, store.currency)}</span>
+                  <span>-{formatPrice(order.discount_amount, order.currency)}</span>
                 </div>
               )}
 
@@ -182,7 +182,7 @@ export default async function OrderDetailPage({
 
               <div className="flex items-center justify-between pt-1 font-semibold">
                 <span><T k="orderDetail.total" /></span>
-                <span>{formatPrice(order.total, store.currency)}</span>
+                <span>{formatPrice(order.total, order.currency)}</span>
               </div>
             </div>
           </div>

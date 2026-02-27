@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("orders")
-      .select("id, order_number, customer_name, customer_phone, customer_country, total, status, created_at")
+      .select("id, order_number, customer_name, customer_phone, customer_country, total, currency, status, created_at")
       .eq("store_id", store.id)
 
     if (search) {

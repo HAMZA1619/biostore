@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     let marketRate = 1
     let marketAdjustment = 0
     let shouldConvert = false
+    let shippingCurrency = store.currency
 
     if (marketId) {
       const { data: market } = await supabase
@@ -44,10 +45,13 @@ export async function GET(request: NextRequest) {
         .eq("is_active", true)
         .single()
 
-      if (market && market.store_id === store.id && market.pricing_mode === "auto") {
-        marketRate = await getExchangeRate(store.currency, market.currency)
-        marketAdjustment = Number(market.price_adjustment)
-        shouldConvert = true
+      if (market && market.store_id === store.id) {
+        shippingCurrency = market.currency
+        if (market.pricing_mode === "auto") {
+          marketRate = await getExchangeRate(store.currency, market.currency)
+          marketAdjustment = Number(market.price_adjustment)
+          shouldConvert = true
+        }
       }
     }
 
@@ -85,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!zone) {
-      return NextResponse.json({ delivery_fee: 0, has_shipping: false, excluded: false, currency: store.currency, cities: [] })
+      return NextResponse.json({ delivery_fee: 0, has_shipping: false, excluded: false, currency: shippingCurrency, cities: [] })
     }
 
     // Fetch all configured city names for autocomplete
@@ -109,13 +113,13 @@ export async function GET(request: NextRequest) {
 
       if (cityRate) {
         if (cityRate.is_excluded) {
-          return NextResponse.json({ delivery_fee: null, has_shipping: true, excluded: true, currency: store.currency, cities })
+          return NextResponse.json({ delivery_fee: null, has_shipping: true, excluded: true, currency: shippingCurrency, cities })
         }
         return NextResponse.json({
           delivery_fee: convertFee(Number(cityRate.rate)),
           has_shipping: true,
           excluded: false,
-          currency: store.currency,
+          currency: shippingCurrency,
           cities,
         })
       }
@@ -125,7 +129,7 @@ export async function GET(request: NextRequest) {
       delivery_fee: convertFee(Number(zone.default_rate)),
       has_shipping: true,
       excluded: false,
-      currency: store.currency,
+      currency: shippingCurrency,
       cities,
     })
   } catch {

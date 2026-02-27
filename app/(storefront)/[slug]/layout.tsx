@@ -7,7 +7,7 @@ import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provi
 import { TrackingScripts } from "@/components/store/tracking-scripts"
 import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
 import { StoreConfigProvider } from "@/lib/store/store-config"
-import { cn, parseDesignSettings, getImageUrl } from "@/lib/utils"
+import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess, getStoreMarkets } from "@/lib/storefront/cache"
 import { detectMarketByCountry } from "@/lib/market/detect-market"
@@ -206,7 +206,7 @@ export default async function StoreLayout({
       `}} />
       <link rel="stylesheet" href={fontHref} />
       {ds.customCss && (
-        <style dangerouslySetInnerHTML={{ __html: ds.customCss.replace(/<\/style>/gi, "").replace(/<script/gi, "").replace(/javascript:/gi, "").replace(/expression\s*\(/gi, "") }} />
+        <style dangerouslySetInnerHTML={{ __html: sanitizeCss(ds.customCss) }} />
       )}
       <script dangerouslySetInnerHTML={{ __html: `(function(){var u=navigator.userAgent||"";if(!/FBAN|FBAV|Instagram|TikTok|Snapchat|Twitter|Line\\/|MicroMessenger|WhatsApp/i.test(u))return;var S=/INPUT|TEXTAREA|SELECT/;var w=document.querySelector(".storefront");if(!w)return;function adjust(){var el=document.activeElement;if(!el||!S.test(el.tagName)){w.style.transform="";return}var r=el.getBoundingClientRect();var vh=window.innerHeight;if(r.top>vh*0.4){var s=r.top-vh*0.3;w.style.transition="transform 0.25s ease-out";w.style.transform="translateY(-"+s+"px)"}}function reset(){setTimeout(function(){if(!document.activeElement||!S.test(document.activeElement.tagName)){w.style.transform=""}},100)}document.addEventListener("focusin",function(e){if(S.test(e.target.tagName))setTimeout(adjust,300)});document.addEventListener("focusout",reset);if(window.visualViewport){visualViewport.addEventListener("resize",function(){if(document.activeElement&&S.test(document.activeElement.tagName)){adjust()}else{w.style.transform=""}})}})()` }} />
       <TrackingScripts gaId={gaId} fbPixelId={fbPixelId} ttPixelCode={ttPixelCode} />
@@ -225,7 +225,7 @@ export default async function StoreLayout({
       <StorefrontI18nProvider lang={storeLang}>
         {ds.announcementText && (
           <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
-            {ds.announcementLink ? (
+            {ds.announcementLink && isValidHttpUrl(ds.announcementLink) ? (
               <a href={ds.announcementLink} className="hover:underline">{ds.announcementText}</a>
             ) : (
               ds.announcementText

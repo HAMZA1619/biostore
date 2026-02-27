@@ -194,7 +194,7 @@ export function ShippingManager({ initialZones, currency }: ShippingManagerProps
         setNewCityExcluded(false)
       } else {
         const data = await res.json()
-        toast.error(data.error)
+        toast.error(data?.error || t("shipping.saveFailed"))
       }
     } finally {
       setSaving(false)

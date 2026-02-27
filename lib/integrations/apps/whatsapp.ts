@@ -39,6 +39,7 @@ interface EventPayload {
   discount_id?: string | null
   discount_amount?: number
   delivery_fee?: number
+  currency?: string
   status?: string
   old_status?: string
   new_status?: string

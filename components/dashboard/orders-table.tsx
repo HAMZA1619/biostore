@@ -19,17 +19,17 @@ interface Order {
   customer_phone: string
   customer_country: string | null
   total: number
+  currency: string
   status: string
   created_at: string
 }
 
 interface OrdersTableProps {
   initialOrders: Order[]
-  currency: string
   hasMore: boolean
 }
 
-export function OrdersTable({ initialOrders, currency, hasMore: initialHasMore }: OrdersTableProps) {
+export function OrdersTable({ initialOrders, hasMore: initialHasMore }: OrdersTableProps) {
   const { t } = useTranslation()
   const [orders, setOrders] = useState(initialOrders)
   const [page, setPage] = useState(1)
@@ -162,7 +162,7 @@ export function OrdersTable({ initialOrders, currency, hasMore: initialHasMore }
                     <TableCell className="max-w-[120px] truncate font-medium">{order.customer_name}</TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">{order.customer_phone}</TableCell>
                     <TableCell className="hidden text-muted-foreground md:table-cell">{order.customer_country || "—"}</TableCell>
-                    <TableCell>{formatPrice(order.total, currency)}</TableCell>
+                    <TableCell>{formatPrice(order.total, order.currency)}</TableCell>
                     <TableCell className="relative z-10">
                       <OrderStatusSelect orderId={order.id} status={order.status} />
                     </TableCell>

@@ -36,6 +36,11 @@ export async function updateSession(request: NextRequest) {
 
   // --- Custom domain handling ---
   if (isCustomDomainRequest(hostname)) {
+    // API routes should pass through without rewriting
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.next()
+    }
+
     // Dashboard/auth routes should not work on custom domains
     if (
       pathname.startsWith("/dashboard") ||

@@ -21,7 +21,7 @@ export async function GET() {
       .eq("store_id", store.id)
       .order("created_at", { ascending: false })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: "Failed to fetch discounts" }, { status: 500 })
 
     return NextResponse.json(discounts)
   } catch {
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       if (error.code === "23505") {
         return NextResponse.json({ error: "A discount with this code already exists" }, { status: 409 })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to save discount" }, { status: 500 })
     }
 
     return NextResponse.json(data)
@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = await request.json()
-    const { id, ...fields } = body
+    const { id } = body
 
     if (!id) return NextResponse.json({ error: "Missing discount id" }, { status: 400 })
 
@@ -102,7 +102,12 @@ export async function PATCH(request: Request) {
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
-    if (fields.code) {
+    const ALLOWED_FIELDS = ["code", "label", "discount_type", "discount_value", "minimum_order_amount", "max_uses", "max_uses_per_customer", "is_active", "starts_at", "ends_at"] as const
+    const fields: Record<string, unknown> = {}
+    for (const key of ALLOWED_FIELDS) {
+      if (key in body) fields[key] = body[key]
+    }
+    if (typeof fields.code === "string") {
       fields.code = fields.code.toUpperCase().trim()
     }
 
@@ -118,7 +123,7 @@ export async function PATCH(request: Request) {
       if (error.code === "23505") {
         return NextResponse.json({ error: "A discount with this code already exists" }, { status: 409 })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to save discount" }, { status: 500 })
     }
 
     return NextResponse.json(data)
@@ -152,7 +157,7 @@ export async function DELETE(request: Request) {
       .eq("id", id)
       .eq("store_id", store.id)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: "Failed to delete discount" }, { status: 500 })
 
     return NextResponse.json({ ok: true })
   } catch {

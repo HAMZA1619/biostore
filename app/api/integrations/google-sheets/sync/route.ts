@@ -1,5 +1,3 @@
-export const maxDuration = 120
-
 import { createClient } from "@/lib/supabase/server"
 import {
   refreshAccessToken,
@@ -9,6 +7,8 @@ import {
   getSheetsClient,
 } from "@/lib/integrations/apps/google-sheets.server"
 import { NextResponse } from "next/server"
+
+export const maxDuration = 120
 
 const PAGE_SIZE = 200
 const SHEET_BATCH_SIZE = 500

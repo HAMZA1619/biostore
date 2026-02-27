@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isSafeExternalUrl } from "@/lib/utils"
 
 export const maxDuration = 60
 
@@ -424,9 +425,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "URL is required" }, { status: 400 })
     }
 
-    try {
-      new URL(url)
-    } catch {
+    if (!isSafeExternalUrl(url)) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 })
     }
 

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to save integration" }, { status: 500 })
     }
 
     revalidateTag(`integrations:${store_id}`, "max")
@@ -115,7 +115,7 @@ export async function PATCH(request: Request) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to update integration" }, { status: 500 })
     }
 
     revalidateTag(`integrations:${existing.store_id}`, "max")
@@ -169,7 +169,7 @@ export async function DELETE(request: Request) {
       .eq("id", id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to delete integration" }, { status: 500 })
     }
 
     revalidateTag(`integrations:${integration.store_id}`, "max")

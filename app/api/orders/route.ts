@@ -404,7 +404,7 @@ export async function POST(request: Request) {
 
     if (orderError) {
       console.error("[orders] Order insert failed:", orderError)
-      return NextResponse.json({ error: "Failed to create order", details: orderError.message, code: orderError.code }, { status: 500 })
+      return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
     }
 
     // Insert order items
@@ -417,7 +417,7 @@ export async function POST(request: Request) {
 
     if (itemsError) {
       console.error("[orders] Order items insert failed:", itemsError)
-      return NextResponse.json({ error: "Order created but failed to add items", details: itemsError.message, code: itemsError.code }, { status: 500 })
+      return NextResponse.json({ error: "Order created but failed to add items" }, { status: 500 })
     }
 
     // Increment discount usage
@@ -449,6 +449,6 @@ export async function POST(request: Request) {
     })
   } catch (err) {
     console.error("[orders] Unhandled error:", err)
-    return NextResponse.json({ error: "Internal server error", details: err instanceof Error ? err.message : String(err) }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

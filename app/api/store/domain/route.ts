@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-export const maxDuration = 60
 import { domainSchema } from "@/lib/validations/domain"
 import {
   addDomainToVercel,
   getDomainFromVercel,
   removeDomainFromVercel,
 } from "@/lib/vercel"
+
+export const maxDuration = 60
 
 export async function GET() {
   try {

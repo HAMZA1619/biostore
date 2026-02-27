@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import sharp from "sharp"
+import { isSafeExternalUrl } from "@/lib/utils"
 
 export const maxDuration = 120
 
@@ -8,17 +9,30 @@ const SKIP_COMPRESSION = new Set(["image/svg+xml", "image/gif"])
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { urls, storeId } = await request.json()
 
     if (!storeId || !Array.isArray(urls) || urls.length === 0) {
       return NextResponse.json({ error: "storeId and urls are required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const { data: store } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("id", storeId)
+      .eq("owner_id", user.id)
+      .single()
+
+    if (!store) return NextResponse.json({ error: "Store not found" }, { status: 403 })
 
     const results = await Promise.all(
       urls.map(async (imgUrl: string) => {
         try {
+          if (!isSafeExternalUrl(imgUrl)) return null
+
           const imgRes = await fetch(imgUrl, {
             headers: {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",

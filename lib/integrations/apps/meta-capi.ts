@@ -40,6 +40,7 @@ interface EventPayload {
   discount_id?: string | null
   discount_amount?: number
   ip_address?: string | null
+  currency?: string
   items?: OrderItem[]
   [key: string]: unknown
 }

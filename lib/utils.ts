@@ -36,6 +36,39 @@ export function getImageUrl(storagePath: string | null | undefined): string | nu
   return urlJoin(process.env.NEXT_PUBLIC_SUPABASE_URL!, "storage/v1/object/public/product-images", storagePath)
 }
 
+export function isValidHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+  } catch {
+    return false
+  }
+}
+
+const BLOCKED_HOSTS = /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|\[::1?\])$/i
+
+export function isSafeExternalUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false
+    if (BLOCKED_HOSTS.test(parsed.hostname)) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function sanitizeCss(css: string): string {
+  return css
+    .replace(/<[^>]*>/g, "")
+    .replace(/@import\b[^;]*/gi, "")
+    .replace(/javascript\s*:/gi, "")
+    .replace(/expression\s*\(/gi, "")
+    .replace(/behavior\s*:/gi, "")
+    .replace(/-moz-binding\s*:/gi, "")
+    .replace(/url\s*\(\s*["']?\s*data\s*:/gi, "url(/* blocked */")
+}
+
 export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignState {
   return {
     logoPath: (raw.logoPath as string) || (raw.logoUrl as string) || null,

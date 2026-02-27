@@ -20,7 +20,6 @@ interface AbandonedCheckout {
 
 interface Props {
   checkouts: AbandonedCheckout[]
-  currency: string
 }
 
 const statusColors: Record<string, string> = {
@@ -30,7 +29,7 @@ const statusColors: Record<string, string> = {
   expired: "bg-gray-100 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400",
 }
 
-export function AbandonedCheckoutsTable({ checkouts, currency }: Props) {
+export function AbandonedCheckoutsTable({ checkouts }: Props) {
   const { t } = useTranslation()
 
   if (checkouts.length === 0) {
@@ -74,7 +73,7 @@ export function AbandonedCheckoutsTable({ checkouts, currency }: Props) {
                   </div>
                 </TableCell>
                 <TableCell className="hidden text-muted-foreground sm:table-cell"><span dir="ltr">{c.customer_phone}</span></TableCell>
-                <TableCell className="text-end">{formatPrice(c.total, c.currency || currency)}</TableCell>
+                <TableCell className="text-end">{formatPrice(c.total, c.currency)}</TableCell>
                 <TableCell>
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[c.status] || ""}`}>
                     {t(`abandonedCheckouts.statusLabels.${c.status}`)}

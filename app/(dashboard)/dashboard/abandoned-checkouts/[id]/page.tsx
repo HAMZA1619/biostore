@@ -30,7 +30,7 @@ export default async function AbandonedCheckoutDetailPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id, currency, slug, custom_domain, domain_verified")
+    .select("id, slug, custom_domain, domain_verified")
     .eq("owner_id", user.id)
     .single()
 
@@ -154,10 +154,10 @@ export default async function AbandonedCheckoutDetailPage({
                   </div>
                   <div className="text-end shrink-0 text-sm">
                     <span className="text-muted-foreground">
-                      {formatPrice(item.product_price, store.currency)} × {item.quantity}
+                      {formatPrice(item.product_price, checkout.currency)} × {item.quantity}
                     </span>
                     <p className="font-medium mt-0.5">
-                      {formatPrice(item.product_price * item.quantity, store.currency)}
+                      {formatPrice(item.product_price * item.quantity, checkout.currency)}
                     </p>
                   </div>
                 </div>
@@ -176,12 +176,12 @@ export default async function AbandonedCheckoutDetailPage({
                   ({itemCount} {itemCount === 1 ? "item" : "items"})
                 </span>
               </span>
-              <span>{formatPrice(checkout.subtotal || checkout.total, store.currency)}</span>
+              <span>{formatPrice(checkout.subtotal || checkout.total, checkout.currency)}</span>
             </div>
             <Separator />
             <div className="flex items-center justify-between font-semibold pt-1">
               <span><T k="orderDetail.total" /></span>
-              <span>{formatPrice(checkout.total, store.currency)}</span>
+              <span>{formatPrice(checkout.total, checkout.currency)}</span>
             </div>
           </div>
 

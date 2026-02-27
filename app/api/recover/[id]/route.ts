@@ -10,7 +10,7 @@ export async function GET(
 
   const { data: checkout } = await supabase
     .from("abandoned_checkouts")
-    .select("*, stores!inner(slug, currency, custom_domain, domain_verified)")
+    .select("*, stores!inner(slug, custom_domain, domain_verified)")
     .eq("id", id)
     .single()
 
@@ -24,14 +24,13 @@ export async function GET(
 
   const store = checkout.stores as unknown as {
     slug: string
-    currency: string
     custom_domain: string | null
     domain_verified: boolean
   }
 
   return NextResponse.json({
     slug: store.slug,
-    currency: store.currency,
+    currency: checkout.currency,
     cart_items: checkout.cart_items,
     customer_name: checkout.customer_name,
     customer_phone: checkout.customer_phone,

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     if (storeError || !store) {
       console.error("[checkout-sessions] Store lookup failed:", storeError)
-      return NextResponse.json({ error: "Store not found", details: storeError?.message }, { status: 404 })
+      return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
     // Resolve currency from market if provided
@@ -80,12 +80,12 @@ export async function POST(request: Request) {
 
     if (rpcError) {
       console.error("[checkout-sessions] RPC upsert_abandoned_checkout failed:", rpcError)
-      return NextResponse.json({ error: "Failed to save checkout session", details: rpcError.message, code: rpcError.code }, { status: 500 })
+      return NextResponse.json({ error: "Failed to save checkout session" }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error("[checkout-sessions] Unhandled error:", err)
-    return NextResponse.json({ error: "Internal server error", details: err instanceof Error ? err.message : String(err) }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
