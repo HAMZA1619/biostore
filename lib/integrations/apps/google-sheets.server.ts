@@ -1,6 +1,7 @@
 import urlJoin from "url-join"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { google } from "googleapis"
+import { OAuth2Client } from "google-auth-library"
+import { sheets as googleSheets } from "@googleapis/sheets"
 import {
   formatOrderRows,
   getHeaders,
@@ -23,7 +24,7 @@ interface GoogleSheetsConfig {
 }
 
 export function createOAuth2Client() {
-  return new google.auth.OAuth2(
+  return new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
     urlJoin(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000", "api/integrations/google-sheets/callback"),
@@ -40,7 +41,7 @@ export function getAuthenticatedClient(config: { access_token: string; refresh_t
 }
 
 export function getSheetsClient(auth: ReturnType<typeof getAuthenticatedClient>) {
-  return google.sheets({ version: "v4", auth })
+  return googleSheets({ version: "v4", auth })
 }
 
 export async function refreshAccessToken(
@@ -70,7 +71,7 @@ export async function handleGoogleSheets(
   currency: string,
 ): Promise<void> {
   if (eventType !== "order.created" && eventType !== "checkout.abandoned") return
-  if (eventType === "checkout.abandoned" && !(config as Record<string, unknown>).track_abandoned_checkouts) return
+  if (eventType === "checkout.abandoned" && !(config as unknown as Record<string, unknown>).track_abandoned_checkouts) return
   if (!config.connected || !config.spreadsheet_id || !config.refresh_token) return
 
   const refreshed = await refreshAccessToken(config)

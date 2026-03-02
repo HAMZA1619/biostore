@@ -60,7 +60,7 @@ export default function DocsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((cat) => {
             const IconComponent =
-              (Icons as Record<string, React.ComponentType<{ className?: string }>>)[cat.icon] ?? Icons.FileText
+              (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[cat.icon] ?? Icons.FileText
             return (
               <Link key={cat.slug} href={`/docs/${cat.slug}`}>
                 <Card className="h-full transition-colors hover:bg-muted/50">

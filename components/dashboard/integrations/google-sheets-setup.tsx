@@ -808,7 +808,7 @@ export function GoogleSheetsSetup({ storeId, installed }: Props) {
                   {g("connectedStatus")}
                 </p>
                 <a
-                  href={urlJoin("https://docs.google.com/spreadsheets/d", config.spreadsheet_id)}
+                  href={urlJoin("https://docs.google.com/spreadsheets/d", String(config.spreadsheet_id))}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-0.5 flex items-center gap-1 text-sm text-green-600 hover:underline dark:text-green-400"

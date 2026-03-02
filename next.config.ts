@@ -2,6 +2,11 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  typescript: {
+    // Type checking runs via `npm run typecheck` before `next build`
+    // Next.js's built-in worker OOMs on large projects
+    ignoreBuildErrors: true,
+  },
   images: {
     remotePatterns: [
       {

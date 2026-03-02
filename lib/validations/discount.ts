@@ -1,8 +1,8 @@
 import { z } from "zod"
 
-export const discountSchema = z.object({
+const baseDiscountSchema = z.object({
   code: z.string().min(1, "validation.couponCodeRequired").max(50),
-  label: z.string().max(100).optional().default(""),
+  label: z.string().max(100),
   discount_type: z.enum(["percentage", "fixed"]),
   discount_value: z.number().positive("validation.discountValueRequired"),
   minimum_order_amount: z
@@ -20,7 +20,9 @@ export const discountSchema = z.object({
   starts_at: z.string().nullable().optional(),
   ends_at: z.string().nullable().optional(),
   is_active: z.boolean(),
-}).refine(
+})
+
+export const discountSchema = baseDiscountSchema.refine(
   (data) => {
     if (data.discount_type === "percentage") return data.discount_value <= 100
     return true
@@ -28,4 +30,4 @@ export const discountSchema = z.object({
   { message: "validation.percentageMax100", path: ["discount_value"] }
 )
 
-export type DiscountFormData = z.infer<typeof discountSchema>
+export type DiscountFormData = z.infer<typeof baseDiscountSchema>

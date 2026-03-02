@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit --incremental false --skipLibCheck",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@googleapis/sheets": "^13.0.1",
     "@hookform/resolvers": "^5.2.2",
     "@polar-sh/sdk": "^0.43.0",
     "@radix-ui/react-popover": "^1.1.15",
@@ -19,7 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "googleapis": "^171.4.0",
+    "google-auth-library": "^10.6.1",
     "i18next": "^25.8.4",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
