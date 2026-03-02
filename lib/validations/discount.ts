@@ -20,6 +20,7 @@ const baseDiscountSchema = z.object({
   starts_at: z.string().nullable().optional(),
   ends_at: z.string().nullable().optional(),
   is_active: z.boolean(),
+  market_ids: z.array(z.string()).optional(),
 })
 
 export const discountSchema = baseDiscountSchema.refine(

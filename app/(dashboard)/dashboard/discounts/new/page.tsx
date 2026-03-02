@@ -15,7 +15,14 @@ export default async function NewDiscountPage() {
 
   if (!store) redirect("/dashboard/store")
 
+  const { data: markets } = await supabase
+    .from("markets")
+    .select("id, name")
+    .eq("store_id", store.id)
+    .eq("is_active", true)
+    .order("name")
+
   return (
-    <DiscountForm storeId={store.id} currency={store.currency} />
+    <DiscountForm storeId={store.id} currency={store.currency} markets={markets || []} />
   )
 }

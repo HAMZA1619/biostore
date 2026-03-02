@@ -17,9 +17,15 @@ import { ArrowLeft, Loader2, RefreshCw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
+interface MarketOption {
+  id: string
+  name: string
+}
+
 interface DiscountFormProps {
   storeId: string
   currency: string
+  markets?: MarketOption[]
   initialData?: {
     id: string
     type: string
@@ -33,6 +39,7 @@ interface DiscountFormProps {
     starts_at: string | null
     ends_at: string | null
     is_active: boolean
+    market_ids: string[] | null
   }
 }
 
@@ -43,7 +50,7 @@ function generateCode() {
   return code
 }
 
-export function DiscountForm({ storeId, currency, initialData }: DiscountFormProps) {
+export function DiscountForm({ storeId, currency, markets = [], initialData }: DiscountFormProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -55,6 +62,9 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
   const [showLimit, setShowLimit] = useState(!!initialData?.max_uses)
   const [oneTimePerUser, setOneTimePerUser] = useState(
     initialData?.max_uses_per_customer === 1
+  )
+  const [selectedMarketIds, setSelectedMarketIds] = useState<string[]>(
+    initialData?.market_ids || []
   )
 
   const {
@@ -87,12 +97,14 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
     || showDates !== !!(initialData?.starts_at || initialData?.ends_at)
     || showLimit !== !!initialData?.max_uses
     || oneTimePerUser !== (initialData?.max_uses_per_customer === 1)
+    || JSON.stringify(selectedMarketIds.sort()) !== JSON.stringify((initialData?.market_ids || []).sort())
 
   function handleCancel() {
     reset()
     setShowDates(!!(initialData?.starts_at || initialData?.ends_at))
     setShowLimit(!!initialData?.max_uses)
     setOneTimePerUser(initialData?.max_uses_per_customer === 1)
+    setSelectedMarketIds(initialData?.market_ids || [])
   }
 
   async function onSubmit(data: DiscountFormData) {
@@ -107,6 +119,7 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
         ends_at: showDates ? data.ends_at || null : null,
         max_uses: showLimit ? data.max_uses || null : null,
         max_uses_per_customer: oneTimePerUser ? 1 : null,
+        market_ids: selectedMarketIds.length > 0 ? selectedMarketIds : null,
         ...(isEdit ? { id: initialData.id } : { store_id: storeId }),
       }
 
@@ -339,6 +352,43 @@ export function DiscountForm({ storeId, currency, initialData }: DiscountFormPro
               onCheckedChange={setOneTimePerUser}
             />
           </div>
+
+          {markets.length > 0 && (
+            <>
+              <div className="border-t" />
+              <div className="space-y-3">
+                <Label className="font-normal">{t("discountForm.restrictToMarkets")}</Label>
+                <p className="text-xs text-muted-foreground">{t("discountForm.restrictToMarketsHint")}</p>
+                <div className="flex flex-wrap gap-2">
+                  {markets.map((m) => {
+                    const selected = selectedMarketIds.includes(m.id)
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedMarketIds((prev) =>
+                            selected ? prev.filter((id) => id !== m.id) : [...prev, m.id]
+                          )
+                        }}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input hover:bg-muted"
+                        )}
+                      >
+                        {m.name}
+                      </button>
+                    )
+                  })}
+                </div>
+                {selectedMarketIds.length === 0 && (
+                  <p className="text-xs text-muted-foreground">{t("discountForm.allMarkets")}</p>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
     </form>

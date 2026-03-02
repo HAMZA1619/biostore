@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { shippingZoneSchema } from "@/lib/validations/shipping"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -16,11 +16,21 @@ export async function GET() {
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
-    const { data: zones } = await supabase
+    const { searchParams } = new URL(request.url)
+    const marketId = searchParams.get("market_id")
+
+    let query = supabase
       .from("shipping_zones")
       .select("*, shipping_city_rates(*)")
       .eq("store_id", store.id)
-      .order("country_name")
+
+    if (marketId) {
+      query = query.eq("market_id", marketId)
+    } else {
+      query = query.is("market_id", null)
+    }
+
+    const { data: zones } = await query.order("country_name")
 
     return NextResponse.json(zones || [])
   } catch {
@@ -49,11 +59,13 @@ export async function POST(request: NextRequest) {
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
     const { country_code, country_name, default_rate, is_active } = parsed.data
+    const market_id = body.market_id || null
 
     const { data, error } = await supabase
       .from("shipping_zones")
       .insert({
         store_id: store.id,
+        market_id,
         country_code,
         country_name,
         default_rate,

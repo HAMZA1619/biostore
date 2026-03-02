@@ -1,26 +1,33 @@
+"use client"
+
+import { use } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getCategory, getCategoryArticles } from "@/lib/docs/content"
 import { ChevronRight } from "lucide-react"
+import { useLanguageStore } from "@/lib/store/language-store"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
-export default async function CategoryPage({
+export default function CategoryPage({
   params,
 }: {
   params: Promise<{ category: string }>
 }) {
-  const { category: slug } = await params
+  const { category: slug } = use(params)
   const category = getCategory(slug)
   if (!category) notFound()
 
   const articles = getCategoryArticles(slug)
-  const lang = "en"
+  const lang = useLanguageStore((s) => s.language)
+  const { t } = useTranslation()
 
   return (
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
           <Link href="/docs" className="hover:underline">
-            Docs
+            {t("docs.title")}
           </Link>
           <ChevronRight className="h-3 w-3" />
           <span>{category.title[lang]}</span>

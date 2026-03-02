@@ -2,14 +2,14 @@
 
 import { useEffect } from "react"
 
-export function ViewTracker({ storeId }: { storeId: string }) {
+export function ViewTracker({ storeId, marketId }: { storeId: string; marketId?: string }) {
   useEffect(() => {
     fetch("/api/views", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ storeId }),
+      body: JSON.stringify({ storeId, marketId }),
     }).catch(() => {})
-  }, [storeId])
+  }, [storeId, marketId])
 
   return null
 }

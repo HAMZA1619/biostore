@@ -21,7 +21,9 @@
     "shipping": "الشحن",
     "abandonedCheckouts": "السلات المتروكة",
     "checkouts": "السلات",
-    "helpCenter": "مركز المساعدة"
+    "helpCenter": "مركز المساعدة",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح"
   },
   "dashboard": {
     "welcome": "مرحبا بك في BioStore",
@@ -130,7 +132,12 @@
     "statusUpdatedTo": "تم تحديث الحالة إلى {{status}}",
     "loadMore": "تحميل المزيد",
     "searchPlaceholder": "البحث بالاسم أو الهاتف أو #الطلب",
-    "noResults": "لم يتم العثور على طلبات مطابقة."
+    "noResults": "لم يتم العثور على طلبات مطابقة.",
+    "allStatuses": "جميع الحالات",
+    "allMarkets": "جميع الأسواق",
+    "dateFrom": "من",
+    "dateTo": "إلى",
+    "clearFilters": "مسح"
   },
   "discounts": {
     "title": "التخفيضات",
@@ -179,7 +186,10 @@
     "cancel": "إلغاء",
     "discountCreated": "تم إنشاء التخفيض",
     "discountUpdated": "تم تحديث التخفيض",
-    "saveFailed": "فشل حفظ التخفيض"
+    "saveFailed": "فشل حفظ التخفيض",
+    "restrictToMarkets": "تقييد بالأسواق",
+    "restrictToMarketsHint": "اتركه فارغاً للسماح في جميع الأسواق.",
+    "allMarkets": "متاح في جميع الأسواق"
   },
   "orderDetail": {
     "items": "العناصر",
@@ -285,7 +295,8 @@
     "last60days": "آخر 60 يوم",
     "last90days": "آخر 90 يوم",
     "last180days": "آخر 180 يوم",
-    "lastYear": "السنة الماضية"
+    "lastYear": "السنة الماضية",
+    "allMarkets": "جميع الأسواق"
   },
   "design": {
     "title": "التصميم",
@@ -335,6 +346,16 @@
     "colors": "الألوان",
     "typography": "الخطوط",
     "layoutStyle": "التخطيط والأسلوب",
+    "seo": "SEO",
+    "seoHint": "خصّص كيف يظهر متجرك في محركات البحث ووسائل التواصل الاجتماعي.",
+    "seoTitle": "العنوان",
+    "seoTitlePlaceholder": "اسم متجرك",
+    "seoDescription": "الوصف",
+    "seoDescriptionPlaceholder": "وصف قصير لمتجرك...",
+    "seoKeywords": "الكلمات المفتاحية",
+    "seoKeywordsPlaceholder": "كلمة1، كلمة2",
+    "seoFeaturedImage": "الصورة البارزة",
+    "seoFeaturedImageHint": "تُعرض عند مشاركة متجرك على وسائل التواصل الاجتماعي.",
     "preferences": "الإعدادات",
     "checkout": "الدفع",
     "thankYou": "شكراً",
@@ -510,6 +531,9 @@
       "recovered": "مسترد",
       "expired": "منتهي"
     },
+    "allStatuses": "جميع الحالات",
+    "clearFilters": "مسح",
+    "noResults": "لا توجد نتائج.",
     "item": "منتج",
     "items": "منتجات",
     "cartItems": "عناصر السلة",
@@ -1053,7 +1077,10 @@
       "showVariants": "عرض المتغيرات",
       "hideVariants": "إخفاء المتغيرات",
       "variant": "متغير",
-      "variants": "متغيرات"
+      "variants": "متغيرات",
+      "exportCsv": "تصدير CSV",
+      "importCsv": "استيراد CSV",
+      "importSuccess": "تم استيراد الأسعار من CSV"
     },
     "exclusions": {
       "title": "توفر المنتجات",
@@ -1134,7 +1161,9 @@
     "bulkCityHint": "أضف عدة مدن دفعة واحدة، مدينة في كل سطر.",
     "citiesAdded": "تمت إضافة {{count}} مدن",
     "addCities": "إضافة {{count}} مدن",
-    "saveError": "فشل في الحفظ"
+    "saveError": "فشل في الحفظ",
+    "saveFailed": "فشل في الحفظ",
+    "globalZones": "المناطق العامة"
   },
   "timeAgo": {
     "justNow": "الآن",

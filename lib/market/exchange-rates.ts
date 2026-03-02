@@ -1,5 +1,5 @@
 const cache = new Map<string, { rates: Record<string, number>; timestamp: number }>()
-const CACHE_TTL = 60 * 60 * 1000 // 1 hour
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 export async function getExchangeRate(from: string, to: string): Promise<number> {
   if (from === to) return 1
@@ -11,7 +11,7 @@ export async function getExchangeRate(from: string, to: string): Promise<number>
 
   try {
     const res = await fetch(`https://open.er-api.com/v6/latest/${from}`, {
-      next: { revalidate: 3600 },
+      cache: "no-store",
     })
     if (!res.ok) return 1
     const data = await res.json()

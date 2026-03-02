@@ -35,6 +35,7 @@ interface CartStore {
   removeItem: (productId: string, variantId?: string | null) => void
   updateQuantity: (productId: string, variantId: string | null | undefined, quantity: number) => void
   clearCart: () => void
+  repriceItems: (updatedItems: Array<{ productId: string; variantId: string | null; price: number }>, marketSlug: string) => void
   setDiscount: (discount: AppliedDiscount | null) => void
   getTotal: () => number
   getDiscountedTotal: () => number
@@ -95,6 +96,19 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], storeSlug: null, marketSlug: null, appliedDiscount: null }),
+
+      repriceItems: (updatedItems, marketSlug) => {
+        const { items } = get()
+        const priceMap = new Map(
+          updatedItems.map((u) => [`${u.productId}:${u.variantId || ""}`, u.price])
+        )
+        const repriced = items.map((item) => {
+          const key = `${item.productId}:${item.variantId || ""}`
+          const newPrice = priceMap.get(key)
+          return newPrice != null ? { ...item, price: newPrice } : item
+        })
+        set({ items: repriced, marketSlug, appliedDiscount: null })
+      },
 
       setDiscount: (discount) => set({ appliedDiscount: discount }),
 

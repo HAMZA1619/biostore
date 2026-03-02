@@ -22,7 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { LogOut, Settings } from "lucide-react"
+import { LogOut, Settings, HelpCircle, Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 import "@/lib/i18n"
 
 export function ProfileDropdown({
@@ -34,6 +35,7 @@ export function ProfileDropdown({
 }) {
   const { t } = useTranslation()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   async function handleLogout() {
@@ -62,6 +64,16 @@ export function ProfileDropdown({
           <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
             <Settings className="me-2 h-4 w-4" />
             {t("nav.settings")}
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href="/docs" target="_blank" rel="noopener noreferrer">
+              <HelpCircle className="me-2 h-4 w-4" />
+              {t("nav.helpCenter")}
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            {theme === "dark" ? <Sun className="me-2 h-4 w-4" /> : <Moon className="me-2 h-4 w-4" />}
+            {theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

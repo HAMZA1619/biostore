@@ -99,7 +99,7 @@ export default async function StorePage({
 
   return (
     <div className="space-y-6">
-      <ViewTracker storeId={store.id} />
+      <ViewTracker storeId={store.id} marketId={activeMarket?.id} />
       {store.description && (
         <p className="text-muted-foreground">{store.description}</p>
       )}

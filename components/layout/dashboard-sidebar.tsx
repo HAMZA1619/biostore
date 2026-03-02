@@ -17,7 +17,6 @@ import {
   Settings,
   Menu,
   ChevronDown,
-  HelpCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -147,18 +146,6 @@ function SidebarContent({ pathname, onNavigate }: {
           )
         })}
       </nav>
-      <div className="border-t p-3">
-        <a
-          href="/docs"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={onNavigate}
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <HelpCircle className="h-4 w-4" />
-          {t("nav.helpCenter")}
-        </a>
-      </div>
     </>
   )
 }

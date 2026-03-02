@@ -5,7 +5,6 @@ import { Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { getCurrencySymbol } from "@/lib/utils"
-import { useCartStore } from "@/lib/store/cart-store"
 
 interface Market {
   slug: string
@@ -23,11 +22,9 @@ export function MarketPicker({ markets, activeMarketSlug }: MarketPickerProps) {
 
   const activeMarket = markets.find((m) => m.slug === activeMarketSlug) || markets[0]
 
-  const clearCart = useCartStore((s) => s.clearCart)
-
   function handleSelect(slug: string) {
     if (slug !== activeMarketSlug) {
-      clearCart()
+      sessionStorage.setItem("biostore-reprice", "1")
     }
     document.cookie = `biostore-market=${slug};path=/;max-age=31536000;SameSite=Lax`
     setOpen(false)

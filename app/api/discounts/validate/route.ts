@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { slug, code, subtotal, customer_phone } = body
+    const { slug, code, subtotal, customer_phone, market_id } = body
 
     if (!slug || !code || subtotal == null) {
       return NextResponse.json({ valid: false, error: "Missing required fields" }, { status: 400 })
@@ -63,6 +63,12 @@ export async function POST(request: Request) {
 
     if (!discount) {
       return NextResponse.json({ valid: false, error: "invalid_code" })
+    }
+
+    if (discount.market_ids && discount.market_ids.length > 0 && market_id) {
+      if (!discount.market_ids.includes(market_id)) {
+        return NextResponse.json({ valid: false, error: "market_restricted" })
+      }
     }
 
     const now = new Date()

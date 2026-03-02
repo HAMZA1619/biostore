@@ -29,7 +29,14 @@ export default async function EditDiscountPage({
 
   if (!discount) notFound()
 
+  const { data: markets } = await supabase
+    .from("markets")
+    .select("id, name")
+    .eq("store_id", store.id)
+    .eq("is_active", true)
+    .order("name")
+
   return (
-    <DiscountForm storeId={store.id} currency={store.currency} initialData={discount} />
+    <DiscountForm storeId={store.id} currency={store.currency} markets={markets || []} initialData={discount} />
   )
 }

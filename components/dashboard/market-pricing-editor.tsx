@@ -4,7 +4,7 @@ import { useState, useMemo, useRef } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { ChevronDown, ChevronRight, Copy, Loader2, Search } from "lucide-react"
+import { ChevronDown, ChevronRight, Copy, Download, Loader2, Search, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -41,6 +41,41 @@ interface MarketPricingEditorProps {
   initialPrices: Record<string, PriceEntry>
 }
 
+function csvEscape(value: string): string {
+  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
+}
+
+function parseCsvLine(line: string): string[] {
+  const result: string[] = []
+  let current = ""
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else if (ch === '"') {
+        inQuotes = false
+      } else {
+        current += ch
+      }
+    } else if (ch === '"') {
+      inQuotes = true
+    } else if (ch === ",") {
+      result.push(current.trim())
+      current = ""
+    } else {
+      current += ch
+    }
+  }
+  result.push(current.trim())
+  return result
+}
+
 export function MarketPricingEditor({
   marketId,
   marketName,
@@ -56,6 +91,7 @@ export function MarketPricingEditor({
   const [search, setSearch] = useState("")
   const [saving, setSaving] = useState(false)
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const mSymbol = getCurrencySymbol(marketCurrency)
   const sSymbol = getCurrencySymbol(storeCurrency)
 
@@ -118,6 +154,90 @@ export function MarketPricingEditor({
       }
       return updated
     })
+  }
+
+  function exportCsv() {
+    const rows: string[] = ["product_name,variant_name,base_price,market_price,compare_at_price"]
+    for (const p of products) {
+      if (p.variants.length === 0) {
+        const mp = prices[p.id]
+        rows.push([
+          csvEscape(p.name),
+          "",
+          p.price.toFixed(2),
+          mp?.price ? mp.price.toFixed(2) : "",
+          mp?.compare_at_price ? mp.compare_at_price.toFixed(2) : "",
+        ].join(","))
+      }
+      for (const v of p.variants) {
+        const vKey = `${p.id}:${v.id}`
+        const mp = prices[vKey]
+        rows.push([
+          csvEscape(p.name),
+          csvEscape(variantLabel(v.options)),
+          v.price.toFixed(2),
+          mp?.price ? mp.price.toFixed(2) : "",
+          mp?.compare_at_price ? mp.compare_at_price.toFixed(2) : "",
+        ].join(","))
+      }
+    }
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${marketName.replace(/\s+/g, "_")}_prices.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function importCsv(file: File) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = e.target?.result as string
+      if (!text) return
+      const lines = text.split("\n").map((l) => l.trim()).filter(Boolean)
+      if (lines.length < 2) return
+
+      const nameToProduct = new Map(products.map((p) => [p.name.toLowerCase(), p]))
+
+      setPrices((prev) => {
+        const updated = { ...prev }
+        for (let i = 1; i < lines.length; i++) {
+          const cols = parseCsvLine(lines[i])
+          if (cols.length < 4) continue
+          const [productName, variantName, , marketPrice, compareAt] = cols
+          const product = nameToProduct.get(productName.toLowerCase())
+          if (!product) continue
+
+          if (variantName) {
+            const variant = product.variants.find(
+              (v) => variantLabel(v.options).toLowerCase() === variantName.toLowerCase()
+            )
+            if (variant) {
+              const vKey = `${product.id}:${variant.id}`
+              const price = parseFloat(marketPrice)
+              if (price > 0) {
+                updated[vKey] = {
+                  price,
+                  compare_at_price: compareAt ? parseFloat(compareAt) || null : null,
+                }
+              }
+            }
+          } else {
+            const price = parseFloat(marketPrice)
+            if (price > 0) {
+              updated[product.id] = {
+                price,
+                compare_at_price: compareAt ? parseFloat(compareAt) || null : null,
+              }
+            }
+          }
+        }
+        return updated
+      })
+      toast.success(t("markets.pricing.importSuccess"))
+    }
+    reader.readAsText(file)
   }
 
   async function handleSave() {
@@ -195,6 +315,25 @@ export function MarketPricingEditor({
           <Copy className="me-2 h-3.5 w-3.5" />
           {t("markets.pricing.copyAllFromBase")}
         </Button>
+        <Button variant="outline" size="sm" onClick={exportCsv}>
+          <Download className="me-2 h-3.5 w-3.5" />
+          {t("markets.pricing.exportCsv")}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <Upload className="me-2 h-3.5 w-3.5" />
+          {t("markets.pricing.importCsv")}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) importCsv(file)
+            e.target.value = ""
+          }}
+        />
       </div>
 
       {/* Product list */}

@@ -21,7 +21,9 @@
     "shipping": "Livraison",
     "abandonedCheckouts": "Paniers abandonnés",
     "checkouts": "Paniers",
-    "helpCenter": "Centre d'aide"
+    "helpCenter": "Centre d'aide",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair"
   },
   "dashboard": {
     "welcome": "Bienvenue sur BioStore",
@@ -130,7 +132,12 @@
     "statusUpdatedTo": "Statut mis à jour : {{status}}",
     "loadMore": "Charger plus",
     "searchPlaceholder": "Rechercher par nom, téléphone ou #commande",
-    "noResults": "Aucune commande trouvée."
+    "noResults": "Aucune commande trouvée.",
+    "allStatuses": "Tous les statuts",
+    "allMarkets": "Tous les marchés",
+    "dateFrom": "De",
+    "dateTo": "À",
+    "clearFilters": "Effacer"
   },
   "discounts": {
     "title": "Réductions",
@@ -179,7 +186,10 @@
     "cancel": "Annuler",
     "discountCreated": "Réduction créée",
     "discountUpdated": "Réduction mise à jour",
-    "saveFailed": "Échec de l'enregistrement"
+    "saveFailed": "Échec de l'enregistrement",
+    "restrictToMarkets": "Restreindre aux marchés",
+    "restrictToMarketsHint": "Laisser vide pour autoriser dans tous les marchés.",
+    "allMarkets": "Disponible dans tous les marchés"
   },
   "orderDetail": {
     "items": "Articles",
@@ -285,7 +295,8 @@
     "last60days": "60 derniers jours",
     "last90days": "90 derniers jours",
     "last180days": "180 derniers jours",
-    "lastYear": "Dernière année"
+    "lastYear": "Dernière année",
+    "allMarkets": "Tous les marchés"
   },
   "design": {
     "title": "Design",
@@ -335,6 +346,16 @@
     "colors": "Couleurs",
     "typography": "Typographie",
     "layoutStyle": "Mise en page & Style",
+    "seo": "SEO",
+    "seoHint": "Personnalisez l'apparence de votre boutique dans les moteurs de recherche et les réseaux sociaux.",
+    "seoTitle": "Titre",
+    "seoTitlePlaceholder": "Le nom de votre boutique",
+    "seoDescription": "Description",
+    "seoDescriptionPlaceholder": "Une courte description de votre boutique...",
+    "seoKeywords": "Mots-clés",
+    "seoKeywordsPlaceholder": "mot1, mot2",
+    "seoFeaturedImage": "Image mise en avant",
+    "seoFeaturedImageHint": "Affichée lorsque votre boutique est partagée sur les réseaux sociaux.",
     "preferences": "Paramètres",
     "checkout": "Paiement",
     "thankYou": "Merci",
@@ -510,6 +531,9 @@
       "recovered": "Récupéré",
       "expired": "Expiré"
     },
+    "allStatuses": "Tous les statuts",
+    "clearFilters": "Effacer",
+    "noResults": "Aucun résultat trouvé.",
     "item": "article",
     "items": "articles",
     "cartItems": "Articles du panier",
@@ -1053,7 +1077,10 @@
       "showVariants": "Afficher les variantes",
       "hideVariants": "Masquer les variantes",
       "variant": "variante",
-      "variants": "variantes"
+      "variants": "variantes",
+      "exportCsv": "Exporter CSV",
+      "importCsv": "Importer CSV",
+      "importSuccess": "Prix importés depuis le CSV"
     },
     "exclusions": {
       "title": "Disponibilité des produits",
@@ -1134,7 +1161,9 @@
     "bulkCityHint": "Ajoutez plusieurs villes à la fois, une par ligne.",
     "citiesAdded": "{{count}} villes ajoutées",
     "addCities": "Ajouter {{count}} villes",
-    "saveError": "Échec de l'enregistrement"
+    "saveError": "Échec de l'enregistrement",
+    "saveFailed": "Échec de l'enregistrement",
+    "globalZones": "Zones globales"
   },
   "timeAgo": {
     "justNow": "à l'instant",

@@ -1,13 +1,11 @@
 import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, ShoppingCart, Coins } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { DashboardAnalytics } from "@/components/dashboard/analytics"
 import { T } from "@/components/dashboard/translated-text"
-import { getCurrencySymbol } from "@/lib/utils"
+import { getExchangeRate } from "@/lib/market/exchange-rates"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -33,12 +31,19 @@ export default async function DashboardPage() {
     )
   }
 
-  const [{ count: productCount }, { data: orders }] = await Promise.all([
+  const [{ count: productCount }, { data: orders }, { data: markets }] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }).eq("store_id", store.id),
-    supabase.from("orders").select("total, status").eq("store_id", store.id),
+    supabase.from("orders").select("total, currency, status, market_id").eq("store_id", store.id),
+    supabase.from("markets").select("id, name, slug, currency, is_default, price_adjustment").eq("store_id", store.id).order("is_default", { ascending: false }),
   ])
 
-  const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.total), 0) || 0
+  // Fetch exchange rates for each unique market currency → store currency
+  const uniqueCurrencies = [...new Set((markets || []).map((m) => m.currency))].filter((c) => c !== store.currency)
+  const rateEntries = await Promise.all(
+    uniqueCurrencies.map(async (c) => [c, await getExchangeRate(c, store.currency)] as const)
+  )
+  const exchangeRates: Record<string, number> = Object.fromEntries(rateEntries)
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -56,43 +61,15 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="gap-3 py-5">
-          <CardHeader className="flex flex-row items-center justify-between pb-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground"><T k="dashboard.products" /></CardTitle>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Package className="h-4.5 w-4.5 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{productCount || 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="gap-3 py-5">
-          <CardHeader className="flex flex-row items-center justify-between pb-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground"><T k="dashboard.orders" /></CardTitle>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <ShoppingCart className="h-4.5 w-4.5 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{orders?.length || 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="gap-3 py-5 sm:col-span-2 lg:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground"><T k="dashboard.revenue" /></CardTitle>
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Coins className="h-4.5 w-4.5 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="truncate text-3xl font-bold">{getCurrencySymbol(store.currency)} {totalRevenue.toFixed(2)}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <DashboardAnalytics storeId={store.id} currency={store.currency} firstName={firstName} />
+      <DashboardAnalytics
+        storeId={store.id}
+        currency={store.currency}
+        markets={markets || []}
+        exchangeRates={exchangeRates}
+        productCount={productCount || 0}
+        totalOrders={orders || []}
+        firstName={firstName}
+      />
     </div>
   )
 }

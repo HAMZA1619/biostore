@@ -15,11 +15,20 @@ export default async function ShippingPage() {
 
   if (!store) redirect("/dashboard/store")
 
-  const { data: zones } = await supabase
-    .from("shipping_zones")
-    .select("*, shipping_city_rates(*)")
-    .eq("store_id", store.id)
-    .order("country_name")
+  const [{ data: zones }, { data: markets }] = await Promise.all([
+    supabase
+      .from("shipping_zones")
+      .select("*, shipping_city_rates(*)")
+      .eq("store_id", store.id)
+      .is("market_id", null)
+      .order("country_name"),
+    supabase
+      .from("markets")
+      .select("id, name")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+      .order("is_default", { ascending: false }),
+  ])
 
-  return <ShippingManager initialZones={zones || []} currency={store.currency} />
+  return <ShippingManager initialZones={zones || []} currency={store.currency} markets={markets || []} />
 }

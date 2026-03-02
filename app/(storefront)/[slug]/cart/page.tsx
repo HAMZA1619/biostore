@@ -306,7 +306,7 @@ export default function CartPage() {
         fetch("/api/discounts/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slug, code: appliedDiscount.code, subtotal }),
+          body: JSON.stringify({ slug, code: appliedDiscount.code, subtotal, market_id: market?.id || undefined }),
         })
           .then((r) => r.ok ? r.json() : null)
           .then((d) => { if (d && !d.valid) setDiscount(null) })
@@ -327,6 +327,7 @@ export default function CartPage() {
           code: couponCode.trim(),
           subtotal: getTotal(),
           customer_phone: form.customer_phone || undefined,
+          market_id: market?.id || undefined,
         }),
       })
       const data = await res.json()

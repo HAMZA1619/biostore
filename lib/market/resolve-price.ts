@@ -38,19 +38,17 @@ export function resolvePrice(
     }
   }
 
-  if (market.pricing_mode === "auto") {
-    const rate = market.exchange_rate
-    const adjustment = 1 + market.price_adjustment / 100
-    const adjustedPrice = Math.round(basePrice * rate * adjustment * 100) / 100
-    const adjustedCompare = baseCompareAtPrice
-      ? Math.round(baseCompareAtPrice * rate * adjustment * 100) / 100
-      : null
-    return {
-      price: adjustedPrice,
-      compare_at_price: adjustedCompare,
-      currency: market.currency,
-    }
+  // Auto mode: apply exchange rate + price adjustment
+  // Fixed mode fallback (no market price set): apply exchange rate only (no adjustment)
+  const rate = market.exchange_rate
+  const adjustment = market.pricing_mode === "auto" ? 1 + market.price_adjustment / 100 : 1
+  const adjustedPrice = Math.round(basePrice * rate * adjustment * 100) / 100
+  const adjustedCompare = baseCompareAtPrice
+    ? Math.round(baseCompareAtPrice * rate * adjustment * 100) / 100
+    : null
+  return {
+    price: adjustedPrice,
+    compare_at_price: adjustedCompare,
+    currency: market.currency,
   }
-
-  return { price: basePrice, compare_at_price: baseCompareAtPrice, currency: baseCurrency }
 }

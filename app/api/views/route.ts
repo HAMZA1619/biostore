@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { storeId } = await request.json()
+    const { storeId, marketId } = await request.json()
 
     if (!storeId || typeof storeId !== "string") {
       return NextResponse.json({ error: "Missing storeId" }, { status: 400 })
@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const { error } = await supabase.rpc("increment_store_view", {
       p_store_id: storeId,
       p_hour: hour,
+      p_market_id: marketId || null,
     })
 
     if (error) {

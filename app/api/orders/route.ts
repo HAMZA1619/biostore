@@ -275,7 +275,11 @@ export async function POST(request: Request) {
 
       if (discount) {
         const now = new Date()
+        const marketRestricted = discount.market_ids && discount.market_ids.length > 0 && orderMarketId
+          ? !discount.market_ids.includes(orderMarketId)
+          : false
         const valid =
+          !marketRestricted &&
           (!discount.starts_at || new Date(discount.starts_at) <= now) &&
           (!discount.ends_at || new Date(discount.ends_at) >= now) &&
           (!discount.max_uses || discount.times_used < discount.max_uses) &&

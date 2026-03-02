@@ -7,26 +7,30 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { CATEGORIES, searchArticles } from "@/lib/docs/content"
 import { Search } from "lucide-react"
 import * as Icons from "lucide-react"
+import { useLanguageStore } from "@/lib/store/language-store"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 export default function DocsPage() {
   const [query, setQuery] = useState("")
-  const lang = "en"
+  const lang = useLanguageStore((s) => s.language)
+  const { t } = useTranslation()
 
   const results = query.trim() ? searchArticles(query, lang) : null
 
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold sm:text-4xl">How can we help?</h1>
+        <h1 className="text-3xl font-bold sm:text-4xl">{t("docs.title")}</h1>
         <p className="text-muted-foreground">
-          Browse our guides to learn how to set up and manage your store.
+          {t("docs.subtitle")}
         </p>
       </div>
 
       <div className="relative mx-auto max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search documentation..."
+          placeholder={t("docs.searchPlaceholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10"
@@ -36,7 +40,7 @@ export default function DocsPage() {
       {results ? (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            {results.length} result{results.length !== 1 ? "s" : ""}
+            {results.length} {results.length !== 1 ? t("docs.articles") : t("docs.article")}
           </p>
           {results.map((article) => (
             <Link
@@ -52,7 +56,7 @@ export default function DocsPage() {
           ))}
           {results.length === 0 && (
             <p className="text-center text-muted-foreground py-8">
-              No results found. Try a different search term.
+              {t("docs.noResults")}
             </p>
           )}
         </div>

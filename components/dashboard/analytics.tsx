@@ -8,14 +8,27 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { formatPrice } from "@/lib/utils"
-import { CalendarIcon, TrendingUp, TrendingDown } from "lucide-react"
+import { CalendarIcon, TrendingUp, TrendingDown, Package, ShoppingCart, Coins } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import i18n from "@/lib/i18n"
 
+interface Market {
+  id: string
+  name: string
+  slug: string
+  currency: string
+  is_default: boolean
+  price_adjustment: number
+}
+
 interface AnalyticsProps {
   storeId: string
   currency: string
+  markets: Market[]
+  exchangeRates: Record<string, number>
+  productCount: number
+  totalOrders: Array<{ total: number; currency: string; status: string; market_id: string | null }>
   firstName: string
 }
 
@@ -23,11 +36,14 @@ interface Order {
   total: number
   status: string
   created_at: string
+  currency: string
+  market_id: string | null
 }
 
 interface StoreViewHourly {
   view_hour: string
   view_count: number
+  market_id: string | null
 }
 
 const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
@@ -98,9 +114,10 @@ function useIsMobile(breakpoint = 768) {
   return isMobile
 }
 
-export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsProps) {
+export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, productCount, totalOrders, firstName }: AnalyticsProps) {
   const isMobile = useIsMobile()
   const { t } = useTranslation()
+  const [selectedMarketId, setSelectedMarketId] = useState<string>("all")
   const [dateRange, setDateRange] = useState<DateRange>({
     from: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d })(),
     to: new Date(),
@@ -111,6 +128,25 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
   const [prevViews, setPrevViews] = useState<StoreViewHourly[]>([])
   const [loading, setLoading] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
+
+  const selectedMarket = markets.find((m) => m.id === selectedMarketId)
+  const activeCurrency = selectedMarket?.currency || currency
+
+  // Convert an order total from its market currency to store base currency
+  const marketMap = new Map(markets.map((m) => [m.id, m]))
+  function toBaseCurrency(total: number, marketId: string | null): number {
+    if (!marketId) return total
+    const market = marketMap.get(marketId)
+    if (!market || market.currency === currency) return total
+    return total * (exchangeRates[market.currency] || 1)
+  }
+
+  // Overview stat cards (all-time, from server)
+  const filteredTotalOrders = selectedMarketId === "all"
+    ? totalOrders
+    : totalOrders.filter((o) => o.market_id === selectedMarketId)
+  const allTimeOrders = filteredTotalOrders.length
+  const allTimeRevenue = filteredTotalOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
   const cacheRef = useRef<Map<string, { orders: Order[]; prevOrders: Order[]; views: StoreViewHourly[]; prevViews: StoreViewHourly[] }>>(new Map())
 
   useEffect(() => {
@@ -149,26 +185,26 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
       const [ordersRes, viewsRes, prevOrdersRes, prevViewsRes] = await Promise.all([
         supabase
           .from("orders")
-          .select("total, status, created_at")
+          .select("total, status, created_at, currency, market_id")
           .eq("store_id", storeId)
           .gte("created_at", fromDate.toISOString())
           .lte("created_at", toDate.toISOString())
           .order("created_at", { ascending: false }),
         supabase
           .from("store_views_hourly")
-          .select("view_hour, view_count")
+          .select("view_hour, view_count, market_id")
           .eq("store_id", storeId)
           .gte("view_hour", fromDate.toISOString())
           .lte("view_hour", toDate.toISOString()),
         supabase
           .from("orders")
-          .select("total, status, created_at")
+          .select("total, status, created_at, currency, market_id")
           .eq("store_id", storeId)
           .gte("created_at", prevFrom.toISOString())
           .lte("created_at", prevTo.toISOString()),
         supabase
           .from("store_views_hourly")
-          .select("view_hour, view_count")
+          .select("view_hour, view_count, market_id")
           .eq("store_id", storeId)
           .gte("view_hour", prevFrom.toISOString())
           .lte("view_hour", prevTo.toISOString()),
@@ -197,17 +233,38 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
     fetchData()
   }, [dateRange.from, dateRange.to, storeId])
 
+  // Filter orders by selected market
+  const filteredOrders = selectedMarketId === "all"
+    ? orders
+    : orders.filter((o) => o.market_id === selectedMarketId)
+  const filteredPrevOrders = selectedMarketId === "all"
+    ? prevOrders
+    : prevOrders.filter((o) => o.market_id === selectedMarketId)
+
+  // Revenue helper: convert to store currency when viewing all markets, raw total otherwise
+  function orderRevenue(o: { total: number; market_id: string | null }): number {
+    return selectedMarketId === "all" ? toBaseCurrency(Number(o.total), o.market_id) : Number(o.total)
+  }
+
+  // Filter views by selected market
+  const filteredViews = selectedMarketId === "all"
+    ? views
+    : views.filter((v) => v.market_id === selectedMarketId)
+  const filteredPrevViews = selectedMarketId === "all"
+    ? prevViews
+    : prevViews.filter((v) => v.market_id === selectedMarketId)
+
   // Computed metrics
-  const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total), 0)
-  const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0
-  const totalVisitors = views.reduce((sum, v) => sum + v.view_count, 0)
-  const conversionRate = totalVisitors > 0 ? (orders.length / totalVisitors) * 100 : 0
+  const totalRevenue = filteredOrders.reduce((sum, o) => sum + orderRevenue(o), 0)
+  const avgOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0
+  const totalVisitors = filteredViews.reduce((sum, v) => sum + v.view_count, 0)
+  const conversionRate = totalVisitors > 0 ? (filteredOrders.length / totalVisitors) * 100 : 0
 
   // Previous period metrics
-  const prevTotalRevenue = prevOrders.reduce((sum, o) => sum + Number(o.total), 0)
-  const prevAvgOrderValue = prevOrders.length > 0 ? prevTotalRevenue / prevOrders.length : 0
-  const prevTotalVisitors = prevViews.reduce((sum, v) => sum + v.view_count, 0)
-  const prevConversionRate = prevTotalVisitors > 0 ? (prevOrders.length / prevTotalVisitors) * 100 : 0
+  const prevTotalRevenue = filteredPrevOrders.reduce((sum, o) => sum + orderRevenue(o), 0)
+  const prevAvgOrderValue = filteredPrevOrders.length > 0 ? prevTotalRevenue / filteredPrevOrders.length : 0
+  const prevTotalVisitors = filteredPrevViews.reduce((sum, v) => sum + v.view_count, 0)
+  const prevConversionRate = prevTotalVisitors > 0 ? (filteredPrevOrders.length / prevTotalVisitors) * 100 : 0
 
   function pctChange(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0
@@ -231,17 +288,17 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
     chartLabels = Array.from({ length: 24 }, (_, i) => formatHourLabel(i))
 
     const viewsByHour = new Map<number, number>()
-    for (const v of views) {
+    for (const v of filteredViews) {
       const h = new Date(v.view_hour).getHours()
       viewsByHour.set(h, (viewsByHour.get(h) || 0) + v.view_count)
     }
 
     const ordersByHour = new Map<number, number>()
     const revenueByHour = new Map<number, number>()
-    for (const o of orders) {
+    for (const o of filteredOrders) {
       const h = new Date(o.created_at).getHours()
       ordersByHour.set(h, (ordersByHour.get(h) || 0) + 1)
-      revenueByHour.set(h, (revenueByHour.get(h) || 0) + Number(o.total))
+      revenueByHour.set(h, (revenueByHour.get(h) || 0) + orderRevenue(o))
     }
 
     visitorsChart = Array.from({ length: 24 }, (_, i) => viewsByHour.get(i) || 0)
@@ -268,17 +325,17 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
     chartLabels = allDays.map((d) => d.slice(5))
 
     const viewsByDay = new Map<string, number>()
-    for (const v of views) {
+    for (const v of filteredViews) {
       const day = toLocalDate(new Date(v.view_hour))
       viewsByDay.set(day, (viewsByDay.get(day) || 0) + v.view_count)
     }
 
     const ordersByDay = new Map<string, number>()
     const revenueByDay = new Map<string, number>()
-    for (const o of orders) {
+    for (const o of filteredOrders) {
       const day = toLocalDate(new Date(o.created_at))
       ordersByDay.set(day, (ordersByDay.get(day) || 0) + 1)
-      revenueByDay.set(day, (revenueByDay.get(day) || 0) + Number(o.total))
+      revenueByDay.set(day, (revenueByDay.get(day) || 0) + orderRevenue(o))
     }
 
     visitorsChart = allDays.map((d) => viewsByDay.get(d) || 0)
@@ -303,6 +360,43 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
 
   return (
     <div className="space-y-4">
+      {/* Overview stat cards */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center gap-3 pt-4 pb-3 px-4">
+            <div className="rounded-md bg-primary/10 p-2">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t("dashboard.products")}</p>
+              <p className="text-2xl font-bold">{productCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 pt-4 pb-3 px-4">
+            <div className="rounded-md bg-primary/10 p-2">
+              <ShoppingCart className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t("dashboard.orders")}</p>
+              <p className="text-2xl font-bold">{allTimeOrders}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 pt-4 pb-3 px-4">
+            <div className="rounded-md bg-primary/10 p-2">
+              <Coins className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t("dashboard.revenue")}</p>
+              <p className="text-2xl font-bold">{formatPrice(allTimeRevenue, currency)}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <div>
           <h2 className="text-lg font-semibold">{t("analytics.title")}</h2>
@@ -310,9 +404,22 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
             {t("analytics.greeting", { name: firstName })}
           </p>
         </div>
+        <div className="ms-auto flex items-center gap-2">
+          {markets.length > 0 && (
+            <select
+              value={selectedMarketId}
+              onChange={(e) => setSelectedMarketId(e.target.value)}
+              className="h-8 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="all">{t("analytics.allMarkets")}</option>
+              {markets.map((m) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          )}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="ms-auto gap-2 font-normal">
+            <Button variant="outline" size="sm" className="gap-2 font-normal">
               <CalendarIcon className="h-4 w-4" />
               {dateRange.from && dateRange.to
                 ? `${formatDateShort(dateRange.from)} - ${formatDateShort(dateRange.to)}`
@@ -354,6 +461,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
             </div>
           </PopoverContent>
         </Popover>
+        </div>
       </div>
 
       {loading ? (
@@ -412,19 +520,19 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
             />
             <MetricCard
               title={t("dashboard.orders")}
-              value={orders.length.toString()}
-              change={pctChange(orders.length, prevOrders.length)}
+              value={filteredOrders.length.toString()}
+              change={pctChange(filteredOrders.length, filteredPrevOrders.length)}
               data={ordersChart}
               labels={chartLabels}
             />
             <MetricCard
               title={t("analytics.sales")}
-              value={formatPrice(totalRevenue, currency)}
+              value={formatPrice(totalRevenue, activeCurrency)}
               change={pctChange(totalRevenue, prevTotalRevenue)}
               data={salesChart}
               labels={chartLabels}
               isCurrency
-              currency={currency}
+              currency={activeCurrency}
             />
           </div>
 
@@ -439,16 +547,16 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
             />
             <MetricCard
               title={t("analytics.aov")}
-              value={formatPrice(avgOrderValue, currency)}
+              value={formatPrice(avgOrderValue, activeCurrency)}
               change={pctChange(avgOrderValue, prevAvgOrderValue)}
               data={aovChart}
               labels={chartLabels}
               isCurrency
-              currency={currency}
+              currency={activeCurrency}
             />
             <MetricCard
               title={t("analytics.epc")}
-              value={formatPrice(totalVisitors > 0 ? totalRevenue / totalVisitors : 0, currency)}
+              value={formatPrice(totalVisitors > 0 ? totalRevenue / totalVisitors : 0, activeCurrency)}
               change={pctChange(
                 totalVisitors > 0 ? totalRevenue / totalVisitors : 0,
                 prevTotalVisitors > 0 ? prevTotalRevenue / prevTotalVisitors : 0
@@ -456,7 +564,7 @@ export function DashboardAnalytics({ storeId, currency, firstName }: AnalyticsPr
               data={epcChart}
               labels={chartLabels}
               isCurrency
-              currency={currency}
+              currency={activeCurrency}
             />
           </div>
 

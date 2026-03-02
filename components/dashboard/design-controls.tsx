@@ -9,12 +9,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { SingleImageUpload } from "@/components/dashboard/single-image-upload"
 import { cn } from "@/lib/utils"
 import { FONT_OPTIONS, BORDER_RADIUS_OPTIONS, COLOR_THEME_PRESETS, BUTTON_STYLE_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart } from "lucide-react"
+import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search } from "lucide-react"
 import type { DesignState, PreviewTab } from "./design-preview"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
-type SectionId = "branding" | "colors" | "typography" | "layout" | "checkout" | "thankyou" | "preferences"
+type SectionId = "branding" | "colors" | "typography" | "layout" | "checkout" | "thankyou" | "preferences" | "seo"
 
 const sections: { id: SectionId; icon: React.ComponentType<{ className?: string }>; labelKey: string; previewTab: PreviewTab }[] = [
   { id: "branding", icon: ImageIcon, labelKey: "design.branding", previewTab: "store" },
@@ -23,6 +23,7 @@ const sections: { id: SectionId; icon: React.ComponentType<{ className?: string 
   { id: "layout", icon: LayoutGrid, labelKey: "design.layoutStyle", previewTab: "store" },
   { id: "checkout", icon: CreditCard, labelKey: "design.checkout", previewTab: "checkout" },
   { id: "thankyou", icon: Heart, labelKey: "design.thankYou", previewTab: "thankyou" },
+  { id: "seo", icon: Search, labelKey: "design.seo", previewTab: "store" },
   { id: "preferences", icon: Settings2, labelKey: "design.preferences", previewTab: "store" },
 ]
 
@@ -185,6 +186,26 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   className="text-sm"
                   maxLength={500}
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-sm font-medium">{t("design.announcementBar")}</h3>
+                <p className="text-[11px] text-muted-foreground">{t("design.announcementHint")}</p>
+                <Input
+                  id="announcement-text"
+                  value={state.announcementText}
+                  onChange={(e) => onChange({ announcementText: e.target.value })}
+                  placeholder={t("design.announcementText")}
+                  className="text-sm"
+                />
+                {state.announcementText && (
+                  <Input
+                    value={state.announcementLink}
+                    onChange={(e) => onChange({ announcementLink: e.target.value })}
+                    placeholder={t("design.announcementLink")}
+                    className="text-sm"
+                  />
+                )}
               </div>
             </>
           )}
@@ -588,6 +609,62 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
             </div>
           )}
 
+          {/* SEO */}
+          {activeSection === "seo" && (
+            <div className="space-y-4">
+              <p className="text-[11px] text-muted-foreground">{t("design.seoHint")}</p>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="seo-title" className="text-sm">{t("design.seoTitle")}</Label>
+                <Input
+                  id="seo-title"
+                  value={state.seoTitle}
+                  onChange={(e) => onChange({ seoTitle: e.target.value })}
+                  placeholder={t("design.seoTitlePlaceholder")}
+                  className="text-sm"
+                  maxLength={70}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="seo-description" className="text-sm">{t("design.seoDescription")}</Label>
+                <Textarea
+                  id="seo-description"
+                  value={state.seoDescription}
+                  onChange={(e) => onChange({ seoDescription: e.target.value })}
+                  placeholder={t("design.seoDescriptionPlaceholder")}
+                  rows={3}
+                  className="text-sm"
+                  maxLength={160}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="seo-keywords" className="text-sm">{t("design.seoKeywords")}</Label>
+                <Input
+                  id="seo-keywords"
+                  value={state.seoKeywords}
+                  onChange={(e) => onChange({ seoKeywords: e.target.value })}
+                  placeholder={t("design.seoKeywordsPlaceholder")}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t("design.seoFeaturedImage")}</Label>
+                <p className="text-[11px] text-muted-foreground">{t("design.seoFeaturedImageHint")}</p>
+                <div className="aspect-[1.91/1] max-w-[280px] [&_img]:object-contain">
+                  <SingleImageUpload
+                    storeId={storeId}
+                    value={state.seoImagePath}
+                    onChange={(path) => onChange({ seoImagePath: path })}
+                    aspect="wide"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Preferences */}
           {activeSection === "preferences" && (
             <div className="space-y-4">
@@ -661,27 +738,6 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   checked={state.mobileOnly}
                   onCheckedChange={(v) => onChange({ mobileOnly: v })}
                 />
-              </div>
-
-              {/* Announcement Bar */}
-              <div className="space-y-1.5">
-                <Label htmlFor="announcement-text" className="text-sm">{t("design.announcementBar")}</Label>
-                <p className="text-[11px] text-muted-foreground">{t("design.announcementHint")}</p>
-                <Input
-                  id="announcement-text"
-                  value={state.announcementText}
-                  onChange={(e) => onChange({ announcementText: e.target.value })}
-                  placeholder={t("design.announcementText")}
-                  className="text-sm"
-                />
-                {state.announcementText && (
-                  <Input
-                    value={state.announcementLink}
-                    onChange={(e) => onChange({ announcementLink: e.target.value })}
-                    placeholder={t("design.announcementLink")}
-                    className="text-sm"
-                  />
-                )}
               </div>
 
               {/* WhatsApp Float */}

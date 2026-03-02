@@ -7,6 +7,7 @@ import { StorefrontI18nProvider } from "@/components/store/storefront-i18n-provi
 import { TrackingScripts } from "@/components/store/tracking-scripts"
 import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
 import { DesktopPhoneFrame } from "@/components/store/desktop-phone-frame"
+import { CartRepricer } from "@/components/store/cart-repricer"
 import { StoreConfigProvider } from "@/lib/store/store-config"
 import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
@@ -24,27 +25,31 @@ export async function generateMetadata({
 
   if (!store) return {}
 
-  const title = store.name
-  const description = store.description || `Shop at ${store.name}`
-
   const ds = parseDesignSettings((store.design_settings || {}) as Record<string, unknown>)
+
+  const title = ds.seoTitle || store.name
+  const description = ds.seoDescription || store.description || `Shop at ${store.name}`
   const logoUrl = ds.logoPath ? getImageUrl(ds.logoPath) : null
+  const seoImageUrl = ds.seoImagePath ? getImageUrl(ds.seoImagePath) : null
+  const iconUrl = seoImageUrl || logoUrl
+  const ogImageUrl = seoImageUrl || logoUrl
 
   return {
     title,
     description,
-    ...(logoUrl ? { icons: { icon: logoUrl, apple: logoUrl } } : {}),
+    ...(ds.seoKeywords ? { keywords: ds.seoKeywords.split(",").map((k) => k.trim()).filter(Boolean) } : {}),
+    ...(iconUrl ? { icons: { icon: iconUrl, apple: iconUrl } } : {}),
     openGraph: {
       title,
       description,
       type: "website",
-      ...(logoUrl ? { images: [{ url: logoUrl }] } : {}),
+      ...(ogImageUrl ? { images: [{ url: ogImageUrl }] } : {}),
     },
     twitter: {
-      card: logoUrl ? "summary_large_image" : "summary",
+      card: ogImageUrl ? "summary_large_image" : "summary",
       title,
       description,
-      ...(logoUrl ? { images: [logoUrl] } : {}),
+      ...(ogImageUrl ? { images: [ogImageUrl] } : {}),
     },
   }
 }
@@ -277,6 +282,7 @@ export default async function StoreLayout({
           </>
         )}
       </StorefrontI18nProvider>
+      <CartRepricer />
       </StoreConfigProvider>
     </div>
   )

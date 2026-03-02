@@ -18,12 +18,19 @@ export default async function OrdersPage() {
 
   if (!store) redirect("/dashboard/store")
 
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("id, order_number, customer_name, customer_phone, customer_country, total, currency, status, created_at")
-    .eq("store_id", store.id)
-    .order("created_at", { ascending: false })
-    .range(0, PAGE_SIZE - 1)
+  const [{ data: orders }, { data: markets }] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("id, order_number, customer_name, customer_phone, customer_country, total, currency, status, created_at")
+      .eq("store_id", store.id)
+      .order("created_at", { ascending: false })
+      .range(0, PAGE_SIZE - 1),
+    supabase
+      .from("markets")
+      .select("id, name")
+      .eq("store_id", store.id)
+      .order("is_default", { ascending: false }),
+  ])
 
   return (
     <div className="space-y-4">
@@ -31,6 +38,7 @@ export default async function OrdersPage() {
       <OrdersTable
         initialOrders={orders || []}
         hasMore={(orders?.length || 0) === PAGE_SIZE}
+        markets={markets || []}
       />
     </div>
   )

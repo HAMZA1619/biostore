@@ -59,6 +59,24 @@ export async function POST(request: NextRequest) {
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
+    // Check country overlap with existing markets
+    const { data: existing } = await supabase
+      .from("markets")
+      .select("name, countries")
+      .eq("store_id", store_id)
+
+    if (existing) {
+      for (const m of existing) {
+        const overlap = (m.countries || []).filter((c: string) => countries.includes(c))
+        if (overlap.length > 0) {
+          return NextResponse.json(
+            { error: `Countries ${overlap.join(", ")} already belong to "${m.name}"` },
+            { status: 400 },
+          )
+        }
+      }
+    }
+
     // If setting as default, unset other defaults
     if (is_default) {
       await supabase
@@ -128,6 +146,27 @@ export async function PATCH(request: NextRequest) {
       .single()
 
     if (!store) return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+
+    // Check country overlap when updating countries
+    if (body.countries !== undefined && Array.isArray(body.countries)) {
+      const { data: existing } = await supabase
+        .from("markets")
+        .select("name, countries")
+        .eq("store_id", market.store_id)
+        .neq("id", id)
+
+      if (existing) {
+        for (const m of existing) {
+          const overlap = (m.countries || []).filter((c: string) => body.countries.includes(c))
+          if (overlap.length > 0) {
+            return NextResponse.json(
+              { error: `Countries ${overlap.join(", ")} already belong to "${m.name}"` },
+              { status: 400 },
+            )
+          }
+        }
+      }
+    }
 
     // Build updates from provided fields (supports partial updates like toggle)
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }

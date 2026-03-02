@@ -53,6 +53,11 @@ export interface DesignState {
   requireCaptcha: boolean
   whatsappFloat: string
   mobileOnly: boolean
+  // SEO
+  seoTitle: string
+  seoDescription: string
+  seoKeywords: string
+  seoImagePath: string | null
 }
 
 interface DesignPreviewProps {

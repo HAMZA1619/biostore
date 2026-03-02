@@ -1,8 +1,14 @@
+"use client"
+
+import { use } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getCategory, getArticle } from "@/lib/docs/content"
 import { ChevronRight } from "lucide-react"
+import { useLanguageStore } from "@/lib/store/language-store"
+import { useTranslation } from "react-i18next"
+import "@/lib/i18n"
 
 function StepImage({ src, alt }: { src: string; alt: string }) {
   return (
@@ -19,24 +25,25 @@ function StepImage({ src, alt }: { src: string; alt: string }) {
   )
 }
 
-export default async function ArticlePage({
+export default function ArticlePage({
   params,
 }: {
   params: Promise<{ category: string; slug: string }>
 }) {
-  const { category: catSlug, slug } = await params
+  const { category: catSlug, slug } = use(params)
   const category = getCategory(catSlug)
   const article = getArticle(catSlug, slug)
   if (!category || !article) notFound()
 
-  const lang = "en"
+  const lang = useLanguageStore((s) => s.language)
+  const { t } = useTranslation()
 
   return (
     <div className="space-y-8">
       <div>
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
           <Link href="/docs" className="hover:underline">
-            Docs
+            {t("docs.title")}
           </Link>
           <ChevronRight className="h-3 w-3" />
           <Link href={`/docs/${catSlug}`} className="hover:underline">

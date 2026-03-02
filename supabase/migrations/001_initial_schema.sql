@@ -99,6 +99,7 @@ CREATE TABLE discounts (
   starts_at TIMESTAMPTZ,
   ends_at TIMESTAMPTZ,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  market_ids UUID[],
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -184,13 +185,16 @@ CREATE TABLE order_items (
 );
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 
--- Store Views Hourly (aggregated visitor tracking — one row per store per hour)
+-- Store Views Hourly (aggregated visitor tracking — one row per store per hour per market)
 CREATE TABLE store_views_hourly (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  market_id UUID REFERENCES markets(id) ON DELETE SET NULL,
   view_hour TIMESTAMPTZ NOT NULL DEFAULT date_trunc('hour', now()),
-  view_count INTEGER NOT NULL DEFAULT 1,
-  PRIMARY KEY (store_id, view_hour)
+  view_count INTEGER NOT NULL DEFAULT 1
 );
+CREATE UNIQUE INDEX idx_store_views_hourly_upsert
+  ON store_views_hourly (store_id, view_hour, COALESCE(market_id, '00000000-0000-0000-0000-000000000000'));
 
 -- Store Images (central gallery)
 CREATE TABLE store_images (
@@ -212,13 +216,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
--- Increment store view (atomic upsert for hourly counter)
-CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_hour TIMESTAMPTZ)
+-- Increment store view (atomic upsert for hourly counter per market)
+CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_hour TIMESTAMPTZ, p_market_id UUID DEFAULT NULL)
 RETURNS VOID AS $$
 BEGIN
-  INSERT INTO public.store_views_hourly (store_id, view_hour, view_count)
-  VALUES (p_store_id, p_hour, 1)
-  ON CONFLICT (store_id, view_hour)
+  INSERT INTO public.store_views_hourly (store_id, view_hour, market_id, view_count)
+  VALUES (p_store_id, p_hour, p_market_id, 1)
+  ON CONFLICT (store_id, view_hour, COALESCE(market_id, '00000000-0000-0000-0000-000000000000'))
   DO UPDATE SET view_count = store_views_hourly.view_count + 1;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
@@ -468,14 +472,16 @@ CREATE POLICY "Owners can delete market exclusions" ON market_exclusions
 CREATE TABLE shipping_zones (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  market_id UUID REFERENCES markets(id) ON DELETE CASCADE,
   country_code TEXT NOT NULL,
   country_name TEXT NOT NULL,
   default_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE(store_id, country_code)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX idx_shipping_zones_store_country_market
+  ON shipping_zones (store_id, country_code, COALESCE(market_id, '00000000-0000-0000-0000-000000000000'));
 CREATE INDEX idx_shipping_zones_store ON shipping_zones(store_id);
 CREATE INDEX idx_shipping_zones_active ON shipping_zones(store_id, is_active) WHERE is_active = true;
 

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { Check, ChevronDown, ChevronsUpDown, Plus, Trash2, Truck, X } from "lucide-react"
+import { Check, ChevronDown, ChevronsUpDown, Loader2, Plus, Trash2, Truck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -39,12 +39,15 @@ interface ShippingZone {
 interface ShippingManagerProps {
   initialZones: ShippingZone[]
   currency: string
+  markets: Array<{ id: string; name: string }>
 }
 
-export function ShippingManager({ initialZones, currency }: ShippingManagerProps) {
+export function ShippingManager({ initialZones, currency, markets }: ShippingManagerProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [zones, setZones] = useState(initialZones)
+  const [selectedMarketId, setSelectedMarketId] = useState<string>("")
+  const [loadingZones, setLoadingZones] = useState(false)
   const [expandedZone, setExpandedZone] = useState<string | null>(null)
   const [showAddZone, setShowAddZone] = useState(false)
   const [showAddCity, setShowAddCity] = useState<string | null>(null)
@@ -91,6 +94,7 @@ export function ShippingManager({ initialZones, currency }: ShippingManagerProps
           country_name: country.name,
           default_rate: newFreeShipping ? 0 : parseFloat(newDefaultRate),
           is_active: true,
+          market_id: selectedMarketId || null,
         }),
       })
       if (res.ok) {
@@ -255,10 +259,39 @@ export function ShippingManager({ initialZones, currency }: ShippingManagerProps
           <h1 className="text-xl font-bold sm:text-2xl">{t("shipping.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("shipping.description")}</p>
         </div>
-        <Button size="sm" onClick={() => setShowAddZone(true)}>
-          <Plus className="me-2 h-4 w-4" />
-          {t("shipping.addZone")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {markets.length > 0 && (
+            <select
+              value={selectedMarketId}
+              onChange={async (e) => {
+                const val = e.target.value
+                setSelectedMarketId(val)
+                setLoadingZones(true)
+                try {
+                  const params = new URLSearchParams()
+                  if (val) params.set("market_id", val)
+                  const res = await fetch(`/api/shipping?${params}`)
+                  if (res.ok) {
+                    const data = await res.json()
+                    setZones(data)
+                  }
+                } finally {
+                  setLoadingZones(false)
+                }
+              }}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="">{t("shipping.globalZones")}</option>
+              {markets.map((m) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          )}
+          <Button size="sm" onClick={() => setShowAddZone(true)}>
+            <Plus className="me-2 h-4 w-4" />
+            {t("shipping.addZone")}
+          </Button>
+        </div>
       </div>
 
       {zones.length === 0 ? (

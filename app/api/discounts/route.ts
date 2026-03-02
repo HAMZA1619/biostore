@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = await request.json()
-    const { store_id, code, label, discount_type, discount_value, minimum_order_amount, max_uses, max_uses_per_customer, starts_at, ends_at, is_active } = body
+    const { store_id, code, label, discount_type, discount_value, minimum_order_amount, max_uses, max_uses_per_customer, starts_at, ends_at, is_active, market_ids } = body
 
     if (!store_id || !discount_type || !discount_value) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
         starts_at: starts_at || null,
         ends_at: ends_at || null,
         is_active: is_active ?? true,
+        market_ids: Array.isArray(market_ids) && market_ids.length > 0 ? market_ids : null,
       })
       .select()
       .single()
@@ -102,13 +103,16 @@ export async function PATCH(request: Request) {
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
 
-    const ALLOWED_FIELDS = ["code", "label", "discount_type", "discount_value", "minimum_order_amount", "max_uses", "max_uses_per_customer", "is_active", "starts_at", "ends_at"] as const
+    const ALLOWED_FIELDS = ["code", "label", "discount_type", "discount_value", "minimum_order_amount", "max_uses", "max_uses_per_customer", "is_active", "starts_at", "ends_at", "market_ids"] as const
     const fields: Record<string, unknown> = {}
     for (const key of ALLOWED_FIELDS) {
       if (key in body) fields[key] = body[key]
     }
     if (typeof fields.code === "string") {
       fields.code = fields.code.toUpperCase().trim()
+    }
+    if ("market_ids" in body) {
+      fields.market_ids = Array.isArray(body.market_ids) && body.market_ids.length > 0 ? body.market_ids : null
     }
 
     const { data, error } = await supabase

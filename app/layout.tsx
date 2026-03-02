@@ -30,12 +30,22 @@ export const metadata: Metadata = {
   },
   description:
     "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+  keywords: [
+    "BioStore",
+    "online store builder",
+    "link in bio store",
+    "ecommerce",
+    "storefront",
+    "COD",
+    "WhatsApp orders",
+  ],
   openGraph: {
     type: "website",
     siteName: "BioStore",
     title: "BioStore — Turn Your Social Media Into a Store",
     description:
       "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
@@ -46,6 +56,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 }
 
@@ -60,7 +77,7 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           {children}
           <Toaster />
         </ThemeProvider>

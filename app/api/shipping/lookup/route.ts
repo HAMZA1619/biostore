@@ -59,30 +59,47 @@ export async function GET(request: NextRequest) {
     }
 
     // Try matching by country name first, then by country code
+    // Prefer market-specific zone, then fall back to global zone
     const countryCode = COUNTRIES.find(
       (c) => c.name.toLowerCase() === country.toLowerCase()
     )?.code
 
     let zone = null
-    const { data: zoneByName } = await supabase
-      .from("shipping_zones")
-      .select("id, default_rate")
-      .eq("store_id", store.id)
-      .eq("is_active", true)
-      .ilike("country_name", country.replace(/%/g, "\\%").replace(/_/g, "\\_"))
-      .single()
 
-    if (zoneByName) {
-      zone = zoneByName
-    } else if (countryCode) {
-      const { data: zoneByCode } = await supabase
+    async function findZone(forMarketId: string | null) {
+      const escapedCountry = country.replace(/%/g, "\\%").replace(/_/g, "\\_")
+      let q = supabase
         .from("shipping_zones")
         .select("id, default_rate")
         .eq("store_id", store.id)
         .eq("is_active", true)
-        .eq("country_code", countryCode)
-        .single()
-      zone = zoneByCode
+        .ilike("country_name", escapedCountry)
+
+      q = forMarketId ? q.eq("market_id", forMarketId) : q.is("market_id", null)
+      const { data } = await q.single()
+      if (data) return data
+
+      if (countryCode) {
+        let q2 = supabase
+          .from("shipping_zones")
+          .select("id, default_rate")
+          .eq("store_id", store.id)
+          .eq("is_active", true)
+          .eq("country_code", countryCode)
+
+        q2 = forMarketId ? q2.eq("market_id", forMarketId) : q2.is("market_id", null)
+        const { data: d2 } = await q2.single()
+        if (d2) return d2
+      }
+      return null
+    }
+
+    // Try market-specific zone first, then global
+    if (marketId) {
+      zone = await findZone(marketId)
+    }
+    if (!zone) {
+      zone = await findZone(null)
     }
 
     if (!zone) {

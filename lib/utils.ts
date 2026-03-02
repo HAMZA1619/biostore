@@ -112,6 +112,11 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     showCardAddToCart: typeof raw.showCardAddToCart === "boolean" ? raw.showCardAddToCart : true,
     requireCaptcha: typeof raw.requireCaptcha === "boolean" ? raw.requireCaptcha : true,
     whatsappFloat: (raw.whatsappFloat as string) || "",
-    mobileOnly: typeof raw.mobileOnly === "boolean" ? raw.mobileOnly : true,
+    mobileOnly: typeof raw.mobileOnly === "boolean" ? raw.mobileOnly : false,
+    // SEO
+    seoTitle: (raw.seoTitle as string) || "",
+    seoDescription: (raw.seoDescription as string) || "",
+    seoKeywords: (raw.seoKeywords as string) || "",
+    seoImagePath: (raw.seoImagePath as string) || null,
   }
 }

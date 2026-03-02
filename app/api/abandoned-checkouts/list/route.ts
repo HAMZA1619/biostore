@@ -24,41 +24,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 })
     }
 
-    const search = searchParams.get("search")?.trim() || ""
     const status = searchParams.get("status") || ""
-    const market = searchParams.get("market") || ""
     const dateFrom = searchParams.get("dateFrom") || ""
     const dateTo = searchParams.get("dateTo") || ""
 
     let query = supabase
-      .from("orders")
-      .select("id, order_number, customer_name, customer_phone, customer_country, total, currency, status, created_at")
+      .from("abandoned_checkouts")
+      .select("id, customer_name, customer_phone, cart_items, currency, total, status, created_at")
       .eq("store_id", store.id)
 
-    if (search) {
-      const orderNum = parseInt(search.replace(/^#/, ""), 10)
-      if (!isNaN(orderNum)) {
-        query = query.eq("order_number", orderNum)
-      } else {
-        const escaped = search.replace(/%/g, "\\%").replace(/_/g, "\\_")
-        query = query.or(`customer_name.ilike.%${escaped}%,customer_phone.ilike.%${escaped}%`)
-      }
-    }
-
     if (status) query = query.eq("status", status)
-    if (market) query = query.eq("market_id", market)
     if (dateFrom) query = query.gte("created_at", `${dateFrom}T00:00:00`)
     if (dateTo) query = query.lte("created_at", `${dateTo}T23:59:59`)
 
-    const { data: orders, error } = await query
+    const { data: checkouts, error } = await query
       .order("created_at", { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
     if (error) {
-      return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch checkouts" }, { status: 500 })
     }
 
-    return NextResponse.json({ orders: orders || [], hasMore: (orders?.length || 0) === PAGE_SIZE })
+    return NextResponse.json({ checkouts: checkouts || [], hasMore: (checkouts?.length || 0) === PAGE_SIZE })
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
