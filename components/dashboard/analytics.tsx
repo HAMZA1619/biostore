@@ -117,7 +117,6 @@ function useIsMobile(breakpoint = 768) {
 export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, productCount, totalOrders, firstName }: AnalyticsProps) {
   const isMobile = useIsMobile()
   const { t } = useTranslation()
-  const [selectedMarketId, setSelectedMarketId] = useState<string>("all")
   const [dateRange, setDateRange] = useState<DateRange>({
     from: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d })(),
     to: new Date(),
@@ -129,9 +128,6 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
   const [loading, setLoading] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
-  const selectedMarket = markets.find((m) => m.id === selectedMarketId)
-  const activeCurrency = selectedMarket?.currency || currency
-
   // Convert an order total from its market currency to store base currency
   const marketMap = new Map(markets.map((m) => [m.id, m]))
   function toBaseCurrency(total: number, marketId: string | null): number {
@@ -142,11 +138,8 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
   }
 
   // Overview stat cards (all-time, from server)
-  const filteredTotalOrders = selectedMarketId === "all"
-    ? totalOrders
-    : totalOrders.filter((o) => o.market_id === selectedMarketId)
-  const allTimeOrders = filteredTotalOrders.length
-  const allTimeRevenue = filteredTotalOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
+  const allTimeOrders = totalOrders.length
+  const allTimeRevenue = totalOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
   const cacheRef = useRef<Map<string, { orders: Order[]; prevOrders: Order[]; views: StoreViewHourly[]; prevViews: StoreViewHourly[] }>>(new Map())
 
   useEffect(() => {
@@ -233,38 +226,21 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
     fetchData()
   }, [dateRange.from, dateRange.to, storeId])
 
-  // Filter orders by selected market
-  const filteredOrders = selectedMarketId === "all"
-    ? orders
-    : orders.filter((o) => o.market_id === selectedMarketId)
-  const filteredPrevOrders = selectedMarketId === "all"
-    ? prevOrders
-    : prevOrders.filter((o) => o.market_id === selectedMarketId)
-
-  // Revenue helper: convert to store currency when viewing all markets, raw total otherwise
   function orderRevenue(o: { total: number; market_id: string | null }): number {
-    return selectedMarketId === "all" ? toBaseCurrency(Number(o.total), o.market_id) : Number(o.total)
+    return toBaseCurrency(Number(o.total), o.market_id)
   }
 
-  // Filter views by selected market
-  const filteredViews = selectedMarketId === "all"
-    ? views
-    : views.filter((v) => v.market_id === selectedMarketId)
-  const filteredPrevViews = selectedMarketId === "all"
-    ? prevViews
-    : prevViews.filter((v) => v.market_id === selectedMarketId)
-
-  // Computed metrics
-  const totalRevenue = filteredOrders.reduce((sum, o) => sum + orderRevenue(o), 0)
-  const avgOrderValue = filteredOrders.length > 0 ? totalRevenue / filteredOrders.length : 0
-  const totalVisitors = filteredViews.reduce((sum, v) => sum + v.view_count, 0)
-  const conversionRate = totalVisitors > 0 ? (filteredOrders.length / totalVisitors) * 100 : 0
+  // Computed metrics (all markets combined in store base currency)
+  const totalRevenue = orders.reduce((sum, o) => sum + orderRevenue(o), 0)
+  const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0
+  const totalVisitors = views.reduce((sum, v) => sum + v.view_count, 0)
+  const conversionRate = totalVisitors > 0 ? (orders.length / totalVisitors) * 100 : 0
 
   // Previous period metrics
-  const prevTotalRevenue = filteredPrevOrders.reduce((sum, o) => sum + orderRevenue(o), 0)
-  const prevAvgOrderValue = filteredPrevOrders.length > 0 ? prevTotalRevenue / filteredPrevOrders.length : 0
-  const prevTotalVisitors = filteredPrevViews.reduce((sum, v) => sum + v.view_count, 0)
-  const prevConversionRate = prevTotalVisitors > 0 ? (filteredPrevOrders.length / prevTotalVisitors) * 100 : 0
+  const prevTotalRevenue = prevOrders.reduce((sum, o) => sum + orderRevenue(o), 0)
+  const prevAvgOrderValue = prevOrders.length > 0 ? prevTotalRevenue / prevOrders.length : 0
+  const prevTotalVisitors = prevViews.reduce((sum, v) => sum + v.view_count, 0)
+  const prevConversionRate = prevTotalVisitors > 0 ? (prevOrders.length / prevTotalVisitors) * 100 : 0
 
   function pctChange(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0
@@ -288,14 +264,14 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
     chartLabels = Array.from({ length: 24 }, (_, i) => formatHourLabel(i))
 
     const viewsByHour = new Map<number, number>()
-    for (const v of filteredViews) {
+    for (const v of views) {
       const h = new Date(v.view_hour).getHours()
       viewsByHour.set(h, (viewsByHour.get(h) || 0) + v.view_count)
     }
 
     const ordersByHour = new Map<number, number>()
     const revenueByHour = new Map<number, number>()
-    for (const o of filteredOrders) {
+    for (const o of orders) {
       const h = new Date(o.created_at).getHours()
       ordersByHour.set(h, (ordersByHour.get(h) || 0) + 1)
       revenueByHour.set(h, (revenueByHour.get(h) || 0) + orderRevenue(o))
@@ -325,14 +301,14 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
     chartLabels = allDays.map((d) => d.slice(5))
 
     const viewsByDay = new Map<string, number>()
-    for (const v of filteredViews) {
+    for (const v of views) {
       const day = toLocalDate(new Date(v.view_hour))
       viewsByDay.set(day, (viewsByDay.get(day) || 0) + v.view_count)
     }
 
     const ordersByDay = new Map<string, number>()
     const revenueByDay = new Map<string, number>()
-    for (const o of filteredOrders) {
+    for (const o of orders) {
       const day = toLocalDate(new Date(o.created_at))
       ordersByDay.set(day, (ordersByDay.get(day) || 0) + 1)
       revenueByDay.set(day, (revenueByDay.get(day) || 0) + orderRevenue(o))
@@ -405,18 +381,6 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
           </p>
         </div>
         <div className="ms-auto flex items-center gap-2">
-          {markets.length > 0 && (
-            <select
-              value={selectedMarketId}
-              onChange={(e) => setSelectedMarketId(e.target.value)}
-              className="h-8 rounded-md border bg-background px-2 text-sm"
-            >
-              <option value="all">{t("analytics.allMarkets")}</option>
-              {markets.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-          )}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2 font-normal">
@@ -520,19 +484,19 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
             />
             <MetricCard
               title={t("dashboard.orders")}
-              value={filteredOrders.length.toString()}
-              change={pctChange(filteredOrders.length, filteredPrevOrders.length)}
+              value={orders.length.toString()}
+              change={pctChange(orders.length, prevOrders.length)}
               data={ordersChart}
               labels={chartLabels}
             />
             <MetricCard
               title={t("analytics.sales")}
-              value={formatPrice(totalRevenue, activeCurrency)}
+              value={formatPrice(totalRevenue, currency)}
               change={pctChange(totalRevenue, prevTotalRevenue)}
               data={salesChart}
               labels={chartLabels}
               isCurrency
-              currency={activeCurrency}
+              currency={currency}
             />
           </div>
 
@@ -547,16 +511,16 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
             />
             <MetricCard
               title={t("analytics.aov")}
-              value={formatPrice(avgOrderValue, activeCurrency)}
+              value={formatPrice(avgOrderValue, currency)}
               change={pctChange(avgOrderValue, prevAvgOrderValue)}
               data={aovChart}
               labels={chartLabels}
               isCurrency
-              currency={activeCurrency}
+              currency={currency}
             />
             <MetricCard
               title={t("analytics.epc")}
-              value={formatPrice(totalVisitors > 0 ? totalRevenue / totalVisitors : 0, activeCurrency)}
+              value={formatPrice(totalVisitors > 0 ? totalRevenue / totalVisitors : 0, currency)}
               change={pctChange(
                 totalVisitors > 0 ? totalRevenue / totalVisitors : 0,
                 prevTotalVisitors > 0 ? prevTotalRevenue / prevTotalVisitors : 0
@@ -564,13 +528,13 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
               data={epcChart}
               labels={chartLabels}
               isCurrency
-              currency={activeCurrency}
+              currency={currency}
             />
           </div>
 
           {markets.length >= 2 && (
             <MarketPerformanceCard
-              orders={filteredOrders}
+              orders={orders}
               markets={markets}
               currency={currency}
               toBaseCurrency={toBaseCurrency}
@@ -674,10 +638,11 @@ function MarketPerformanceCard({
 
   const rows = markets.map((m) => {
     const marketOrders = orders.filter((o) => o.market_id === m.id)
-    const revenue = marketOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
+    const revenue = marketOrders.reduce((sum, o) => sum + Number(o.total), 0)
     const aov = marketOrders.length > 0 ? revenue / marketOrders.length : 0
-    const share = totalRevenueAll > 0 ? (revenue / totalRevenueAll) * 100 : 0
-    return { market: m, orderCount: marketOrders.length, revenue, aov, share }
+    const baseRevenue = marketOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
+    const share = totalRevenueAll > 0 ? (baseRevenue / totalRevenueAll) * 100 : 0
+    return { market: m, orderCount: marketOrders.length, revenue, aov, share, displayCurrency: m.currency }
   })
 
   // Include "No market" orders
@@ -686,10 +651,10 @@ function MarketPerformanceCard({
     const revenue = noMarketOrders.reduce((sum, o) => sum + Number(o.total), 0)
     const aov = revenue / noMarketOrders.length
     const share = totalRevenueAll > 0 ? (revenue / totalRevenueAll) * 100 : 0
-    rows.push({ market: { id: "", name: t("analytics.noMarket"), slug: "", currency, is_default: false, price_adjustment: 0 }, orderCount: noMarketOrders.length, revenue, aov, share })
+    rows.push({ market: { id: "", name: t("analytics.noMarket"), slug: "", currency, is_default: false, price_adjustment: 0 }, orderCount: noMarketOrders.length, revenue, aov, share, displayCurrency: currency })
   }
 
-  rows.sort((a, b) => b.revenue - a.revenue)
+  rows.sort((a, b) => b.share - a.share)
 
   return (
     <Card>
@@ -719,8 +684,8 @@ function MarketPerformanceCard({
                     )}
                   </td>
                   <td className="py-2 text-end">{row.orderCount}</td>
-                  <td className="py-2 text-end">{formatPrice(row.revenue, currency)}</td>
-                  <td className="py-2 text-end hidden sm:table-cell">{formatPrice(row.aov, currency)}</td>
+                  <td className="py-2 text-end">{formatPrice(row.revenue, row.displayCurrency)}</td>
+                  <td className="py-2 text-end hidden sm:table-cell">{formatPrice(row.aov, row.displayCurrency)}</td>
                   <td className="py-2 text-end">
                     <div className="flex items-center justify-end gap-1.5">
                       <div className="hidden sm:block h-1.5 w-16 rounded-full bg-muted overflow-hidden">
