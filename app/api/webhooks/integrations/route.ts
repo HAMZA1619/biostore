@@ -1,6 +1,12 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { dispatchSingle } from "@/lib/integrations/handlers"
 import { APPS } from "@/lib/integrations/registry"
+import {
+  shouldSendConfirmation,
+  sendConfirmationButtons,
+  normalizePhone,
+  type WhatsAppConfig,
+} from "@/lib/integrations/apps/whatsapp"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -114,6 +120,47 @@ export async function POST(request: Request) {
               .from("integration_events")
               .update({ status: "completed", processed_at: new Date().toISOString() })
               .eq("id", appEventId)
+          }
+
+          // Send COD confirmation buttons for WhatsApp order.created
+          if (
+            integration.integration_id === "whatsapp" &&
+            event.event_type === "order.created"
+          ) {
+            const waConfig = integration.config as unknown as WhatsAppConfig
+            if (shouldSendConfirmation(waConfig)) {
+              try {
+                const sent = await sendConfirmationButtons(
+                  enrichedPayload.order_id as string,
+                  enrichedPayload.order_number as number,
+                  enrichedPayload as Record<string, unknown> & {
+                    order_number: number
+                    customer_name: string
+                    customer_phone: string
+                    total: number
+                  },
+                  waConfig,
+                  store.name,
+                  store.currency,
+                )
+
+                if (sent) {
+                  const normalizedPhone = normalizePhone(
+                    enrichedPayload.customer_phone as string,
+                    enrichedPayload.customer_country as string | undefined,
+                  )
+                  await supabase.from("order_confirmations").insert({
+                    order_id: enrichedPayload.order_id,
+                    store_id: event.store_id,
+                    customer_phone: normalizedPhone,
+                    status: "pending",
+                    sent_at: new Date().toISOString(),
+                  })
+                }
+              } catch (confirmErr) {
+                console.error("COD confirmation error:", confirmErr)
+              }
+            }
           }
 
           results.push({ integration_id: integration.integration_id, status: "completed" })

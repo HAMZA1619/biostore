@@ -6,7 +6,8 @@ import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import { Loader2, CheckCircle2, QrCode, Unplug } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { Loader2, CheckCircle2, QrCode, Unplug, ShieldCheck } from "lucide-react"
 
 const WHATSAPP_EVENTS = [
   { id: "order.created", labelKey: "integrations.eventNewOrder" },
@@ -38,6 +39,9 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
   )
   const [enabledEvents, setEnabledEvents] = useState<string[]>(
     (installed?.config?.enabled_events as string[]) ?? ["order.created"]
+  )
+  const [codConfirmationEnabled, setCodConfirmationEnabled] = useState(
+    (installed?.config?.cod_confirmation_enabled as boolean) || false
   )
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -71,7 +75,7 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
       }
     }, 3000)
     return () => clearInterval(interval)
-  }, [polling, checkStatus, t])
+  }, [polling, checkStatus, t, onDone])
 
   async function handleConnect() {
     setLoading(true)
@@ -147,7 +151,10 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: installed.id,
-          config: { enabled_events: enabledEvents },
+          config: {
+            enabled_events: enabledEvents,
+            cod_confirmation_enabled: codConfirmationEnabled,
+          },
         }),
       })
       if (res.ok) {
@@ -198,6 +205,25 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
         <p className="text-xs text-muted-foreground">
           {t("integrations.whatsappAiNote")}
         </p>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-medium">{t("integrations.codConfirmationTitle")}</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("integrations.codConfirmationDescription")}
+          </p>
+          <div className="flex items-center justify-between rounded-lg border px-3 py-2.5">
+            <span className="text-sm">{t("integrations.codConfirmationEnable")}</span>
+            <Switch
+              checked={codConfirmationEnabled}
+              onCheckedChange={(v) => setCodConfirmationEnabled(v)}
+            />
+          </div>
+        </div>
 
         <div className="flex gap-2">
           <Button

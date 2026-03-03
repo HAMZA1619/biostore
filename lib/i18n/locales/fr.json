@@ -204,7 +204,13 @@
     "contactInfo": "Coordonnées",
     "shippingAddress": "Adresse de livraison",
     "note": "Note",
-    "ipAddress": "Adresse IP"
+    "ipAddress": "Adresse IP",
+    "whatsappConfirmation": "Confirmation WhatsApp",
+    "confirmationPending": "En attente de confirmation",
+    "confirmationConfirmed": "Confirmée par le client",
+    "confirmationCanceled": "Annulée par le client",
+    "confirmationSent": "Envoyée",
+    "confirmationResponded": "Répondu"
   },
   "collections": {
     "title": "Collections",
@@ -902,6 +908,9 @@
     "saveFailed": "Échec de l'enregistrement",
     "save": "Enregistrer",
     "whatsappAiNote": "Les messages sont générés par l'IA à partir des détails de la commande.",
+    "codConfirmationTitle": "Confirmation de commande COD",
+    "codConfirmationDescription": "Envoyez un message WhatsApp avec des boutons Confirmer/Annuler lorsqu'une commande est passée. Le client confirme avant l'expédition.",
+    "codConfirmationEnable": "Activer la confirmation COD",
     "eventNewOrder": "Nouvelle commande",
     "eventStatusChanged": "Changement de statut",
     "eventAbandonedCheckout": "Panier abandonné",

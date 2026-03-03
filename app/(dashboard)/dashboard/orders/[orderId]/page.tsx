@@ -13,6 +13,7 @@ import {
   StickyNote,
   Banknote,
   Globe,
+  MessageSquare,
 } from "lucide-react"
 import { T } from "@/components/dashboard/translated-text"
 import { FormattedDateTime } from "@/components/dashboard/formatted-date"
@@ -36,12 +37,19 @@ export default async function OrderDetailPage({
 
   if (!store) redirect("/dashboard/store")
 
-  const { data: order } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("id", orderId)
-    .eq("store_id", store.id)
-    .single()
+  const [{ data: order }, { data: confirmation }] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .eq("store_id", store.id)
+      .single(),
+    supabase
+      .from("order_confirmations")
+      .select("status, sent_at, responded_at")
+      .eq("order_id", orderId)
+      .maybeSingle(),
+  ])
 
   if (!order) notFound()
 
@@ -259,6 +267,55 @@ export default async function OrderDetailPage({
                 <p className="text-sm text-muted-foreground font-mono">
                   {order.ip_address}
                 </p>
+              </div>
+            </>
+          )}
+
+          {/* COD Confirmation */}
+          {confirmation && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  <T k="orderDetail.whatsappConfirmation" />
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        confirmation.status === "pending"
+                          ? "bg-yellow-500"
+                          : confirmation.status === "confirmed"
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                      }`}
+                    />
+                    <span className="text-muted-foreground">
+                      {confirmation.status === "pending" && (
+                        <T k="orderDetail.confirmationPending" />
+                      )}
+                      {confirmation.status === "confirmed" && (
+                        <T k="orderDetail.confirmationConfirmed" />
+                      )}
+                      {confirmation.status === "canceled" && (
+                        <T k="orderDetail.confirmationCanceled" />
+                      )}
+                    </span>
+                  </div>
+                  {confirmation.sent_at && (
+                    <p className="text-xs text-muted-foreground">
+                      <T k="orderDetail.confirmationSent" />:{" "}
+                      <FormattedDateTime date={confirmation.sent_at} />
+                    </p>
+                  )}
+                  {confirmation.responded_at && (
+                    <p className="text-xs text-muted-foreground">
+                      <T k="orderDetail.confirmationResponded" />:{" "}
+                      <FormattedDateTime date={confirmation.responded_at} />
+                    </p>
+                  )}
+                </div>
               </div>
             </>
           )}

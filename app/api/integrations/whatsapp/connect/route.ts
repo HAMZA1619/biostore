@@ -60,6 +60,9 @@ export async function POST(request: Request) {
     }).catch(() => {})
 
     // Step 2: Create fresh instance
+    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+
     const createRes = await fetch(urlJoin(evolutionUrl, "instance/create"), {
       method: "POST",
       headers,
@@ -105,6 +108,22 @@ export async function POST(request: Request) {
           qrBase64 = extractQrBase64(connectData)
         } catch {}
       }
+    }
+
+    // Step 3: Configure webhook for inbound messages
+    if (appUrl && webhookSecret) {
+      const webhookUrl = `${appUrl}/api/webhooks/whatsapp?secret=${webhookSecret}`
+      await fetch(urlJoin(evolutionUrl, "webhook/set", instanceName), {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          url: webhookUrl,
+          webhook_by_events: false,
+          webhook_base64: false,
+          events: ["MESSAGES_UPSERT"],
+        }),
+        signal: AbortSignal.timeout(10000),
+      }).catch(() => {})
     }
 
     return NextResponse.json({

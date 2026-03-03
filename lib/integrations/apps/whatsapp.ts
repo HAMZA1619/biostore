@@ -14,10 +14,11 @@ export const whatsappApp: AppDefinition = {
   hasCustomSetup: true,
 }
 
-interface WhatsAppConfig {
+export interface WhatsAppConfig {
   instance_name: string
   connected: boolean
   enabled_events?: string[]
+  cod_confirmation_enabled?: boolean
 }
 
 interface OrderItem {
@@ -95,7 +96,7 @@ function resolveCountryCode(country: string): string | undefined {
   return COUNTRY_NAME_TO_CODE[country.toLowerCase()]
 }
 
-function normalizePhone(phone: string, country?: string): string {
+export function normalizePhone(phone: string, country?: string): string {
   let cleaned = phone.replace(/[^0-9+]/g, "")
 
   if (cleaned.startsWith("+")) {
@@ -454,5 +455,76 @@ export async function handleWhatsApp(
   if (!res.ok) {
     const body = await res.text().catch(() => "")
     throw new Error(`WhatsApp API error ${res.status}: ${body}`)
+  }
+}
+
+export function shouldSendConfirmation(config: WhatsAppConfig): boolean {
+  return !!(config.connected && config.instance_name && config.cod_confirmation_enabled)
+}
+
+export async function sendConfirmationButtons(
+  orderId: string,
+  orderNumber: number,
+  payload: EventPayload,
+  config: WhatsAppConfig,
+  storeName: string,
+  currency: string,
+): Promise<boolean> {
+  if (!config.connected || !config.instance_name) return false
+
+  const evolutionUrl = process.env.EVOLUTION_API_URL
+  const evolutionKey = process.env.EVOLUTION_API_KEY
+  if (!evolutionUrl || !evolutionKey) return false
+
+  const phone = normalizePhone(payload.customer_phone, payload.customer_country)
+  const firstName = payload.customer_name.split(" ")[0]
+
+  const itemsList = payload.items?.length
+    ? payload.items
+        .map(
+          (i) =>
+            `${i.product_name}${i.variant_options ? ` (${Object.values(i.variant_options).join(", ")})` : ""} x${i.quantity}`
+        )
+        .join("\n")
+    : ""
+
+  const description = [
+    `${firstName}, please confirm your order from *${storeName}*`,
+    ``,
+    `*Order #${orderNumber}*`,
+    itemsList,
+    `*Total: ${payload.total} ${currency}*`,
+    ``,
+    `Reply *1* to confirm or *2* to cancel`,
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  try {
+    const res = await fetch(
+      urlJoin(evolutionUrl, "message/sendButtons", config.instance_name),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: evolutionKey,
+        },
+        body: JSON.stringify({
+          number: phone,
+          title: "Order Confirmation",
+          description,
+          footer: storeName,
+          buttons: [
+            { type: "reply", displayText: "Confirm", id: `confirm_${orderId}` },
+            { type: "reply", displayText: "Cancel", id: `cancel_${orderId}` },
+          ],
+        }),
+        signal: AbortSignal.timeout(15000),
+      }
+    )
+
+    return res.ok
+  } catch {
+    return false
   }
 }

@@ -204,7 +204,13 @@
     "contactInfo": "معلومات الاتصال",
     "shippingAddress": "عنوان الشحن",
     "note": "ملاحظة",
-    "ipAddress": "عنوان IP"
+    "ipAddress": "عنوان IP",
+    "whatsappConfirmation": "تأكيد واتساب",
+    "confirmationPending": "في انتظار التأكيد",
+    "confirmationConfirmed": "تم التأكيد من العميل",
+    "confirmationCanceled": "تم الإلغاء من العميل",
+    "confirmationSent": "تم الإرسال",
+    "confirmationResponded": "تم الرد"
   },
   "collections": {
     "title": "المجموعات",
@@ -902,6 +908,9 @@
     "saveFailed": "فشل الحفظ",
     "save": "حفظ",
     "whatsappAiNote": "يتم إنشاء الرسائل بواسطة الذكاء الاصطناعي بناءً على تفاصيل الطلب.",
+    "codConfirmationTitle": "تأكيد طلب الدفع عند الاستلام",
+    "codConfirmationDescription": "أرسل رسالة واتساب بأزرار تأكيد/إلغاء عند تقديم طلب. العميل يؤكد قبل الشحن.",
+    "codConfirmationEnable": "تفعيل تأكيد الطلب",
     "eventNewOrder": "طلب جديد",
     "eventStatusChanged": "تغيير حالة الطلب",
     "eventAbandonedCheckout": "سلة متروكة",

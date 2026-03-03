@@ -811,3 +811,27 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 GRANT EXECUTE ON FUNCTION public.upsert_abandoned_checkout TO anon;
 GRANT EXECUTE ON FUNCTION public.upsert_abandoned_checkout TO authenticated;
+
+-- Order Confirmations (WhatsApp COD confirmation tracking)
+CREATE TABLE order_confirmations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  customer_phone TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'canceled')),
+  sent_at TIMESTAMPTZ,
+  responded_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_order_confirmations_order ON order_confirmations(order_id);
+CREATE INDEX idx_order_confirmations_pending ON order_confirmations(customer_phone, store_id)
+  WHERE status = 'pending';
+
+ALTER TABLE order_confirmations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Owners can view order confirmations" ON order_confirmations
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM stores WHERE stores.id = order_confirmations.store_id
+    AND stores.owner_id = (select auth.uid())
+  ));
