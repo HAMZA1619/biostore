@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { formatPrice } from "@/lib/utils"
-import { CalendarIcon, TrendingUp, TrendingDown, Package, ShoppingCart, Coins } from "lucide-react"
+import { CalendarIcon, TrendingUp, TrendingDown, Package, ShoppingCart, Coins, Globe } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import i18n from "@/lib/i18n"
@@ -568,6 +568,15 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
             />
           </div>
 
+          {markets.length >= 2 && (
+            <MarketPerformanceCard
+              orders={filteredOrders}
+              markets={markets}
+              currency={currency}
+              toBaseCurrency={toBaseCurrency}
+              t={t}
+            />
+          )}
         </>
       )}
     </div>
@@ -643,6 +652,88 @@ function MetricCard({
             <span>{displayLabels[displayLabels.length - 1]}</span>
           </div>
         )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function MarketPerformanceCard({
+  orders,
+  markets,
+  currency,
+  toBaseCurrency,
+  t,
+}: {
+  orders: Order[]
+  markets: Market[]
+  currency: string
+  toBaseCurrency: (total: number, marketId: string | null) => number
+  t: (key: string) => string
+}) {
+  const totalRevenueAll = orders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
+
+  const rows = markets.map((m) => {
+    const marketOrders = orders.filter((o) => o.market_id === m.id)
+    const revenue = marketOrders.reduce((sum, o) => sum + toBaseCurrency(Number(o.total), o.market_id), 0)
+    const aov = marketOrders.length > 0 ? revenue / marketOrders.length : 0
+    const share = totalRevenueAll > 0 ? (revenue / totalRevenueAll) * 100 : 0
+    return { market: m, orderCount: marketOrders.length, revenue, aov, share }
+  })
+
+  // Include "No market" orders
+  const noMarketOrders = orders.filter((o) => !o.market_id)
+  if (noMarketOrders.length > 0) {
+    const revenue = noMarketOrders.reduce((sum, o) => sum + Number(o.total), 0)
+    const aov = revenue / noMarketOrders.length
+    const share = totalRevenueAll > 0 ? (revenue / totalRevenueAll) * 100 : 0
+    rows.push({ market: { id: "", name: t("analytics.noMarket"), slug: "", currency, is_default: false, price_adjustment: 0 }, orderCount: noMarketOrders.length, revenue, aov, share })
+  }
+
+  rows.sort((a, b) => b.revenue - a.revenue)
+
+  return (
+    <Card>
+      <CardContent className="pt-4 pb-3 px-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <p className="text-sm font-medium">{t("analytics.marketPerformance")}</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-muted-foreground">
+                <th className="py-2 text-start font-medium">{t("analytics.market")}</th>
+                <th className="py-2 text-end font-medium">{t("dashboard.orders")}</th>
+                <th className="py-2 text-end font-medium">{t("dashboard.revenue")}</th>
+                <th className="py-2 text-end font-medium hidden sm:table-cell">{t("analytics.aov")}</th>
+                <th className="py-2 text-end font-medium">%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.market.id || "none"} className="border-b last:border-0">
+                  <td className="py-2 font-medium">
+                    {row.market.name}
+                    {row.market.is_default && (
+                      <span className="ms-1.5 text-[10px] text-muted-foreground">{t("analytics.default")}</span>
+                    )}
+                  </td>
+                  <td className="py-2 text-end">{row.orderCount}</td>
+                  <td className="py-2 text-end">{formatPrice(row.revenue, currency)}</td>
+                  <td className="py-2 text-end hidden sm:table-cell">{formatPrice(row.aov, currency)}</td>
+                  <td className="py-2 text-end">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div className="hidden sm:block h-1.5 w-16 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(row.share, 100)}%` }} />
+                      </div>
+                      <span className="tabular-nums">{row.share.toFixed(1)}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </CardContent>
     </Card>
   )

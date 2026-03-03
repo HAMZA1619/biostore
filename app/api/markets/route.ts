@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "store_id is required" }, { status: 400 })
     }
 
-    const { name, slug, countries, currency, pricing_mode, price_adjustment, is_default, is_active } = parsed.data
+    const { name, slug, countries, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate, is_default, is_active } = parsed.data
 
     const { data: store } = await supabase
       .from("stores")
@@ -96,6 +96,8 @@ export async function POST(request: NextRequest) {
         currency,
         pricing_mode,
         price_adjustment,
+        rounding_rule,
+        manual_exchange_rate,
         is_default,
         is_active,
       })
@@ -176,6 +178,8 @@ export async function PATCH(request: NextRequest) {
     if (body.currency !== undefined) updates.currency = body.currency
     if (body.pricing_mode !== undefined) updates.pricing_mode = body.pricing_mode
     if (body.price_adjustment !== undefined) updates.price_adjustment = body.price_adjustment
+    if (body.rounding_rule !== undefined) updates.rounding_rule = body.rounding_rule
+    if (body.manual_exchange_rate !== undefined) updates.manual_exchange_rate = body.manual_exchange_rate
     if (body.is_default !== undefined) updates.is_default = body.is_default
     if (body.is_active !== undefined) updates.is_active = body.is_active
 

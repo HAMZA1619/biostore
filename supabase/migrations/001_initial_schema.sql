@@ -117,6 +117,8 @@ CREATE TABLE markets (
   currency TEXT NOT NULL,
   pricing_mode TEXT NOT NULL DEFAULT 'auto' CHECK (pricing_mode IN ('fixed', 'auto')),
   price_adjustment DECIMAL(5,2) NOT NULL DEFAULT 0,
+  rounding_rule TEXT NOT NULL DEFAULT 'none' CHECK (rounding_rule IN ('none','0.99','0.95','0.00','nearest_5')),
+  manual_exchange_rate DECIMAL(18,8),
   is_default BOOLEAN NOT NULL DEFAULT false,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -322,8 +324,7 @@ CREATE POLICY "Owners can delete discounts" ON discounts FOR DELETE
 
 -- Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can place orders" ON orders FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.is_published = true));
+-- No INSERT policy — all writes go through service-role admin client in the orders API
 CREATE POLICY "Owners can view orders" ON orders FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = orders.store_id AND stores.owner_id = (select auth.uid())));
 CREATE POLICY "Owners can update orders" ON orders FOR UPDATE
@@ -331,12 +332,7 @@ CREATE POLICY "Owners can update orders" ON orders FOR UPDATE
 
 -- Order Items
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can insert order items" ON order_items FOR INSERT
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM orders
-    JOIN stores ON stores.id = orders.store_id
-    WHERE orders.id = order_items.order_id AND stores.is_published = true
-  ));
+-- No INSERT/UPDATE/DELETE policies — writes happen via service-role (admin client) in the orders API
 CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
   USING (EXISTS (
     SELECT 1 FROM orders
@@ -346,10 +342,7 @@ CREATE POLICY "Owners can view order items" ON order_items FOR SELECT
 
 -- Store Views Hourly
 ALTER TABLE store_views_hourly ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Anyone can upsert store views" ON store_views_hourly FOR INSERT
-  WITH CHECK (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.is_published = true));
-CREATE POLICY "Anyone can update store views" ON store_views_hourly FOR UPDATE
-  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.is_published = true));
+-- No INSERT/UPDATE policies — writes go through SECURITY DEFINER function increment_store_view()
 CREATE POLICY "Owners can view store views" ON store_views_hourly FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = store_views_hourly.store_id AND stores.owner_id = (select auth.uid())));
 
@@ -467,6 +460,20 @@ CREATE POLICY "Owners can delete market exclusions" ON market_exclusions
     WHERE markets.id = market_exclusions.market_id
     AND stores.owner_id = (select auth.uid())
   ));
+
+-- Exchange Rate Cache (last-known-good rates for resilience)
+CREATE TABLE exchange_rate_cache (
+  base_currency TEXT NOT NULL,
+  target_currency TEXT NOT NULL,
+  rate DECIMAL(18,8) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (base_currency, target_currency)
+);
+
+ALTER TABLE exchange_rate_cache ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read exchange rates" ON exchange_rate_cache
+  FOR SELECT USING (true);
 
 -- Shipping Zones (per-country delivery fee config)
 CREATE TABLE shipping_zones (
@@ -747,11 +754,7 @@ CREATE POLICY "Owners can update abandoned checkouts" ON abandoned_checkouts
     AND stores.owner_id = (select auth.uid())
   ));
 
-CREATE POLICY "Anyone can create abandoned checkouts" ON abandoned_checkouts
-  FOR INSERT WITH CHECK (EXISTS (
-    SELECT 1 FROM stores WHERE stores.id = abandoned_checkouts.store_id
-    AND stores.is_published = true
-  ));
+-- No INSERT policy — writes go through SECURITY DEFINER function upsert_abandoned_checkout()
 
 CREATE OR REPLACE FUNCTION public.upsert_abandoned_checkout(
   p_store_id UUID,

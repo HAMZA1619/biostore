@@ -208,7 +208,7 @@ export function getStoreMarkets(storeId: string) {
       const supabase = createStaticClient()
       const { data } = await supabase
         .from("markets")
-        .select("id, name, slug, countries, currency, pricing_mode, price_adjustment, is_default, is_active")
+        .select("id, name, slug, countries, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate, is_default, is_active")
         .eq("store_id", storeId)
         .eq("is_active", true)
         .order("is_default", { ascending: false })

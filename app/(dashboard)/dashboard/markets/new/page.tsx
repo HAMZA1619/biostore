@@ -9,7 +9,7 @@ export default async function NewMarketPage() {
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id")
+    .select("id, currency")
     .eq("owner_id", user.id)
     .single()
 
@@ -17,7 +17,7 @@ export default async function NewMarketPage() {
 
   return (
     <div className="space-y-6">
-      <MarketForm storeId={store.id} />
+      <MarketForm storeId={store.id} storeCurrency={store.currency} />
     </div>
   )
 }

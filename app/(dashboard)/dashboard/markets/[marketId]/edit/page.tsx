@@ -15,7 +15,7 @@ export default async function EditMarketPage({
 
   const { data: store } = await supabase
     .from("stores")
-    .select("id")
+    .select("id, currency")
     .eq("owner_id", user.id)
     .single()
 
@@ -34,6 +34,7 @@ export default async function EditMarketPage({
     <div className="space-y-6">
       <MarketForm
         storeId={store.id}
+        storeCurrency={store.currency}
         initialData={{
           id: market.id,
           name: market.name,
@@ -42,6 +43,8 @@ export default async function EditMarketPage({
           currency: market.currency,
           pricing_mode: market.pricing_mode,
           price_adjustment: Number(market.price_adjustment),
+          rounding_rule: market.rounding_rule || "none",
+          manual_exchange_rate: market.manual_exchange_rate ? Number(market.manual_exchange_rate) : null,
           is_default: market.is_default,
           is_active: market.is_active,
         }}

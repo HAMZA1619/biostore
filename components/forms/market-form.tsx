@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -10,10 +10,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import Link from "next/link"
-import { ArrowLeft, Check, ChevronsUpDown, Loader2, X } from "lucide-react"
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, RefreshCw, X } from "lucide-react"
 import { cn, slugify } from "@/lib/utils"
 import { COUNTRIES, CURRENCIES } from "@/lib/constants"
 import { marketSchema, type MarketFormData } from "@/lib/validations/market"
@@ -21,6 +22,7 @@ import "@/lib/i18n"
 
 interface MarketFormProps {
   storeId: string
+  storeCurrency: string
   initialData?: {
     id: string
     name: string
@@ -29,12 +31,14 @@ interface MarketFormProps {
     currency: string
     pricing_mode: string
     price_adjustment: number
+    rounding_rule: string
+    manual_exchange_rate: number | null
     is_default: boolean
     is_active: boolean
   }
 }
 
-export function MarketForm({ storeId, initialData }: MarketFormProps) {
+export function MarketForm({ storeId, storeCurrency, initialData }: MarketFormProps) {
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const isEdit = !!initialData
@@ -64,6 +68,8 @@ export function MarketForm({ storeId, initialData }: MarketFormProps) {
       currency: initialData?.currency || "",
       pricing_mode: (initialData?.pricing_mode as "fixed" | "auto") || "auto",
       price_adjustment: initialData?.price_adjustment || 0,
+      rounding_rule: (initialData?.rounding_rule as "none" | "0.99" | "0.95" | "0.00" | "nearest_5") || "none",
+      manual_exchange_rate: initialData?.manual_exchange_rate ?? null,
       is_default: initialData?.is_default || false,
       is_active: initialData?.is_active !== false,
     },
@@ -72,12 +78,34 @@ export function MarketForm({ storeId, initialData }: MarketFormProps) {
   const [loading, setLoading] = useState(false)
   const [countriesOpen, setCountriesOpen] = useState(false)
   const [currencyOpen, setCurrencyOpen] = useState(false)
+  const [useManualRate, setUseManualRate] = useState(initialData?.manual_exchange_rate != null)
+  const [autoRate, setAutoRate] = useState<number | null>(null)
+  const [rateLoading, setRateLoading] = useState(false)
 
   const watchCountries = watch("countries")
   const watchCurrency = watch("currency")
   const watchPricingMode = watch("pricing_mode")
+  const watchRoundingRule = watch("rounding_rule")
   const watchIsDefault = watch("is_default")
   const watchIsActive = watch("is_active")
+
+  // Fetch live auto rate when currency changes
+  useEffect(() => {
+    if (!watchCurrency || watchCurrency === storeCurrency) {
+      setAutoRate(null)
+      return
+    }
+    let cancelled = false
+    setRateLoading(true)
+    fetch(`/api/markets/exchange-rate?from=${storeCurrency}&to=${watchCurrency}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.rate) setAutoRate(data.rate)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setRateLoading(false) })
+    return () => { cancelled = true }
+  }, [watchCurrency, storeCurrency])
 
   function handleNameBlur(e: React.FocusEvent<HTMLInputElement>) {
     if (!isEdit && !watch("slug")) {
@@ -280,19 +308,129 @@ export function MarketForm({ storeId, initialData }: MarketFormProps) {
         </div>
 
         {watchPricingMode === "auto" && (
-          <div className="space-y-2">
-            <Label>{t("markets.priceAdjustment")}</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                step="0.01"
-                {...register("price_adjustment", { valueAsNumber: true })}
-                className="w-32"
-              />
-              <span className="text-sm text-muted-foreground">%</span>
+          <>
+            <div className="space-y-2">
+              <Label>{t("markets.priceAdjustment")}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  step="0.01"
+                  {...register("price_adjustment", { valueAsNumber: true })}
+                  className="w-32"
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("markets.priceAdjustmentHelp")}</p>
             </div>
-            <p className="text-xs text-muted-foreground">{t("markets.priceAdjustmentHelp")}</p>
-          </div>
+
+            <div className="space-y-2">
+              <Label>{t("markets.roundingRule")}</Label>
+              <Select
+                value={watchRoundingRule || "none"}
+                onValueChange={(v) => setValue("rounding_rule", v as "none" | "0.99" | "0.95" | "0.00" | "nearest_5")}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("markets.roundingNone")}</SelectItem>
+                  <SelectItem value="0.99">{t("markets.rounding099")}</SelectItem>
+                  <SelectItem value="0.95">{t("markets.rounding095")}</SelectItem>
+                  <SelectItem value="0.00">{t("markets.rounding000")}</SelectItem>
+                  <SelectItem value="nearest_5">{t("markets.roundingNearest5")}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">{t("markets.roundingRuleHelp")}</p>
+            </div>
+
+            {watchCurrency && watchCurrency !== storeCurrency && (
+              <div className="space-y-3">
+                <Label>{t("markets.exchangeRate")}</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className={cn(
+                    "cursor-pointer rounded-lg border p-3 text-sm transition-colors",
+                    !useManualRate && "border-primary bg-primary/5 ring-1 ring-primary"
+                  )}>
+                    <input
+                      type="radio"
+                      checked={!useManualRate}
+                      onChange={() => {
+                        setUseManualRate(false)
+                        setValue("manual_exchange_rate", null)
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="font-medium">{t("markets.autoRate")}</span>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{t("markets.autoRateDesc")}</p>
+                  </label>
+                  <label className={cn(
+                    "cursor-pointer rounded-lg border p-3 text-sm transition-colors",
+                    useManualRate && "border-primary bg-primary/5 ring-1 ring-primary"
+                  )}>
+                    <input
+                      type="radio"
+                      checked={useManualRate}
+                      onChange={() => {
+                        setUseManualRate(true)
+                        setValue("manual_exchange_rate", autoRate || 1)
+                      }}
+                      className="sr-only"
+                    />
+                    <span className="font-medium">{t("markets.manualRate")}</span>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{t("markets.manualRateDesc")}</p>
+                  </label>
+                </div>
+
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                  {rateLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      {t("markets.fetchingRate")}
+                    </div>
+                  ) : autoRate ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">{t("markets.currentAutoRate")}:</span>{" "}
+                        <span className="font-medium tabular-nums">1 {storeCurrency} = {autoRate.toFixed(4)} {watchCurrency}</span>
+                      </p>
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        onClick={() => {
+                          setRateLoading(true)
+                          fetch(`/api/markets/exchange-rate?from=${storeCurrency}&to=${watchCurrency}`)
+                            .then((res) => res.json())
+                            .then((data) => { if (data.rate) setAutoRate(data.rate) })
+                            .catch(() => {})
+                            .finally(() => setRateLoading(false))
+                        }}
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {useManualRate && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">1 {storeCurrency} =</span>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        min="0.000001"
+                        {...register("manual_exchange_rate", { valueAsNumber: true })}
+                        className="w-36"
+                      />
+                      <span className="text-sm text-muted-foreground">{watchCurrency}</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  {useManualRate ? t("markets.manualRateHelp") : t("markets.autoRateDesc")}
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {watchPricingMode === "fixed" && (

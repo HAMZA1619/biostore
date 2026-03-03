@@ -6,9 +6,9 @@ import { SearchInput } from "@/components/store/search-input"
 import { ViewTracker } from "@/components/store/view-tracker"
 import { ProductGrid } from "@/components/store/product-grid"
 import { getStoreBySlug, getStoreCollections, getStoreProducts, getStoreMarkets, getMarketPrices, getMarketExclusions, resolveImageUrls } from "@/lib/storefront/cache"
-import { resolvePrice } from "@/lib/market/resolve-price"
+import { resolvePrice, applyRounding } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
-import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { getMarketExchangeRate } from "@/lib/market/exchange-rates"
 
 const PAGE_SIZE = 12
 
@@ -44,15 +44,14 @@ export default async function StorePage({
       ? markets.find((m) => m.slug === marketSlug)
       : markets.find((m) => m.is_default)
     if (found) {
-      const rate = found.pricing_mode === "auto"
-        ? await getExchangeRate(store.currency, found.currency)
-        : 1
+      const rate = await getMarketExchangeRate(found, store.currency)
       activeMarket = {
         id: found.id,
         currency: found.currency,
         pricing_mode: found.pricing_mode as "fixed" | "auto",
         exchange_rate: rate,
         price_adjustment: Number(found.price_adjustment),
+        rounding_rule: (found.rounding_rule || "none") as MarketInfo["rounding_rule"],
       }
     }
   }
@@ -85,7 +84,7 @@ export default async function StorePage({
     // Apply market auto-adjustment to variant display prices ("From X")
     const adjustedVariants = activeMarket?.pricing_mode === "auto" && p.product_variants?.length
       ? p.product_variants.map((v: { price: number }) => ({
-          price: Math.round(v.price * activeMarket.exchange_rate * (1 + activeMarket.price_adjustment / 100) * 100) / 100,
+          price: applyRounding(Math.round(v.price * activeMarket.exchange_rate * (1 + activeMarket.price_adjustment / 100) * 100) / 100, activeMarket.rounding_rule),
         }))
       : p.product_variants
     return {

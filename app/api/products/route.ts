@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { resolveImageUrls } from "@/lib/storefront/cache"
-import { resolvePrice } from "@/lib/market/resolve-price"
+import { resolvePrice, applyRounding } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
-import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { getMarketExchangeRate } from "@/lib/market/exchange-rates"
 
 const PAGE_SIZE = 12
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (marketId) {
       const { data: market } = await supabase
         .from("markets")
-        .select("id, currency, pricing_mode, price_adjustment, store_id")
+        .select("id, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate, store_id")
         .eq("id", marketId)
         .eq("is_active", true)
         .single()
@@ -37,15 +37,14 @@ export async function GET(request: NextRequest) {
       if (market && market.store_id === storeId) {
         const { data: sd } = await supabase.from("stores").select("currency").eq("id", storeId).single()
         const baseCur = sd?.currency || "USD"
-        const rate = market.pricing_mode === "auto"
-          ? await getExchangeRate(baseCur, market.currency)
-          : 1
+        const rate = await getMarketExchangeRate(market, baseCur)
         activeMarket = {
           id: market.id,
           currency: market.currency,
           pricing_mode: market.pricing_mode as "fixed" | "auto",
           exchange_rate: rate,
           price_adjustment: Number(market.price_adjustment),
+          rounding_rule: (market.rounding_rule || "none") as MarketInfo["rounding_rule"],
         }
 
         const { data: exclusions } = await supabase
@@ -124,7 +123,7 @@ export async function GET(request: NextRequest) {
       // Apply market auto-adjustment to variant display prices ("From X")
       const adjustedVariants = activeMarket?.pricing_mode === "auto" && p.product_variants?.length
         ? p.product_variants.map((v: { price: number }) => ({
-            price: Math.round(v.price * activeMarket.exchange_rate * (1 + activeMarket.price_adjustment / 100) * 100) / 100,
+            price: applyRounding(Math.round(v.price * activeMarket.exchange_rate * (1 + activeMarket.price_adjustment / 100) * 100) / 100, activeMarket.rounding_rule),
           }))
         : p.product_variants
       return {

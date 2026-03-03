@@ -1,5 +1,5 @@
 import { createStaticClient } from "@/lib/supabase/static"
-import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { getMarketExchangeRate } from "@/lib/market/exchange-rates"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import { NextResponse } from "next/server"
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     const { data: market } = await supabase
       .from("markets")
-      .select("id, currency, pricing_mode, exchange_rate, price_adjustment")
+      .select("id, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate")
       .eq("id", market_id)
       .eq("store_id", store.id)
       .eq("is_active", true)
@@ -78,9 +78,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const rate = market.pricing_mode === "auto"
-      ? await getExchangeRate(store.currency, market.currency)
-      : Number(market.exchange_rate)
+    const rate = await getMarketExchangeRate(market, store.currency)
 
     const marketInfo = {
       id: market.id,
@@ -88,6 +86,7 @@ export async function POST(request: Request) {
       pricing_mode: market.pricing_mode as "fixed" | "auto",
       exchange_rate: rate,
       price_adjustment: Number(market.price_adjustment),
+      rounding_rule: (market.rounding_rule || "none") as "none" | "0.99" | "0.95" | "0.00" | "nearest_5",
     }
 
     const resolved = items.map((item) => {

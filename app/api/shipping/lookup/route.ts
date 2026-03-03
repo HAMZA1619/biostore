@@ -1,5 +1,6 @@
 import { createStaticClient } from "@/lib/supabase/static"
-import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { getMarketExchangeRate } from "@/lib/market/exchange-rates"
+import { applyRounding, type RoundingRule } from "@/lib/market/resolve-price"
 import { NextRequest, NextResponse } from "next/server"
 import { COUNTRIES } from "@/lib/constants"
 
@@ -31,13 +32,14 @@ export async function GET(request: NextRequest) {
     // Resolve market for delivery fee conversion
     let marketRate = 1
     let marketAdjustment = 0
+    let marketRoundingRule: RoundingRule = "none"
     let shouldConvert = false
     let shippingCurrency = store.currency
 
     if (marketId) {
       const { data: market } = await supabase
         .from("markets")
-        .select("id, currency, pricing_mode, price_adjustment, store_id")
+        .select("id, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate, store_id")
         .eq("id", marketId)
         .eq("is_active", true)
         .single()
@@ -45,8 +47,9 @@ export async function GET(request: NextRequest) {
       if (market && market.store_id === store.id) {
         shippingCurrency = market.currency
         if (market.pricing_mode === "auto") {
-          marketRate = await getExchangeRate(store.currency, market.currency)
+          marketRate = await getMarketExchangeRate(market, store.currency)
           marketAdjustment = Number(market.price_adjustment)
+          marketRoundingRule = (market.rounding_rule || "none") as RoundingRule
           shouldConvert = true
         }
       }
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
     function convertFee(fee: number): number {
       if (!shouldConvert || fee === 0) return fee
       const multiplier = 1 + marketAdjustment / 100
-      return Math.round(fee * marketRate * multiplier * 100) / 100
+      return applyRounding(Math.round(fee * marketRate * multiplier * 100) / 100, marketRoundingRule)
     }
 
     // Try matching by country name first, then by country code

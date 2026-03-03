@@ -1,7 +1,8 @@
 import urlJoin from "url-join"
 import { createStaticClient } from "@/lib/supabase/static"
 import { getImageUrl } from "@/lib/utils"
-import { getExchangeRate } from "@/lib/market/exchange-rates"
+import { getMarketExchangeRate } from "@/lib/market/exchange-rates"
+import { applyRounding, type RoundingRule } from "@/lib/market/resolve-price"
 import { COUNTRIES } from "@/lib/constants"
 import { NextResponse } from "next/server"
 
@@ -91,13 +92,13 @@ export async function POST(request: Request) {
     // Resolve market for currency
     let orderCurrency = store.currency
     let orderMarketId: string | null = null
-    let marketInfo: { pricing_mode: string; exchange_rate: number; price_adjustment: number } | null = null
+    let marketInfo: { pricing_mode: string; exchange_rate: number; price_adjustment: number; rounding_rule: string } | null = null
     let marketPricesMap = new Map<string, number>()
 
     if (market_id) {
       const { data: market } = await supabase
         .from("markets")
-        .select("id, currency, pricing_mode, price_adjustment, store_id")
+        .select("id, currency, pricing_mode, price_adjustment, rounding_rule, manual_exchange_rate, store_id")
         .eq("id", market_id)
         .eq("is_active", true)
         .single()
@@ -105,10 +106,8 @@ export async function POST(request: Request) {
       if (market && market.store_id === store.id) {
         orderCurrency = market.currency
         orderMarketId = market.id
-        const rate = market.pricing_mode === "auto"
-          ? await getExchangeRate(store.currency, market.currency)
-          : 1
-        marketInfo = { pricing_mode: market.pricing_mode, exchange_rate: rate, price_adjustment: Number(market.price_adjustment) }
+        const rate = await getMarketExchangeRate(market, store.currency)
+        marketInfo = { pricing_mode: market.pricing_mode, exchange_rate: rate, price_adjustment: Number(market.price_adjustment), rounding_rule: market.rounding_rule || "none" }
       }
     }
 
@@ -237,7 +236,7 @@ export async function POST(request: Request) {
           price = marketPricesMap.get(marketKey)!
         } else if (marketInfo.pricing_mode === "auto") {
           const multiplier = 1 + marketInfo.price_adjustment / 100
-          price = Math.round(price * marketInfo.exchange_rate * multiplier * 100) / 100
+          price = applyRounding(Math.round(price * marketInfo.exchange_rate * multiplier * 100) / 100, marketInfo.rounding_rule as RoundingRule)
         } else if (marketInfo.pricing_mode === "fixed" && !marketPricesMap.has(marketKey)) {
           // No fixed price set for this product — fall back to store base currency
           orderCurrency = store.currency
@@ -368,7 +367,7 @@ export async function POST(request: Request) {
     // Apply market exchange rate to delivery fee if auto-pricing
     if (marketInfo && marketInfo.pricing_mode === "auto" && deliveryFee > 0) {
       const multiplier = 1 + marketInfo.price_adjustment / 100
-      deliveryFee = Math.round(deliveryFee * marketInfo.exchange_rate * multiplier * 100) / 100
+      deliveryFee = applyRounding(Math.round(deliveryFee * marketInfo.exchange_rate * multiplier * 100) / 100, marketInfo.rounding_rule as RoundingRule)
     }
 
     const total = subtotal - discountAmount + deliveryFee
