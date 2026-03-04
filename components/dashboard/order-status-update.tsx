@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ORDER_STATUSES } from "@/lib/constants"
+import { ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/lib/constants"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -13,6 +13,7 @@ const statusLabelKeys: Record<string, string> = {
   confirmed: "orders.statusConfirmed",
   shipped: "orders.statusShipped",
   delivered: "orders.statusDelivered",
+  returned: "orders.statusReturned",
   canceled: "orders.statusCanceled",
 }
 
@@ -26,6 +27,9 @@ export function OrderStatusUpdate({
   const { t } = useTranslation()
   const router = useRouter()
   const supabase = createClient()
+
+  const transitions = ORDER_STATUS_TRANSITIONS[currentStatus as OrderStatus] || []
+  const options = [currentStatus as OrderStatus, ...transitions]
 
   async function updateStatus(status: string) {
     const { error } = await supabase
@@ -49,7 +53,7 @@ export function OrderStatusUpdate({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {ORDER_STATUSES.map((status) => (
+          {options.map((status) => (
             <SelectItem key={status} value={status}>
               {t(statusLabelKeys[status] || status)}
             </SelectItem>

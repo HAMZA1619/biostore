@@ -5,10 +5,35 @@ export const ORDER_STATUSES = [
   "confirmed",
   "shipped",
   "delivered",
+  "returned",
   "canceled",
 ] as const
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
+
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ["confirmed", "canceled"],
+  confirmed: ["shipped", "canceled"],
+  shipped: ["delivered", "returned"],
+  delivered: [],
+  returned: [],
+  canceled: [],
+}
+
+export const ORDER_STATUS_STEPS: OrderStatus[] = [
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+]
+
+export function getNextStatuses(current: OrderStatus): OrderStatus[] {
+  return ORDER_STATUS_TRANSITIONS[current] || []
+}
+
+export function isTerminalStatus(status: OrderStatus): boolean {
+  return (ORDER_STATUS_TRANSITIONS[status] || []).length === 0
+}
 
 export const FONT_OPTIONS = [
   { value: "Inter", label: "Inter" },

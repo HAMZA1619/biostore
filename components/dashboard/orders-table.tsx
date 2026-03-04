@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import { Checkbox } from "@/components/ui/checkbox"
 import { formatPrice } from "@/lib/utils"
-import { OrderStatusSelect } from "@/components/dashboard/order-status-select"
 import { RelativeDate } from "@/components/dashboard/relative-date"
-import { ORDER_STATUSES } from "@/lib/constants"
-import { CalendarIcon, Loader2, Search, X } from "lucide-react"
+import { ORDER_STATUSES, ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/lib/constants"
+import { CalendarIcon, CheckCircle, Loader2, PackageCheck, Search, Truck, X } from "lucide-react"
+import { toast } from "sonner"
 import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import i18n from "@/lib/i18n"
@@ -39,7 +40,35 @@ const STATUS_I18N: Record<string, string> = {
   confirmed: "orders.statusConfirmed",
   shipped: "orders.statusShipped",
   delivered: "orders.statusDelivered",
+  returned: "orders.statusReturned",
   canceled: "orders.statusCanceled",
+}
+
+const BULK_ACTION_CONFIG: Record<string, { labelKey: string; icon: typeof CheckCircle }> = {
+  confirmed: { labelKey: "orders.confirmOrder", icon: CheckCircle },
+  shipped: { labelKey: "orders.markShipped", icon: Truck },
+  delivered: { labelKey: "orders.markDelivered", icon: PackageCheck },
+  canceled: { labelKey: "orders.cancelOrder", icon: X },
+}
+
+const statusBadgeConfig: Record<string, { dot: string; bg: string; labelKey: string }> = {
+  pending: { dot: "bg-yellow-500", bg: "border border-yellow-300 bg-yellow-100 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", labelKey: "orders.statusPending" },
+  confirmed: { dot: "bg-blue-500", bg: "border border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400", labelKey: "orders.statusConfirmed" },
+  shipped: { dot: "bg-purple-500", bg: "border border-purple-300 bg-purple-100 text-purple-800 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-400", labelKey: "orders.statusShipped" },
+  delivered: { dot: "bg-green-500", bg: "border border-green-300 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400", labelKey: "orders.statusDelivered" },
+  returned: { dot: "bg-orange-500", bg: "border border-orange-300 bg-orange-100 text-orange-800 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400", labelKey: "orders.statusReturned" },
+  canceled: { dot: "bg-red-400", bg: "border border-red-300 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400", labelKey: "orders.statusCanceled" },
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
+  const cfg = statusBadgeConfig[status] || { dot: "bg-gray-400", bg: "bg-gray-100 text-gray-600", labelKey: status }
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${cfg.bg}`}>
+      <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+      {t(cfg.labelKey)}
+    </span>
+  )
 }
 
 const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
@@ -97,6 +126,8 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
   const [marketFilter, setMarketFilter] = useState("")
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const dateFrom = dateRange?.from ? toLocalDate(dateRange.from) : ""
@@ -238,6 +269,53 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
     }
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === orders.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(orders.map((o) => o.id)))
+    }
+  }
+
+  // Compute valid bulk actions: transitions valid for ALL selected orders
+  const bulkActions = (() => {
+    if (selectedIds.size === 0) return []
+    const selectedOrders = orders.filter((o) => selectedIds.has(o.id))
+    const transitionSets = selectedOrders.map((o) => ORDER_STATUS_TRANSITIONS[o.status as OrderStatus] || [])
+    if (transitionSets.length === 0) return []
+    return transitionSets[0].filter((s) => transitionSets.every((set) => set.includes(s)))
+  })()
+
+  async function handleBulkAction(targetStatus: string) {
+    setBulkLoading(true)
+    try {
+      const res = await fetch("/api/orders/bulk-status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_ids: Array.from(selectedIds), status: targetStatus }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        toast.success(t("orders.bulkSuccess", { count: data.updated }))
+        setSelectedIds(new Set())
+        // Refresh data
+        const params = buildParams(0)
+        fetchFiltered(params)
+      }
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
   const isEmpty = orders.length === 0 && !search.trim() && !hasActiveFilters
   const noResults = orders.length === 0 && (!!search.trim() || hasActiveFilters)
 
@@ -366,6 +444,12 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={orders.length > 0 && selectedIds.size === orders.length}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>{t("orders.columns.number")}</TableHead>
                   <TableHead>{t("orders.columns.customer")}</TableHead>
                   <TableHead className="hidden sm:table-cell">{t("orders.columns.phone")}</TableHead>
@@ -378,6 +462,12 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id} className="relative cursor-pointer">
+                    <TableCell className="relative z-10">
+                      <Checkbox
+                        checked={selectedIds.has(order.id)}
+                        onCheckedChange={() => toggleSelect(order.id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <Link
                         href={`/dashboard/orders/${order.id}`}
@@ -391,8 +481,8 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
                     <TableCell className="hidden text-muted-foreground sm:table-cell">{order.customer_phone}</TableCell>
                     <TableCell className="hidden text-muted-foreground md:table-cell">{order.customer_country || "—"}</TableCell>
                     <TableCell>{formatPrice(order.total, order.currency)}</TableCell>
-                    <TableCell className="relative z-10">
-                      <OrderStatusSelect orderId={order.id} status={order.status} />
+                    <TableCell>
+                      <StatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <RelativeDate date={order.created_at} />
@@ -402,6 +492,40 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
               </TableBody>
             </Table>
           </div>
+
+          {selectedIds.size > 0 && (
+            <div className="fixed inset-x-0 bottom-4 z-50 mx-auto flex w-fit items-center gap-2 rounded-lg border bg-background px-4 py-2.5 shadow-lg">
+              <span className="text-sm font-medium">
+                {t("orders.selectedCount", { count: selectedIds.size })}
+              </span>
+              <div className="mx-1 h-5 w-px bg-border" />
+              {bulkActions.map((s) => {
+                const config = BULK_ACTION_CONFIG[s]
+                if (!config) return null
+                const Icon = config.icon
+                return (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={s === "canceled" ? "outline" : "default"}
+                    className={s === "canceled" ? "border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400" : ""}
+                    disabled={bulkLoading}
+                    onClick={() => handleBulkAction(s)}
+                  >
+                    {bulkLoading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Icon className="mr-1.5 h-4 w-4" />}
+                    {t(config.labelKey)}
+                  </Button>
+                )
+              })}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                {t("orders.clearSelection")}
+              </Button>
+            </div>
+          )}
 
           {hasMore && (
             <div className="flex justify-center">

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ORDER_STATUSES } from "@/lib/constants"
+import { ORDER_STATUS_TRANSITIONS, type OrderStatus } from "@/lib/constants"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 
@@ -14,6 +14,7 @@ const statusConfig: Record<string, { dot: string; bg: string; labelKey: string }
   confirmed: { dot: "bg-blue-500", bg: "border border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400", labelKey: "orders.statusConfirmed" },
   shipped: { dot: "bg-purple-500", bg: "border border-purple-300 bg-purple-100 text-purple-800 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-400", labelKey: "orders.statusShipped" },
   delivered: { dot: "bg-green-500", bg: "border border-green-300 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400", labelKey: "orders.statusDelivered" },
+  returned: { dot: "bg-orange-500", bg: "border border-orange-300 bg-orange-100 text-orange-800 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400", labelKey: "orders.statusReturned" },
   canceled: { dot: "bg-red-400", bg: "border border-red-300 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400", labelKey: "orders.statusCanceled" },
 }
 
@@ -27,6 +28,9 @@ export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
   const [current, setCurrent] = useState(status)
   const router = useRouter()
   const supabase = createClient()
+
+  const transitions = ORDER_STATUS_TRANSITIONS[current as OrderStatus] || []
+  const isTerminal = transitions.length === 0
 
   async function handleChange(value: string) {
     const prev = current
@@ -47,6 +51,15 @@ export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
 
   const cfg = statusConfig[current] || { dot: "bg-gray-400", bg: "bg-gray-100 text-gray-600", labelKey: current }
 
+  if (isTerminal) {
+    return (
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${cfg.bg}`}>
+        <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+        {t(cfg.labelKey)}
+      </span>
+    )
+  }
+
   return (
     <Select value={current} onValueChange={handleChange}>
       <SelectTrigger size="sm" className={`h-auto w-auto gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-none ${cfg.bg}`}>
@@ -58,7 +71,7 @@ export function OrderStatusSelect({ orderId, status }: OrderStatusSelectProps) {
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {ORDER_STATUSES.map((s) => {
+        {[current as OrderStatus, ...transitions].map((s) => {
           const c = statusConfig[s] || { dot: "bg-gray-400", bg: "", labelKey: s }
           return (
             <SelectItem key={s} value={s}>

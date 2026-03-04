@@ -155,7 +155,7 @@ CREATE TABLE orders (
   customer_city TEXT,
   customer_country TEXT NOT NULL DEFAULT 'Unknown',
   customer_address TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'canceled')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'shipped', 'delivered', 'returned', 'canceled')),
   payment_method TEXT NOT NULL DEFAULT 'cod' CHECK (payment_method = 'cod'),
   subtotal DECIMAL(10,2) NOT NULL,
   delivery_fee DECIMAL(10,2) DEFAULT 0,
@@ -835,3 +835,29 @@ CREATE POLICY "Owners can view order confirmations" ON order_confirmations
     SELECT 1 FROM stores WHERE stores.id = order_confirmations.store_id
     AND stores.owner_id = (select auth.uid())
   ));
+
+-- Enforce valid order status transitions
+CREATE OR REPLACE FUNCTION public.enforce_order_status_transition()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.status = 'pending' AND NEW.status NOT IN ('confirmed', 'canceled') THEN
+    RAISE EXCEPTION 'Invalid transition from pending to %', NEW.status;
+  END IF;
+  IF OLD.status = 'confirmed' AND NEW.status NOT IN ('shipped', 'canceled') THEN
+    RAISE EXCEPTION 'Invalid transition from confirmed to %', NEW.status;
+  END IF;
+  IF OLD.status = 'shipped' AND NEW.status NOT IN ('delivered', 'returned') THEN
+    RAISE EXCEPTION 'Invalid transition from shipped to %', NEW.status;
+  END IF;
+  IF OLD.status IN ('delivered', 'returned', 'canceled') THEN
+    RAISE EXCEPTION 'Cannot change status of a % order', OLD.status;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER enforce_status_transition
+  BEFORE UPDATE OF status ON orders
+  FOR EACH ROW
+  WHEN (OLD.status IS DISTINCT FROM NEW.status)
+  EXECUTE FUNCTION public.enforce_order_status_transition();

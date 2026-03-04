@@ -6,9 +6,27 @@ import { NextResponse } from "next/server"
 
 export const maxDuration = 60
 
+export async function GET(request: Request) {
+  return handleCron(request)
+}
+
 export async function POST(request: Request) {
+  return handleCron(request)
+}
+
+async function handleCron(request: Request) {
   const auth = request.headers.get("authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  const expected = `Bearer ${process.env.CRON_SECRET}`
+
+  console.log("CRON AUTH DEBUG:", {
+    receivedAuth: auth,
+    expectedAuth: expected,
+    cronSecretExists: !!process.env.CRON_SECRET,
+    cronSecretLength: process.env.CRON_SECRET?.length,
+    match: auth === expected,
+  })
+
+  if (auth !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

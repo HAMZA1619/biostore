@@ -46,6 +46,15 @@ interface StoreViewHourly {
   market_id: string | null
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  pending: "bg-slate-400",
+  confirmed: "bg-blue-500",
+  shipped: "bg-amber-500",
+  delivered: "bg-emerald-500",
+  returned: "bg-orange-500",
+  canceled: "bg-red-500",
+}
+
 const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
 
 function formatDateShort(date: Date) {
@@ -242,6 +251,45 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
   const prevTotalVisitors = prevViews.reduce((sum, v) => sum + v.view_count, 0)
   const prevConversionRate = prevTotalVisitors > 0 ? (prevOrders.length / prevTotalVisitors) * 100 : 0
 
+  // Status counts — current period
+  const statusCounts = {
+    pending: orders.filter(o => o.status === "pending").length,
+    confirmed: orders.filter(o => o.status === "confirmed").length,
+    shipped: orders.filter(o => o.status === "shipped").length,
+    delivered: orders.filter(o => o.status === "delivered").length,
+    returned: orders.filter(o => o.status === "returned").length,
+    canceled: orders.filter(o => o.status === "canceled").length,
+  }
+  const totalOrderCount = orders.length
+  const confirmedOrBeyond = statusCounts.confirmed + statusCounts.shipped + statusCounts.delivered + statusCounts.returned
+  const shippedPool = statusCounts.shipped + statusCounts.delivered + statusCounts.returned
+  const confirmationRate = totalOrderCount > 0 ? (confirmedOrBeyond / totalOrderCount) * 100 : 0
+  const deliveryRate = shippedPool > 0 ? (statusCounts.delivered / shippedPool) * 100 : 0
+  const returnRate = shippedPool > 0 ? (statusCounts.returned / shippedPool) * 100 : 0
+
+  // Status counts — previous period
+  const prevStatusCounts = {
+    pending: prevOrders.filter(o => o.status === "pending").length,
+    confirmed: prevOrders.filter(o => o.status === "confirmed").length,
+    shipped: prevOrders.filter(o => o.status === "shipped").length,
+    delivered: prevOrders.filter(o => o.status === "delivered").length,
+    returned: prevOrders.filter(o => o.status === "returned").length,
+    canceled: prevOrders.filter(o => o.status === "canceled").length,
+  }
+  const prevConfirmedOrBeyond = prevStatusCounts.confirmed + prevStatusCounts.shipped + prevStatusCounts.delivered + prevStatusCounts.returned
+  const prevShippedPool = prevStatusCounts.shipped + prevStatusCounts.delivered + prevStatusCounts.returned
+  const prevConfirmationRate = prevOrders.length > 0 ? (prevConfirmedOrBeyond / prevOrders.length) * 100 : 0
+  const prevDeliveryRate = prevShippedPool > 0 ? (prevStatusCounts.delivered / prevShippedPool) * 100 : 0
+  const prevReturnRate = prevShippedPool > 0 ? (prevStatusCounts.returned / prevShippedPool) * 100 : 0
+
+  // Revenue by status
+  const revenueByStatus = {
+    collected: orders.filter(o => o.status === "delivered").reduce((s, o) => s + orderRevenue(o), 0),
+    inTransit: orders.filter(o => o.status === "shipped").reduce((s, o) => s + orderRevenue(o), 0),
+    pending: orders.filter(o => o.status === "pending" || o.status === "confirmed").reduce((s, o) => s + orderRevenue(o), 0),
+    lost: orders.filter(o => o.status === "canceled" || o.status === "returned").reduce((s, o) => s + orderRevenue(o), 0),
+  }
+
   function pctChange(current: number, previous: number): number {
     if (previous === 0) return current > 0 ? 100 : 0
     return ((current - previous) / previous) * 100
@@ -258,6 +306,9 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
   let conversionChart: number[]
   let aovChart: number[]
   let epcChart: number[]
+  let confirmationRateChart: number[]
+  let deliveryRateChart: number[]
+  let returnRateChart: number[]
 
   if (isSingleDay) {
     // Hourly breakdown — bucket by local hour (0–23)
@@ -295,6 +346,38 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
       const hr = revenueByHour.get(i) || 0
       return hv > 0 ? hr / hv : 0
     })
+
+    // COD KPI charts — hourly
+    const confirmedByHour = new Map<number, number>()
+    const shippedPoolByHour = new Map<number, number>()
+    const deliveredByHour = new Map<number, number>()
+    const returnedByHour = new Map<number, number>()
+    for (const o of orders) {
+      const h = new Date(o.created_at).getHours()
+      if (o.status !== "pending" && o.status !== "canceled") {
+        confirmedByHour.set(h, (confirmedByHour.get(h) || 0) + 1)
+      }
+      if (o.status === "shipped" || o.status === "delivered" || o.status === "returned") {
+        shippedPoolByHour.set(h, (shippedPoolByHour.get(h) || 0) + 1)
+      }
+      if (o.status === "delivered") deliveredByHour.set(h, (deliveredByHour.get(h) || 0) + 1)
+      if (o.status === "returned") returnedByHour.set(h, (returnedByHour.get(h) || 0) + 1)
+    }
+    confirmationRateChart = Array.from({ length: 24 }, (_, i) => {
+      const total = ordersByHour.get(i) || 0
+      const conf = confirmedByHour.get(i) || 0
+      return total > 0 ? (conf / total) * 100 : 0
+    })
+    deliveryRateChart = Array.from({ length: 24 }, (_, i) => {
+      const pool = shippedPoolByHour.get(i) || 0
+      const del = deliveredByHour.get(i) || 0
+      return pool > 0 ? (del / pool) * 100 : 0
+    })
+    returnRateChart = Array.from({ length: 24 }, (_, i) => {
+      const pool = shippedPoolByHour.get(i) || 0
+      const ret = returnedByHour.get(i) || 0
+      return pool > 0 ? (ret / pool) * 100 : 0
+    })
   } else {
     // Daily breakdown — aggregate hourly data using local timezone
     const allDays = dateRange.from && dateRange.to ? fillDays(dateRange.from, dateRange.to) : []
@@ -331,6 +414,38 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
       const dv = viewsByDay.get(d) || 0
       const dr = revenueByDay.get(d) || 0
       return dv > 0 ? dr / dv : 0
+    })
+
+    // COD KPI charts — daily
+    const confirmedByDay = new Map<string, number>()
+    const shippedPoolByDay = new Map<string, number>()
+    const deliveredByDay = new Map<string, number>()
+    const returnedByDay = new Map<string, number>()
+    for (const o of orders) {
+      const day = toLocalDate(new Date(o.created_at))
+      if (o.status !== "pending" && o.status !== "canceled") {
+        confirmedByDay.set(day, (confirmedByDay.get(day) || 0) + 1)
+      }
+      if (o.status === "shipped" || o.status === "delivered" || o.status === "returned") {
+        shippedPoolByDay.set(day, (shippedPoolByDay.get(day) || 0) + 1)
+      }
+      if (o.status === "delivered") deliveredByDay.set(day, (deliveredByDay.get(day) || 0) + 1)
+      if (o.status === "returned") returnedByDay.set(day, (returnedByDay.get(day) || 0) + 1)
+    }
+    confirmationRateChart = allDays.map((d) => {
+      const total = ordersByDay.get(d) || 0
+      const conf = confirmedByDay.get(d) || 0
+      return total > 0 ? (conf / total) * 100 : 0
+    })
+    deliveryRateChart = allDays.map((d) => {
+      const pool = shippedPoolByDay.get(d) || 0
+      const del = deliveredByDay.get(d) || 0
+      return pool > 0 ? (del / pool) * 100 : 0
+    })
+    returnRateChart = allDays.map((d) => {
+      const pool = shippedPoolByDay.get(d) || 0
+      const ret = returnedByDay.get(d) || 0
+      return pool > 0 ? (ret / pool) * 100 : 0
     })
   }
 
@@ -470,6 +585,50 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
               </Card>
             ))}
           </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-4 pb-3 px-4">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="mt-2 h-7 w-16" />
+                  <Skeleton className="mt-2 h-3 w-24" />
+                  <div className="mt-3 flex items-end gap-[2px]" style={{ height: 60 }}>
+                    {Array.from({ length: 20 }).map((_, j) => (
+                      <Skeleton
+                        key={j}
+                        className="flex-1 min-w-[2px] rounded-t"
+                        style={{ height: `${20 + Math.random() * 80}%` }}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <Skeleton className="h-4 w-32 mb-4" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-7 rounded" style={{ width: `${100 - i * 20}%` }} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3 px-4">
+              <Skeleton className="h-4 w-36 mb-3" />
+              <Skeleton className="h-5 w-full rounded-full" />
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i}>
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="mt-1 h-5 w-20" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </>
       ) : (
         <>
@@ -531,6 +690,168 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
               currency={currency}
             />
           </div>
+
+          {/* Row 3: COD Performance KPIs */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            <MetricCard
+              title={t("analytics.confirmationRate")}
+              value={`${confirmationRate.toFixed(1)}%`}
+              change={pctChange(confirmationRate, prevConfirmationRate)}
+              data={confirmationRateChart}
+              labels={chartLabels}
+              isPercent
+            />
+            <MetricCard
+              title={t("analytics.deliveryRate")}
+              value={`${deliveryRate.toFixed(1)}%`}
+              change={pctChange(deliveryRate, prevDeliveryRate)}
+              data={deliveryRateChart}
+              labels={chartLabels}
+              isPercent
+            />
+            <MetricCard
+              title={t("analytics.returnRate")}
+              value={`${returnRate.toFixed(1)}%`}
+              change={pctChange(returnRate, prevReturnRate)}
+              data={returnRateChart}
+              labels={chartLabels}
+              isPercent
+            />
+          </div>
+
+          {/* Order Status Funnel */}
+          {totalOrderCount > 0 && (
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-sm font-medium mb-4">{t("analytics.orderFunnel")}</p>
+                <div className="space-y-2">
+                  <FunnelStep
+                    label={t("analytics.funnelAllOrders")}
+                    count={totalOrderCount}
+                    total={totalOrderCount}
+                    color="bg-slate-400"
+                  />
+                  <FunnelStep
+                    label={t("analytics.funnelConfirmed")}
+                    count={confirmedOrBeyond}
+                    total={totalOrderCount}
+                    color="bg-blue-500"
+                    dropLabel={t("analytics.funnelCanceledPending")}
+                    dropCount={statusCounts.pending + statusCounts.canceled}
+                  />
+                  <FunnelStep
+                    label={t("analytics.funnelShipped")}
+                    count={shippedPool}
+                    total={totalOrderCount}
+                    color="bg-amber-500"
+                    dropLabel={t("analytics.funnelNotShipped")}
+                    dropCount={statusCounts.confirmed}
+                  />
+                  <FunnelStep
+                    label={t("analytics.funnelDelivered")}
+                    count={statusCounts.delivered}
+                    total={totalOrderCount}
+                    color="bg-emerald-500"
+                    dropLabel={t("analytics.funnelReturnedLabel")}
+                    dropCount={statusCounts.returned}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Revenue by Status */}
+          {totalOrderCount > 0 && (
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-sm font-medium mb-3">{t("analytics.revenueByStatus")}</p>
+                <div className="h-5 w-full rounded-full overflow-hidden flex bg-muted">
+                  {totalRevenue > 0 && (
+                    <>
+                      {revenueByStatus.collected > 0 && (
+                        <div className="h-full bg-emerald-500" style={{ width: `${(revenueByStatus.collected / totalRevenue) * 100}%` }} />
+                      )}
+                      {revenueByStatus.inTransit > 0 && (
+                        <div className="h-full bg-amber-500" style={{ width: `${(revenueByStatus.inTransit / totalRevenue) * 100}%` }} />
+                      )}
+                      {revenueByStatus.pending > 0 && (
+                        <div className="h-full bg-blue-500" style={{ width: `${(revenueByStatus.pending / totalRevenue) * 100}%` }} />
+                      )}
+                      {revenueByStatus.lost > 0 && (
+                        <div className="h-full bg-red-500" style={{ width: `${(revenueByStatus.lost / totalRevenue) * 100}%` }} />
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-muted-foreground">{t("analytics.collected")}</span>
+                    </div>
+                    <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.collected, currency)}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <span className="text-xs text-muted-foreground">{t("analytics.inTransit")}</span>
+                    </div>
+                    <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.inTransit, currency)}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                      <span className="text-xs text-muted-foreground">{t("analytics.pendingRevenue")}</span>
+                    </div>
+                    <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.pending, currency)}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                      <span className="text-xs text-muted-foreground">{t("analytics.lostRevenue")}</span>
+                    </div>
+                    <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.lost, currency)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Order Status Distribution */}
+          {totalOrderCount > 0 && (
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <p className="text-sm font-medium mb-3">{t("analytics.statusDistribution")}</p>
+                <div className="h-5 w-full rounded-full overflow-hidden flex bg-muted">
+                  {(["pending", "confirmed", "shipped", "delivered", "returned", "canceled"] as const).map((status) => {
+                    const count = statusCounts[status]
+                    if (count === 0) return null
+                    return (
+                      <div
+                        key={status}
+                        className={`h-full ${STATUS_COLORS[status]}`}
+                        style={{ width: `${(count / totalOrderCount) * 100}%` }}
+                      />
+                    )
+                  })}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+                  {(["pending", "confirmed", "shipped", "delivered", "returned", "canceled"] as const).map((status) => {
+                    const count = statusCounts[status]
+                    if (count === 0) return null
+                    const labelKey = `orders.status${status.charAt(0).toUpperCase() + status.slice(1)}`
+                    return (
+                      <div key={status} className="flex items-center gap-1.5 text-xs">
+                        <div className={`h-2 w-2 rounded-full ${STATUS_COLORS[status]}`} />
+                        <span className="text-muted-foreground">{t(labelKey)}</span>
+                        <span className="font-medium tabular-nums">{count}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {markets.length >= 2 && (
             <MarketPerformanceCard
@@ -618,6 +939,48 @@ function MetricCard({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function FunnelStep({
+  label,
+  count,
+  total,
+  color,
+  dropLabel,
+  dropCount,
+}: {
+  label: string
+  count: number
+  total: number
+  color: string
+  dropLabel?: string
+  dropCount?: number
+}) {
+  const pct = total > 0 ? (count / total) * 100 : 0
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="text-muted-foreground tabular-nums">
+          {count} ({pct.toFixed(1)}%)
+        </span>
+      </div>
+      <div className="h-7 w-full rounded bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded ${color} transition-all`}
+          style={{ width: `${Math.max(pct, 1)}%` }}
+        />
+      </div>
+      {dropLabel != null && dropCount != null && dropCount > 0 && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{dropLabel}:</span>
+          <span className="text-red-500 font-medium tabular-nums">
+            {dropCount} ({total > 0 ? ((dropCount / total) * 100).toFixed(1) : 0}%)
+          </span>
+        </div>
+      )}
+    </div>
   )
 }
 

@@ -3,7 +3,9 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { formatPrice } from "@/lib/utils"
-import { OrderStatusSelect } from "@/components/dashboard/order-status-select"
+import { OrderStatusTimeline } from "@/components/dashboard/order-status-timeline"
+import { OrderStatusActions } from "@/components/dashboard/order-status-actions"
+import type { OrderStatus } from "@/lib/constants"
 import {
   ArrowLeft,
   ImageIcon,
@@ -81,10 +83,15 @@ export default async function OrderDetailPage({
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="text-2xl font-bold">#{order.order_number}</h1>
-          <OrderStatusSelect orderId={order.id} status={order.status} />
         </div>
         <p className="text-sm text-muted-foreground"><FormattedDateTime date={order.created_at} /></p>
       </div>
+
+      {/* Status Timeline */}
+      <OrderStatusTimeline status={order.status as OrderStatus} />
+
+      {/* Status Actions */}
+      <OrderStatusActions orderId={order.id} status={order.status as OrderStatus} />
 
       {/* Two-column layout */}
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
