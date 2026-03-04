@@ -239,7 +239,7 @@ BEGIN
     NEW.email,
     NEW.raw_user_meta_data->>'full_name',
     'trialing',
-    now() + interval '3 days'
+    now() + interval '14 days'
   );
   RETURN NEW;
 END;

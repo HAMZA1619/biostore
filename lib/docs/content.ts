@@ -550,11 +550,91 @@ export const ARTICLES: DocArticle[] = [
       {
         title: { en: "Update order status", ar: "حدّث حالة الطلب", fr: "Mettez à jour le statut de la commande" },
         description: {
-          en: "Use the status dropdown on the order detail page to track your fulfillment progress. The available statuses are: Pending (new order, not yet processed), Confirmed (you've accepted and are preparing the order), Shipped (the order is on its way to the customer), and Delivered (the customer has received their order). Updating the status helps you stay organized and keeps customers informed if you have WhatsApp notifications enabled.",
-          ar: "استخدم قائمة الحالة في صفحة تفاصيل الطلب لتتبع تقدم التنفيذ. الحالات المتاحة هي: معلق (طلب جديد، لم يُعالج بعد)، مؤكد (قبلت الطلب وتجهزه)، مشحون (الطلب في الطريق إلى العميل)، ومُسلّم (استلم العميل طلبه). تحديث الحالة يساعدك على البقاء منظمًا ويُبقي العملاء على اطلاع إذا كانت إشعارات واتساب مفعلة.",
-          fr: "Utilisez le menu déroulant de statut sur la page de détails pour suivre la progression du traitement. Les statuts disponibles sont : En attente (nouvelle commande, pas encore traitée), Confirmée (vous avez accepté et préparez la commande), Expédiée (la commande est en route vers le client) et Livrée (le client a reçu sa commande). Mettre à jour le statut vous aide à rester organisé et tient les clients informés si les notifications WhatsApp sont activées.",
+          en: "Use the status dropdown on the order detail page to track your fulfillment progress. The available statuses are: Pending (new order, not yet processed), Confirmed (you've accepted and are preparing the order), Shipped (the order is on its way to the customer), Delivered (the customer has received their order), Returned (the customer sent the order back), and Canceled (the order was canceled). Only valid transitions are allowed — for example, you can't mark a delivered order as pending. You can also select multiple orders using the checkboxes and use bulk actions to update their status at once. Updating statuses helps you stay organized, feeds the COD analytics dashboard, and keeps customers informed if WhatsApp notifications are enabled.",
+          ar: "استخدم قائمة الحالة في صفحة تفاصيل الطلب لتتبع تقدم التنفيذ. الحالات المتاحة هي: معلق (طلب جديد، لم يُعالج بعد)، مؤكد (قبلت الطلب وتجهزه)، مشحون (الطلب في الطريق إلى العميل)، مُسلّم (استلم العميل طلبه)، مُرجع (أرجع العميل الطلب)، وملغي (تم إلغاء الطلب). يُسمح فقط بالانتقالات الصحيحة — مثلاً لا يمكنك تحويل طلب مُسلّم إلى معلق. يمكنك أيضاً تحديد عدة طلبات باستخدام مربعات الاختيار واستخدام الإجراءات الجماعية لتحديث حالتها دفعة واحدة. تحديث الحالات يساعدك على البقاء منظماً ويغذي لوحة تحليلات COD ويُبقي العملاء على اطلاع إذا كانت إشعارات واتساب مفعلة.",
+          fr: "Utilisez le menu déroulant de statut sur la page de détails pour suivre la progression du traitement. Les statuts disponibles sont : En attente (nouvelle commande, pas encore traitée), Confirmée (vous avez accepté et préparez la commande), Expédiée (la commande est en route vers le client), Livrée (le client a reçu sa commande), Retournée (le client a renvoyé la commande) et Annulée (la commande a été annulée). Seules les transitions valides sont autorisées — par exemple, vous ne pouvez pas remettre une commande livrée en attente. Vous pouvez aussi sélectionner plusieurs commandes avec les cases à cocher et utiliser les actions groupées pour mettre à jour leur statut d'un coup. La mise à jour des statuts vous aide à rester organisé, alimente le tableau de bord analytique COD et tient les clients informés si les notifications WhatsApp sont activées.",
         },
         image: "/docs/orders/view-orders-3.svg",
+      },
+    ],
+  },
+  {
+    slug: "cod-analytics",
+    category: "orders",
+    title: {
+      en: "COD analytics dashboard",
+      ar: "لوحة تحليلات COD",
+      fr: "Tableau de bord analytique COD",
+    },
+    description: {
+      en: "Track confirmation rate, delivery rate, return rate, and revenue by status.",
+      ar: "تتبع معدل التأكيد ومعدل التسليم ومعدل الإرجاع والإيرادات حسب الحالة.",
+      fr: "Suivez le taux de confirmation, le taux de livraison, le taux de retour et les revenus par statut.",
+    },
+    steps: [
+      {
+        title: { en: "View COD KPIs", ar: "عرض مؤشرات COD", fr: "Voir les KPIs COD" },
+        description: {
+          en: "Your dashboard shows three COD-specific metrics: Confirmation Rate (percentage of orders confirmed out of total), Delivery Rate (percentage of shipped orders that were delivered), and Return Rate (percentage of shipped orders that were returned). Each metric includes a mini chart showing the trend over your selected date range and a comparison with the previous period.",
+          ar: "تعرض لوحة التحكم ثلاثة مؤشرات خاصة بـ COD: معدل التأكيد (نسبة الطلبات المؤكدة من الإجمالي)، ومعدل التسليم (نسبة الطلبات المشحونة التي تم تسليمها)، ومعدل الإرجاع (نسبة الطلبات المشحونة التي تم إرجاعها). كل مؤشر يتضمن رسماً بيانياً مصغراً يُظهر الاتجاه خلال النطاق الزمني المحدد ومقارنة مع الفترة السابقة.",
+          fr: "Votre tableau de bord affiche trois métriques spécifiques au COD : le taux de confirmation (pourcentage de commandes confirmées sur le total), le taux de livraison (pourcentage de commandes expédiées qui ont été livrées) et le taux de retour (pourcentage de commandes expédiées qui ont été retournées). Chaque métrique inclut un mini graphique montrant la tendance sur la période sélectionnée et une comparaison avec la période précédente.",
+        },
+      },
+      {
+        title: { en: "Read the order funnel", ar: "اقرأ قمع الطلبات", fr: "Lire l'entonnoir de commandes" },
+        description: {
+          en: "The order funnel shows how orders flow through each stage: All Orders → Confirmed → Shipped → Delivered. Each bar shows the count and percentage, with dropout annotations showing how many orders were lost at each stage (canceled/pending, not shipped, returned). This helps you identify where your biggest losses are happening.",
+          ar: "يعرض قمع الطلبات كيف تتدفق الطلبات عبر كل مرحلة: جميع الطلبات → مؤكد → مشحون → مُسلّم. كل شريط يعرض العدد والنسبة المئوية، مع ملاحظات الانسحاب التي توضح عدد الطلبات المفقودة في كل مرحلة (ملغي/معلق، لم يُشحن، مُرجع). هذا يساعدك على تحديد أين تحدث أكبر خسائرك.",
+          fr: "L'entonnoir de commandes montre comment les commandes progressent à travers chaque étape : Toutes les commandes → Confirmées → Expédiées → Livrées. Chaque barre affiche le nombre et le pourcentage, avec des annotations d'abandon montrant combien de commandes ont été perdues à chaque étape (annulées/en attente, non expédiées, retournées). Cela vous aide à identifier où se produisent vos plus grandes pertes.",
+        },
+      },
+      {
+        title: { en: "Analyze revenue by status", ar: "حلل الإيرادات حسب الحالة", fr: "Analyser les revenus par statut" },
+        description: {
+          en: "The Revenue by Status section breaks down your revenue into four categories: Collected (delivered orders), In Transit (shipped orders), Pending (pending and confirmed orders), and Lost (canceled and returned orders). A stacked bar chart gives you a visual overview, and the legend shows the exact amount for each category. This tells you how much money you've actually collected versus what's still at risk.",
+          ar: "يقسم قسم الإيرادات حسب الحالة إيراداتك إلى أربع فئات: محصّلة (الطلبات المُسلّمة)، في الطريق (الطلبات المشحونة)، معلقة (الطلبات المعلقة والمؤكدة)، ومفقودة (الطلبات الملغية والمُرجعة). يمنحك الرسم البياني الشريطي المكدس نظرة عامة مرئية، ويعرض المفتاح المبلغ الدقيق لكل فئة. هذا يخبرك بالمبلغ الذي جمعته فعلاً مقابل ما هو لا يزال معرّضاً للخطر.",
+          fr: "La section Revenus par statut décompose vos revenus en quatre catégories : Collectés (commandes livrées), En transit (commandes expédiées), En attente (commandes en attente et confirmées) et Perdus (commandes annulées et retournées). Un graphique à barres empilées vous donne un aperçu visuel, et la légende affiche le montant exact pour chaque catégorie. Cela vous indique combien d'argent vous avez réellement collecté par rapport à ce qui est encore à risque.",
+        },
+      },
+    ],
+  },
+  {
+    slug: "abandoned-checkout-recovery",
+    category: "orders",
+    title: {
+      en: "Abandoned checkout recovery",
+      ar: "استرداد السلات المتروكة",
+      fr: "Récupération de paniers abandonnés",
+    },
+    description: {
+      en: "Automatically recover abandoned carts via WhatsApp notifications.",
+      ar: "استرداد السلات المتروكة تلقائياً عبر إشعارات واتساب.",
+      fr: "Récupérez automatiquement les paniers abandonnés via les notifications WhatsApp.",
+    },
+    steps: [
+      {
+        title: { en: "How it works", ar: "كيف يعمل", fr: "Comment ça marche" },
+        description: {
+          en: "When a customer enters their phone number on the checkout page but leaves without placing an order, BioStore captures their cart as an abandoned checkout. After 30 minutes, if no order was placed, the system automatically sends a recovery notification through your enabled integrations (WhatsApp, Google Sheets, etc.) with a link for the customer to complete their purchase.",
+          ar: "عندما يدخل عميل رقم هاتفه في صفحة الدفع لكن يغادر بدون تقديم طلب، يلتقط BioStore سلته كسلة متروكة. بعد 30 دقيقة، إذا لم يُقدّم أي طلب، يرسل النظام تلقائياً إشعار استرداد عبر التكاملات المفعلة (واتساب، Google Sheets، إلخ) مع رابط للعميل لإتمام الشراء.",
+          fr: "Lorsqu'un client entre son numéro de téléphone sur la page de paiement mais part sans passer commande, BioStore capture son panier comme un panier abandonné. Après 30 minutes, si aucune commande n'a été passée, le système envoie automatiquement une notification de récupération via vos intégrations activées (WhatsApp, Google Sheets, etc.) avec un lien pour que le client finalise son achat.",
+        },
+      },
+      {
+        title: { en: "Checkout lifecycle", ar: "دورة حياة السلة", fr: "Cycle de vie du panier" },
+        description: {
+          en: "Each abandoned checkout goes through these statuses: Pending (waiting 30 minutes before sending recovery), Sent (recovery notification dispatched), Recovered (customer came back and placed an order), and Expired (48 hours passed with no recovery — the system stops trying). Only one recovery message is sent per checkout to avoid spamming customers.",
+          ar: "تمر كل سلة متروكة بهذه الحالات: معلقة (انتظار 30 دقيقة قبل إرسال الاسترداد)، مُرسلة (تم إرسال إشعار الاسترداد)، مستردة (عاد العميل وقدم طلباً)، ومنتهية الصلاحية (مرت 48 ساعة بدون استرداد — يتوقف النظام عن المحاولة). يتم إرسال رسالة استرداد واحدة فقط لكل سلة لتجنب إزعاج العملاء.",
+          fr: "Chaque panier abandonné passe par ces statuts : En attente (attente de 30 minutes avant l'envoi de la récupération), Envoyé (notification de récupération envoyée), Récupéré (le client est revenu et a passé commande) et Expiré (48 heures passées sans récupération — le système arrête d'essayer). Un seul message de récupération est envoyé par panier pour éviter de spammer les clients.",
+        },
+      },
+      {
+        title: { en: "View abandoned checkouts", ar: "عرض السلات المتروكة", fr: "Voir les paniers abandonnés" },
+        description: {
+          en: "Navigate to the Abandoned Checkouts page from the dashboard sidebar to see all captured checkouts. You can filter by status (pending, sent, recovered, expired) and date range. Each row shows the customer's name, phone number, cart items, total value, status, and when it was created. Use this data to understand your cart abandonment patterns and optimize your checkout flow.",
+          ar: "انتقل إلى صفحة السلات المتروكة من الشريط الجانبي للوحة التحكم لرؤية جميع السلات الملتقطة. يمكنك التصفية حسب الحالة (معلقة، مُرسلة، مستردة، منتهية الصلاحية) ونطاق التاريخ. يعرض كل صف اسم العميل ورقم الهاتف وعناصر السلة والقيمة الإجمالية والحالة وتاريخ الإنشاء. استخدم هذه البيانات لفهم أنماط ترك السلات وتحسين تدفق الدفع.",
+          fr: "Accédez à la page Paniers abandonnés depuis la barre latérale du tableau de bord pour voir tous les paniers capturés. Vous pouvez filtrer par statut (en attente, envoyé, récupéré, expiré) et par plage de dates. Chaque ligne affiche le nom du client, son numéro de téléphone, les articles du panier, la valeur totale, le statut et la date de création. Utilisez ces données pour comprendre vos modèles d'abandon de panier et optimiser votre flux de paiement.",
+        },
       },
     ],
   },

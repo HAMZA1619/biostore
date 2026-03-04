@@ -28,6 +28,7 @@ import {
   Paintbrush,
   Palette,
   Puzzle,
+  RotateCcw,
   Settings,
   ShoppingCart,
   Smartphone,
@@ -77,6 +78,7 @@ const features = [
   { icon: Palette, titleKey: "landing.featureDesign", descKey: "landing.featureDesignDesc" },
   { icon: Layers, titleKey: "landing.featureCollections", descKey: "landing.featureCollectionsDesc" },
   { icon: BarChart3, titleKey: "landing.featureAnalytics", descKey: "landing.featureAnalyticsDesc" },
+  { icon: RotateCcw, titleKey: "landing.featureCartRecovery", descKey: "landing.featureCartRecoveryDesc" },
   { icon: Puzzle, titleKey: "landing.featureIntegrations", descKey: "landing.featureIntegrationsDesc" },
   { icon: Globe, titleKey: "landing.featureDomain", descKey: "landing.featureDomainDesc" },
   { icon: Languages, titleKey: "landing.featureLanguage", descKey: "landing.featureLanguageDesc" },
@@ -98,6 +100,7 @@ const pricingFeatures = [
   "landing.pricingFeature6",
   "landing.pricingFeature7",
   "landing.pricingFeature8",
+  "landing.pricingFeature9",
 ]
 
 const faqItems = [
@@ -108,6 +111,8 @@ const faqItems = [
   { qKey: "landing.faq5Question", aKey: "landing.faq5Answer" },
   { qKey: "landing.faq6Question", aKey: "landing.faq6Answer" },
   { qKey: "landing.faq7Question", aKey: "landing.faq7Answer" },
+  { qKey: "landing.faq8Question", aKey: "landing.faq8Answer" },
+  { qKey: "landing.faq9Question", aKey: "landing.faq9Answer" },
 ]
 
 export function LandingPage() {
