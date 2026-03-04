@@ -16,17 +16,8 @@ export async function POST(request: Request) {
 
 async function handleCron(request: Request) {
   const auth = request.headers.get("authorization")
-  const expected = `Bearer ${process.env.CRON_SECRET}`
 
-  console.log("CRON AUTH DEBUG:", {
-    receivedAuth: auth,
-    expectedAuth: expected,
-    cronSecretExists: !!process.env.CRON_SECRET,
-    cronSecretLength: process.env.CRON_SECRET?.length,
-    match: auth === expected,
-  })
-
-  if (auth !== expected) {
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
