@@ -32,10 +32,10 @@ export function InvoicesSection() {
   }, [])
 
   const statusColor: Record<string, string> = {
-    paid: "bg-green-500/10 text-green-700 dark:text-green-400",
-    pending: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    refunded: "bg-muted text-muted-foreground",
-    partially_refunded: "bg-muted text-muted-foreground",
+    paid: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+    pending: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+    refunded: "bg-gray-50 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400",
+    partially_refunded: "bg-gray-50 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400",
   }
 
   function formatAmount(cents: number, currency: string) {

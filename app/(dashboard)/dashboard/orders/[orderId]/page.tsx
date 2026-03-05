@@ -292,10 +292,10 @@ export default async function OrderDetailPage({
                     <span
                       className={`h-2 w-2 rounded-full ${
                         confirmation.status === "pending"
-                          ? "bg-yellow-500"
+                          ? "bg-amber-400"
                           : confirmation.status === "confirmed"
-                            ? "bg-green-500"
-                            : "bg-red-500"
+                            ? "bg-emerald-400"
+                            : "bg-rose-400"
                       }`}
                     />
                     <span className="text-muted-foreground">

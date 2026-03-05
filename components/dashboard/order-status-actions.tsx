@@ -121,7 +121,7 @@ export function OrderStatusActions({ orderId, status }: { orderId: string; statu
                 disabled={loading !== null}
                 className={
                   isCancel
-                    ? "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                    ? "border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-800 dark:text-rose-400 dark:hover:bg-rose-950"
                     : "border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:border-orange-800 dark:text-orange-400 dark:hover:bg-orange-950"
                 }
               >
@@ -138,7 +138,7 @@ export function OrderStatusActions({ orderId, status }: { orderId: string; statu
                 <AlertDialogCancel>{t("discounts.cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => handleUpdate(s)}
-                  className={isCancel ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}
+                  className={isCancel ? "bg-rose-600 hover:bg-rose-700" : "bg-orange-600 hover:bg-orange-700"}
                 >
                   {t(config.labelKey)}
                 </AlertDialogAction>

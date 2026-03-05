@@ -53,11 +53,11 @@ export function BillingSection({ access }: { access: SubscriptionAccess }) {
   }
 
   const statusColor = {
-    active: "bg-green-500/10 text-green-700 dark:text-green-400",
-    trialing: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    past_due: "bg-red-500/10 text-red-700 dark:text-red-400",
-    canceled: "bg-muted text-muted-foreground",
-    expired: "bg-muted text-muted-foreground",
+    active: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+    trialing: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+    past_due: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+    canceled: "bg-gray-50 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400",
+    expired: "bg-gray-50 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400",
   }
 
   return (

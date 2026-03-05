@@ -10,10 +10,10 @@ import { CopyButton } from "@/components/dashboard/copy-button"
 import { FormattedDate, FormattedDateTime } from "@/components/dashboard/formatted-date"
 
 const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  sent: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  recovered: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  expired: "bg-gray-100 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400",
+  pending: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+  sent: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
+  recovered: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
+  expired: "bg-gray-50 text-gray-500 dark:bg-gray-900/40 dark:text-gray-400",
 }
 
 export default async function AbandonedCheckoutDetailPage({

@@ -52,12 +52,12 @@ const BULK_ACTION_CONFIG: Record<string, { labelKey: string; icon: typeof CheckC
 }
 
 const statusBadgeConfig: Record<string, { dot: string; bg: string; labelKey: string }> = {
-  pending: { dot: "bg-yellow-500", bg: "border border-yellow-300 bg-yellow-100 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", labelKey: "orders.statusPending" },
-  confirmed: { dot: "bg-blue-500", bg: "border border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400", labelKey: "orders.statusConfirmed" },
-  shipped: { dot: "bg-purple-500", bg: "border border-purple-300 bg-purple-100 text-purple-800 dark:border-purple-800 dark:bg-purple-900/30 dark:text-purple-400", labelKey: "orders.statusShipped" },
-  delivered: { dot: "bg-green-500", bg: "border border-green-300 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400", labelKey: "orders.statusDelivered" },
-  returned: { dot: "bg-orange-500", bg: "border border-orange-300 bg-orange-100 text-orange-800 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400", labelKey: "orders.statusReturned" },
-  canceled: { dot: "bg-red-400", bg: "border border-red-300 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400", labelKey: "orders.statusCanceled" },
+  pending: { dot: "bg-amber-400", bg: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300", labelKey: "orders.statusPending" },
+  confirmed: { dot: "bg-sky-400", bg: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300", labelKey: "orders.statusConfirmed" },
+  shipped: { dot: "bg-violet-400", bg: "bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300", labelKey: "orders.statusShipped" },
+  delivered: { dot: "bg-emerald-400", bg: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300", labelKey: "orders.statusDelivered" },
+  returned: { dot: "bg-orange-400", bg: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300", labelKey: "orders.statusReturned" },
+  canceled: { dot: "bg-rose-400", bg: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300", labelKey: "orders.statusCanceled" },
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -508,7 +508,7 @@ export function OrdersTable({ initialOrders, hasMore: initialHasMore, markets }:
                     key={s}
                     size="sm"
                     variant={s === "canceled" ? "outline" : "default"}
-                    className={s === "canceled" ? "border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400" : ""}
+                    className={s === "canceled" ? "border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-400" : ""}
                     disabled={bulkLoading}
                     onClick={() => handleBulkAction(s)}
                   >

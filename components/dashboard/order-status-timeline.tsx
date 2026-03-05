@@ -54,8 +54,8 @@ export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
                 <div
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors sm:h-9 sm:w-9",
-                    state === "completed" && "border-green-500 bg-green-500 text-white",
-                    state === "current" && "border-blue-500 bg-blue-50 text-blue-600 ring-4 ring-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:ring-blue-900/40",
+                    state === "completed" && "border-emerald-400 bg-emerald-400 text-white",
+                    state === "current" && "border-sky-400 bg-sky-50 text-sky-600 ring-4 ring-sky-100 dark:bg-sky-950 dark:text-sky-400 dark:ring-sky-900/40",
                     state === "upcoming" && "border-muted-foreground/25 bg-muted/50 text-muted-foreground/50"
                   )}
                 >
@@ -68,8 +68,8 @@ export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
                 <span
                   className={cn(
                     "text-[10px] font-medium sm:text-xs",
-                    state === "completed" && "text-green-600 dark:text-green-400",
-                    state === "current" && "text-blue-600 dark:text-blue-400",
+                    state === "completed" && "text-emerald-600 dark:text-emerald-400",
+                    state === "current" && "text-sky-600 dark:text-sky-400",
                     state === "upcoming" && "text-muted-foreground/50"
                   )}
                 >
@@ -83,7 +83,7 @@ export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
                   className={cn(
                     "mx-1 h-0.5 flex-1 sm:mx-2",
                     stepIndex < (isOffPath ? lastCompletedIndex : currentIndex)
-                      ? "bg-green-500"
+                      ? "bg-emerald-400"
                       : "bg-muted-foreground/20"
                   )}
                 />
@@ -99,8 +99,8 @@ export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
           <div
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
-              status === "canceled" && "border-red-300 bg-red-100 text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400",
-              status === "returned" && "border-orange-300 bg-orange-100 text-orange-800 dark:border-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+              status === "canceled" && "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300",
+              status === "returned" && "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300"
             )}
           >
             {status === "canceled" ? (

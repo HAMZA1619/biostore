@@ -47,12 +47,12 @@ interface StoreViewHourly {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-slate-400",
-  confirmed: "bg-blue-500",
-  shipped: "bg-amber-500",
-  delivered: "bg-emerald-500",
-  returned: "bg-orange-500",
-  canceled: "bg-red-500",
+  pending: "bg-amber-400",
+  confirmed: "bg-sky-400",
+  shipped: "bg-violet-400",
+  delivered: "bg-emerald-400",
+  returned: "bg-orange-400",
+  canceled: "bg-rose-400",
 }
 
 const localeMap: Record<string, string> = { en: "en-US", ar: "ar-SA", fr: "fr-FR" }
@@ -729,13 +729,13 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
                     label={t("analytics.funnelAllOrders")}
                     count={totalOrderCount}
                     total={totalOrderCount}
-                    color="bg-slate-400"
+                    color="bg-gray-400"
                   />
                   <FunnelStep
                     label={t("analytics.funnelConfirmed")}
                     count={confirmedOrBeyond}
                     total={totalOrderCount}
-                    color="bg-blue-500"
+                    color="bg-sky-400"
                     dropLabel={t("analytics.funnelCanceledPending")}
                     dropCount={statusCounts.pending + statusCounts.canceled}
                   />
@@ -743,7 +743,7 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
                     label={t("analytics.funnelShipped")}
                     count={shippedPool}
                     total={totalOrderCount}
-                    color="bg-amber-500"
+                    color="bg-violet-400"
                     dropLabel={t("analytics.funnelNotShipped")}
                     dropCount={statusCounts.confirmed}
                   />
@@ -751,7 +751,7 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
                     label={t("analytics.funnelDelivered")}
                     count={statusCounts.delivered}
                     total={totalOrderCount}
-                    color="bg-emerald-500"
+                    color="bg-emerald-400"
                     dropLabel={t("analytics.funnelReturnedLabel")}
                     dropCount={statusCounts.returned}
                   />
@@ -769,16 +769,16 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
                   {totalRevenue > 0 && (
                     <>
                       {revenueByStatus.collected > 0 && (
-                        <div className="h-full bg-emerald-500" style={{ width: `${(revenueByStatus.collected / totalRevenue) * 100}%` }} />
+                        <div className="h-full bg-emerald-400" style={{ width: `${(revenueByStatus.collected / totalRevenue) * 100}%` }} />
                       )}
                       {revenueByStatus.inTransit > 0 && (
-                        <div className="h-full bg-amber-500" style={{ width: `${(revenueByStatus.inTransit / totalRevenue) * 100}%` }} />
+                        <div className="h-full bg-violet-400" style={{ width: `${(revenueByStatus.inTransit / totalRevenue) * 100}%` }} />
                       )}
                       {revenueByStatus.pending > 0 && (
-                        <div className="h-full bg-blue-500" style={{ width: `${(revenueByStatus.pending / totalRevenue) * 100}%` }} />
+                        <div className="h-full bg-amber-400" style={{ width: `${(revenueByStatus.pending / totalRevenue) * 100}%` }} />
                       )}
                       {revenueByStatus.lost > 0 && (
-                        <div className="h-full bg-red-500" style={{ width: `${(revenueByStatus.lost / totalRevenue) * 100}%` }} />
+                        <div className="h-full bg-rose-400" style={{ width: `${(revenueByStatus.lost / totalRevenue) * 100}%` }} />
                       )}
                     </>
                   )}
@@ -786,28 +786,28 @@ export function DashboardAnalytics({ storeId, currency, markets, exchangeRates, 
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
                       <span className="text-xs text-muted-foreground">{t("analytics.collected")}</span>
                     </div>
                     <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.collected, currency)}</p>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-violet-400" />
                       <span className="text-xs text-muted-foreground">{t("analytics.inTransit")}</span>
                     </div>
                     <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.inTransit, currency)}</p>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                       <span className="text-xs text-muted-foreground">{t("analytics.pendingRevenue")}</span>
                     </div>
                     <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.pending, currency)}</p>
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                      <div className="h-2.5 w-2.5 rounded-full bg-rose-400" />
                       <span className="text-xs text-muted-foreground">{t("analytics.lostRevenue")}</span>
                     </div>
                     <p className="text-sm font-semibold mt-0.5">{formatPrice(revenueByStatus.lost, currency)}</p>
