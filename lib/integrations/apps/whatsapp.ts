@@ -267,10 +267,17 @@ ${itemsList}`
     return null
   }
 
+  const isArabicDialect = language.startsWith("ar")
+  const clarityRule = isArabicDialect
+    ? `IMPORTANT: Write naturally like a real person texting on WhatsApp in this dialect. Use simple everyday words that native speakers actually use. Avoid formal/literary Arabic unless the dialect is "ar" (MSA). Every sentence must be clear and easy to understand.`
+    : `IMPORTANT: Write naturally like a real person texting on WhatsApp. Use simple, clear language. Every sentence must be easy to understand.`
+
   const keepAsIs = `DO NOT translate these — copy exactly as-is:
 - Customer name: "${payload.customer_name}" (use first word only)
 - Store name: "${storeName}" (never prefix with "store"/"متجر"/"magasin" etc.)
-- Product names, addresses, numbers, prices, currency codes`
+- Product names, addresses, numbers, prices, currency codes
+
+${clarityRule}`
 
   const systemPrompts: Record<string, string> = {
     "order.created": `Write a WhatsApp order confirmation. Language: ${langName}. Every word of your output MUST be in ${langName} except the dynamic values below.

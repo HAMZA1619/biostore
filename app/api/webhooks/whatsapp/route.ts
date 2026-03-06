@@ -21,6 +21,10 @@ async function generateClarificationMessage(customerText: string, language: stri
   if (!apiKey) return FALLBACK_CLARIFICATION
 
   const langName = LANG_NAMES[language] || "English"
+  const isArabicDialect = language.startsWith("ar")
+  const clarityRule = isArabicDialect
+    ? "Write naturally like a real person texting on WhatsApp in this dialect. Use simple everyday words that native speakers actually use. Every sentence must be clear and easy to understand."
+    : "Write naturally like a real person texting on WhatsApp. Use simple, clear language."
 
   async function callGroq(): Promise<string | null> {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -34,7 +38,7 @@ async function generateClarificationMessage(customerText: string, language: stri
         messages: [
           {
             role: "system",
-            content: `Write a short WhatsApp message in ${langName}. Every word MUST be in ${langName}. The customer sent an unclear reply to an order confirmation. Ask them to reply *yes* to confirm or *no* to cancel. 1-2 sentences, casual, no emojis, no "Dear". Output ONLY the message.`,
+            content: `Write a short WhatsApp message in ${langName}. Every word MUST be in ${langName}. ${clarityRule} The customer sent an unclear reply to an order confirmation. Ask them to reply *yes* to confirm or *no* to cancel. 1-2 sentences, casual, no emojis, no "Dear". Output ONLY the message.`,
           },
           { role: "user", content: `Customer replied: "${customerText}"` },
         ],
