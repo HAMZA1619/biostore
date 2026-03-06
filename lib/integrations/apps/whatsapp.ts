@@ -121,43 +121,32 @@ export function normalizePhone(phone: string, country?: string): string {
 export interface WhatsAppLanguage {
   code: string
   name: string
-  dialects?: { code: string; name: string }[]
 }
 
 export const WHATSAPP_LANGUAGES: WhatsAppLanguage[] = [
   { code: "en", name: "English" },
-  { code: "fr", name: "Français", dialects: [
-    { code: "fr", name: "Français standard" },
-    { code: "fr-CA", name: "Français canadien" },
-    { code: "fr-MA", name: "Français marocain" },
-  ]},
-  { code: "ar", name: "العربية", dialects: [
-    { code: "ar", name: "العربية الفصحى" },
-    { code: "ar-EG", name: "مصري" },
-    { code: "ar-MA", name: "دارجة مغربية" },
-    { code: "ar-SA", name: "خليجي" },
-    { code: "ar-LB", name: "لبناني / شامي" },
-    { code: "ar-DZ", name: "جزائري" },
-    { code: "ar-TN", name: "تونسي" },
-  ]},
-  { code: "es", name: "Español", dialects: [
-    { code: "es", name: "Español (España)" },
-    { code: "es-MX", name: "Español (México)" },
-    { code: "es-AR", name: "Español (Argentina)" },
-  ]},
-  { code: "pt", name: "Português", dialects: [
-    { code: "pt", name: "Português (Portugal)" },
-    { code: "pt-BR", name: "Português (Brasil)" },
-  ]},
+  { code: "fr", name: "Français" },
+  { code: "fr-CA", name: "Français canadien" },
+  { code: "fr-MA", name: "Français marocain" },
+  { code: "ar", name: "العربية الفصحى" },
+  { code: "ar-EG", name: "مصري" },
+  { code: "ar-MA", name: "دارجة مغربية" },
+  { code: "ar-SA", name: "خليجي" },
+  { code: "ar-LB", name: "لبناني / شامي" },
+  { code: "ar-DZ", name: "جزائري" },
+  { code: "ar-TN", name: "تونسي" },
+  { code: "es", name: "Español" },
+  { code: "es-MX", name: "Español (México)" },
+  { code: "es-AR", name: "Español (Argentina)" },
+  { code: "pt", name: "Português" },
+  { code: "pt-BR", name: "Português (Brasil)" },
   { code: "de", name: "Deutsch" },
   { code: "it", name: "Italiano" },
   { code: "nl", name: "Nederlands" },
   { code: "tr", name: "Türkçe" },
   { code: "ru", name: "Русский" },
-  { code: "zh", name: "中文", dialects: [
-    { code: "zh", name: "简体中文" },
-    { code: "zh-TW", name: "繁體中文" },
-  ]},
+  { code: "zh", name: "简体中文" },
+  { code: "zh-TW", name: "繁體中文" },
   { code: "ja", name: "日本語" },
   { code: "ko", name: "한국어" },
   { code: "hi", name: "हिन्दी" },
@@ -180,6 +169,46 @@ const LANGUAGE_NAMES: Record<string, string> = {
   zh: "Simplified Chinese", "zh-TW": "Traditional Chinese",
   ja: "Japanese", ko: "Korean", hi: "Hindi", id: "Indonesian",
   ms: "Malay", pl: "Polish", sv: "Swedish", th: "Thai", vi: "Vietnamese",
+}
+
+const STATUS_TRANSLATIONS: Record<string, Record<string, string>> = {
+  en: { pending: "Pending", confirmed: "Confirmed", shipped: "Shipped", delivered: "Delivered", returned: "Returned", canceled: "Canceled" },
+  fr: { pending: "En attente", confirmed: "Confirmée", shipped: "Expédiée", delivered: "Livrée", returned: "Retournée", canceled: "Annulée" },
+  "fr-CA": { pending: "En attente", confirmed: "Confirmée", shipped: "Expédiée", delivered: "Livrée", returned: "Retournée", canceled: "Annulée" },
+  "fr-MA": { pending: "En attente", confirmed: "Confirmée", shipped: "Expédiée", delivered: "Livrée", returned: "Retournée", canceled: "Annulée" },
+  ar: { pending: "قيد الانتظار", confirmed: "مؤكدة", shipped: "تم الشحن", delivered: "تم التوصيل", returned: "مرتجعة", canceled: "ملغاة" },
+  "ar-EG": { pending: "مستنية", confirmed: "متأكدة", shipped: "اتشحنت", delivered: "اتوصلت", returned: "مرتجعة", canceled: "ملغية" },
+  "ar-MA": { pending: "كتسنا", confirmed: "متأكدة", shipped: "تصيفطات", delivered: "توصلات", returned: "رجعات", canceled: "تلغات" },
+  "ar-SA": { pending: "معلقة", confirmed: "مأكدة", shipped: "تم الشحن", delivered: "توصلت", returned: "مرجعة", canceled: "ملغية" },
+  "ar-LB": { pending: "بالانتظار", confirmed: "مأكدة", shipped: "انبعتت", delivered: "وصلت", returned: "رجعت", canceled: "ملغية" },
+  "ar-DZ": { pending: "في الانتظار", confirmed: "متأكدة", shipped: "تبعثت", delivered: "توصلت", returned: "رجعت", canceled: "تلغات" },
+  "ar-TN": { pending: "في الانتظار", confirmed: "متأكدة", shipped: "تبعثت", delivered: "توصلت", returned: "رجعت", canceled: "تلغات" },
+  es: { pending: "Pendiente", confirmed: "Confirmado", shipped: "Enviado", delivered: "Entregado", returned: "Devuelto", canceled: "Cancelado" },
+  "es-MX": { pending: "Pendiente", confirmed: "Confirmado", shipped: "Enviado", delivered: "Entregado", returned: "Devuelto", canceled: "Cancelado" },
+  "es-AR": { pending: "Pendiente", confirmed: "Confirmado", shipped: "Enviado", delivered: "Entregado", returned: "Devuelto", canceled: "Cancelado" },
+  pt: { pending: "Pendente", confirmed: "Confirmado", shipped: "Enviado", delivered: "Entregue", returned: "Devolvido", canceled: "Cancelado" },
+  "pt-BR": { pending: "Pendente", confirmed: "Confirmado", shipped: "Enviado", delivered: "Entregue", returned: "Devolvido", canceled: "Cancelado" },
+  de: { pending: "Ausstehend", confirmed: "Bestätigt", shipped: "Versendet", delivered: "Geliefert", returned: "Zurückgesendet", canceled: "Storniert" },
+  it: { pending: "In attesa", confirmed: "Confermato", shipped: "Spedito", delivered: "Consegnato", returned: "Reso", canceled: "Annullato" },
+  nl: { pending: "In afwachting", confirmed: "Bevestigd", shipped: "Verzonden", delivered: "Bezorgd", returned: "Geretourneerd", canceled: "Geannuleerd" },
+  tr: { pending: "Beklemede", confirmed: "Onaylandı", shipped: "Kargoya verildi", delivered: "Teslim edildi", returned: "İade edildi", canceled: "İptal edildi" },
+  ru: { pending: "В ожидании", confirmed: "Подтверждён", shipped: "Отправлен", delivered: "Доставлен", returned: "Возвращён", canceled: "Отменён" },
+  zh: { pending: "待处理", confirmed: "已确认", shipped: "已发货", delivered: "已送达", returned: "已退货", canceled: "已取消" },
+  "zh-TW": { pending: "待處理", confirmed: "已確認", shipped: "已出貨", delivered: "已送達", returned: "已退貨", canceled: "已取消" },
+  ja: { pending: "保留中", confirmed: "確認済み", shipped: "発送済み", delivered: "配達完了", returned: "返品済み", canceled: "キャンセル済み" },
+  ko: { pending: "대기 중", confirmed: "확인됨", shipped: "배송됨", delivered: "배달 완료", returned: "반품됨", canceled: "취소됨" },
+  hi: { pending: "लंबित", confirmed: "पुष्टि हुई", shipped: "भेज दिया गया", delivered: "डिलीवर हो गया", returned: "वापस किया गया", canceled: "रद्द किया गया" },
+  id: { pending: "Menunggu", confirmed: "Dikonfirmasi", shipped: "Dikirim", delivered: "Terkirim", returned: "Dikembalikan", canceled: "Dibatalkan" },
+  ms: { pending: "Menunggu", confirmed: "Disahkan", shipped: "Dihantar", delivered: "Disampaikan", returned: "Dipulangkan", canceled: "Dibatalkan" },
+  pl: { pending: "Oczekujące", confirmed: "Potwierdzone", shipped: "Wysłane", delivered: "Dostarczone", returned: "Zwrócone", canceled: "Anulowane" },
+  sv: { pending: "Väntande", confirmed: "Bekräftad", shipped: "Skickad", delivered: "Levererad", returned: "Returnerad", canceled: "Avbruten" },
+  th: { pending: "รอดำเนินการ", confirmed: "ยืนยันแล้ว", shipped: "จัดส่งแล้ว", delivered: "ส่งถึงแล้ว", returned: "ส่งคืนแล้ว", canceled: "ยกเลิกแล้ว" },
+  vi: { pending: "Đang chờ", confirmed: "Đã xác nhận", shipped: "Đã gửi", delivered: "Đã giao", returned: "Đã trả lại", canceled: "Đã hủy" },
+}
+
+function translateStatus(status: string | undefined, language: string): string {
+  if (!status) return ""
+  return STATUS_TRANSLATIONS[language]?.[status] || STATUS_TRANSLATIONS.en?.[status] || status
 }
 
 async function generateAIMessage(
@@ -242,8 +271,7 @@ Store: ${storeName}
 Order #${payload.order_number}
 Customer: ${payload.customer_name}
 ${addressParts || "Address: Not provided"}
-Previous status: ${payload.old_status}
-New status: ${payload.new_status}`
+Status: ${translateStatus(payload.new_status, language)}`
   } else if (eventType === "checkout.abandoned") {
     const aPayload = payload as unknown as AbandonedCheckoutPayload
     const itemsList = aPayload.cart_items?.length
@@ -284,44 +312,44 @@ ${clarityRule}`
 
 ${keepAsIs}
 
-Use *bold* for store name, order number, total. Separate sections with blank lines.
+Separate sections with blank lines. Do NOT use any bold formatting or asterisks (*) around words.
 Structure:
 1. Casual greeting with first name
-2. *Order #number*
+2. Order #number
 3. Items list (name x qty — price currency, one per line)
-4. ${payload.discount_amount && payload.discount_amount > 0 ? "Subtotal, discount line, " : ""}${payload.delivery_fee && payload.delivery_fee > 0 ? "delivery fee, " : ""}*Total*
+4. ${payload.discount_amount && payload.discount_amount > 0 ? "Subtotal, discount line, " : ""}${payload.delivery_fee && payload.delivery_fee > 0 ? "delivery fee, " : ""}Total
 5. Delivery address
 6. ${codConfirmation ? "Natural question asking to confirm the order" : "Short friendly closing"}
 
-No emojis. No links. No "Dear". Output ONLY the message.`,
+No emojis. No links. No "Dear". No bold/asterisks. Output ONLY the message.`,
 
     "order.status_changed": `Write a WhatsApp order status update. Language: ${langName}. Every word MUST be in ${langName} except the dynamic values below.
 
 ${keepAsIs}
 
-Use *bold* for store name, order number, new status.
+Do NOT use any bold formatting or asterisks (*) around words.
 Structure (3-5 lines total):
 1. Casual greeting with first name
-2. Order # with status: old → *new*
-3. One encouraging line matching the new status
+2. Order # and its current status
+3. One encouraging line matching the status
 
-No emojis. No links. No "Dear". Output ONLY the message.`,
+No emojis. No links. No "Dear". No bold/asterisks. Output ONLY the message.`,
 
     "checkout.abandoned": `Write a WhatsApp cart recovery message. Language: ${langName}. Every word MUST be in ${langName} except the dynamic values below.
 
 ${keepAsIs}
 - Store URL: "${(payload as unknown as AbandonedCheckoutPayload).store_url}" (copy exactly)
 
-Use *bold* for store name, total. Separate sections with blank lines.
+Separate sections with blank lines. Do NOT use any bold formatting or asterisks (*) around words.
 Structure:
 1. Casual greeting with first name
-2. Remind about items left at *store name*
+2. Remind about items left at store name
 3. Items list (name x qty — price currency, one per line)
-4. *Total*
+4. Total
 5. Store URL on its own line
 6. Short friendly closing
 
-No emojis. Not pushy. No "Dear". Output ONLY the message.`,
+No emojis. Not pushy. No "Dear". No bold/asterisks. Output ONLY the message.`,
   }
 
   const systemPrompt = systemPrompts[eventType]
@@ -374,6 +402,7 @@ export function buildWhatsAppMessage(
   payload: EventPayload,
   storeName: string,
   currency: string,
+  language: string,
   codConfirmation?: boolean
 ): string {
   const firstName = payload.customer_name.split(" ")[0]
@@ -428,7 +457,7 @@ export function buildWhatsAppMessage(
       `Hey ${firstName}! Quick update on your order from *${storeName}*:`,
       ``,
       `*Order #${payload.order_number}*`,
-      `Status: ${payload.old_status} → *${payload.new_status}*`,
+      `Status: ${translateStatus(payload.new_status, language)}`,
       ``,
       `Thanks for your patience!`,
     ].join("\n")
@@ -487,7 +516,7 @@ export async function handleWhatsApp(
 
   const message =
     (await generateAIMessage(eventType, payload, storeName, currency, storeLanguage || "en", codConfirmation)) ||
-    buildWhatsAppMessage(eventType, payload, storeName, currency, codConfirmation)
+    buildWhatsAppMessage(eventType, payload, storeName, currency, storeLanguage || "en", codConfirmation)
   if (!message) return { confirmationSent: false }
 
   const evolutionUrl = process.env.EVOLUTION_API_URL

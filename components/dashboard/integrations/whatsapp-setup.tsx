@@ -265,7 +265,7 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
                     {messageLanguage
-                      ? WHATSAPP_LANGUAGES.find((l) => l.code === messageLanguage.split("-")[0])?.name ?? messageLanguage
+                      ? WHATSAPP_LANGUAGES.find((l) => l.code === messageLanguage)?.name ?? messageLanguage
                       : t("integrations.messageLanguageDefault")}
                     <ChevronDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -291,7 +291,7 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
                             setLangOpen(false)
                           }}
                         >
-                          <Check className={`me-2 h-4 w-4 ${messageLanguage.split("-")[0] === lang.code ? "opacity-100" : "opacity-0"}`} />
+                          <Check className={`me-2 h-4 w-4 ${messageLanguage === lang.code ? "opacity-100" : "opacity-0"}`} />
                           {lang.name}
                         </CommandItem>
                       ))}
@@ -299,39 +299,6 @@ export function WhatsAppSetup({ storeId, installed, onDone }: Props) {
                   </Command>
                 </PopoverContent>
               </Popover>
-              {(() => {
-                const baseLang = messageLanguage.split("-")[0]
-                const selected = WHATSAPP_LANGUAGES.find((l) => l.code === baseLang)
-                if (!selected?.dialects || selected.dialects.length === 0) return null
-                return (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        {selected.dialects.find((d) => d.code === messageLanguage)?.name
-                          ?? selected.dialects[0]?.name
-                          ?? t("integrations.messageDialectDefault")}
-                        <ChevronDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                      <Command>
-                        <CommandList>
-                          {selected.dialects.map((d) => (
-                            <CommandItem
-                              key={d.code}
-                              value={d.name}
-                              onSelect={() => setMessageLanguage(d.code)}
-                            >
-                              <Check className={`me-2 h-4 w-4 ${messageLanguage === d.code ? "opacity-100" : "opacity-0"}`} />
-                              {d.name}
-                            </CommandItem>
-                          ))}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                )
-              })()}
             </div>
           </div>
 

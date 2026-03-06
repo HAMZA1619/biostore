@@ -38,7 +38,7 @@ async function generateClarificationMessage(customerText: string, language: stri
         messages: [
           {
             role: "system",
-            content: `Write a short WhatsApp message in ${langName}. Every word MUST be in ${langName}. ${clarityRule} The customer sent an unclear reply to an order confirmation. Ask them to reply *yes* to confirm or *no* to cancel. 1-2 sentences, casual, no emojis, no "Dear". Output ONLY the message.`,
+            content: `Write a short WhatsApp message in ${langName}. Every word MUST be in ${langName}. ${clarityRule} The customer sent an unclear reply to an order confirmation. Ask them to reply yes to confirm or no to cancel. 1-2 sentences, casual, no emojis, no "Dear", no bold/asterisks. Output ONLY the message.`,
           },
           { role: "user", content: `Customer replied: "${customerText}"` },
         ],
