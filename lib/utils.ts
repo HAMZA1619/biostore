@@ -98,7 +98,7 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     checkoutShowNote: typeof raw.checkoutShowNote === "boolean" ? raw.checkoutShowNote : true,
     thankYouMessage: (raw.thankYouMessage as string) || "",
     // Layout extras
-    cardHoverEffect: (raw.cardHoverEffect as DesignState["cardHoverEffect"]) || "none",
+    buttonSize: (raw.buttonSize as DesignState["buttonSize"]) || "default",
     productInfoAlign: (raw.productInfoAlign as DesignState["productInfoAlign"]) || "start",
     // Header
     announcementText: (raw.announcementText as string) || "",

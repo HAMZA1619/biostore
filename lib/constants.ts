@@ -111,6 +111,12 @@ export const BUTTON_STYLE_OPTIONS = [
   { value: "pill", label: "Pill" },
 ] as const
 
+export const BUTTON_SIZE_OPTIONS = [
+  { value: "sm", label: "Small" },
+  { value: "default", label: "Medium" },
+  { value: "lg", label: "Large" },
+] as const
+
 export const CARD_SHADOW_OPTIONS = [
   { value: "none", label: "None", css: "none" },
   { value: "sm", label: "Small", css: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },

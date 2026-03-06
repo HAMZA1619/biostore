@@ -5,7 +5,7 @@ import { usePixel } from "@/lib/hooks/use-pixel"
 import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { useMarket } from "@/lib/hooks/use-market"
-import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
+import { useButtonStyle, useButtonSize, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -30,6 +30,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   const currency = useStoreCurrency()
   const market = useMarket()
   const buttonStyle = useButtonStyle()
+  const buttonSize = useButtonSize()
 
   function handleAdd() {
     if (!product.isAvailable) return
@@ -64,7 +65,7 @@ export function AddToCartButton({ product, storeSlug }: AddToCartButtonProps) {
   return (
     <Button
       onClick={handleAdd}
-      size="lg"
+      size={buttonSize}
       className="w-full"
       disabled={!product.isAvailable}
       style={getButtonStyleProps(buttonStyle)}

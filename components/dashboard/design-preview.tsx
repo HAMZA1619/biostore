@@ -40,7 +40,7 @@ export interface DesignState {
   checkoutShowNote: boolean
   thankYouMessage: string
   // Layout extras
-  cardHoverEffect: "none" | "lift" | "border"
+  buttonSize: "sm" | "default" | "lg"
   productInfoAlign: "start" | "center"
   // Header
   announcementText: string
@@ -722,16 +722,11 @@ function PreviewProductCard({
   const pillRadius = state.buttonStyle === "pill" ? "9999px" : radiusCss
   const isOutline = state.buttonStyle === "outline"
 
-  const hoverClass = state.cardHoverEffect === "lift"
-    ? "transition-transform hover:-translate-y-0.5 hover:shadow-md"
-    : state.cardHoverEffect === "border"
-      ? "transition-colors hover:border-current/30"
-      : ""
   const alignCenter = state.productInfoAlign === "center"
 
   return (
     <div
-      className={cn(`store-card overflow-hidden ${themeCard[state.theme]}`, hoverClass)}
+      className={cn(`store-card overflow-hidden ${themeCard[state.theme]}`)}
       style={{ borderRadius: radiusCss, backgroundColor: state.backgroundColor, boxShadow: shadowCss }}
     >
       <div className="overflow-hidden bg-gray-100" style={{ borderRadius: `${radiusCss} ${radiusCss} 0 0`, aspectRatio: imageRatio }}>
@@ -754,7 +749,10 @@ function PreviewProductCard({
             type="button"
             onClick={handleAdd}
             className={cn(
-              "mt-1 w-full px-1.5 py-0.5 text-[9px] font-medium transition-all",
+              "mt-1 w-full font-medium transition-all",
+              state.buttonSize === "sm" && "px-1 py-0.5 text-[8px]",
+              state.buttonSize === "lg" && "px-2 py-1 text-[10px]",
+              (!state.buttonSize || state.buttonSize === "default") && "px-1.5 py-0.5 text-[9px]",
               added && "scale-95"
             )}
             style={{

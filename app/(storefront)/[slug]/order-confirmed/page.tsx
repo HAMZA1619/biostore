@@ -27,11 +27,14 @@ export default async function OrderConfirmedPage({
   const t = getT(ds.language)
   const message = ds.thankYouMessage || t("storefront.defaultThankYou")
   const btnStyle: React.CSSProperties = {
+    backgroundImage: "none",
+    boxShadow: "none",
     backgroundColor: ds.buttonStyle === "outline" ? "transparent" : "var(--store-accent)",
     color: ds.buttonStyle === "outline" ? "var(--store-accent)" : "var(--store-btn-text)",
     borderRadius: ds.buttonStyle === "pill" ? "9999px" : "var(--store-radius)",
     border: ds.buttonStyle === "outline" ? "2px solid var(--store-accent)" : "none",
   }
+  const btnSize = ds.buttonSize || "default"
 
   return (
     <div className="flex flex-col items-center gap-4 py-12 text-center">
@@ -46,7 +49,7 @@ export default async function OrderConfirmedPage({
         <p className="text-lg opacity-60">{t("storefront.orderNumber", { number: order })}</p>
       )}
       <p className="max-w-sm opacity-60">{message}</p>
-      <Button asChild style={btnStyle}>
+      <Button asChild size={btnSize as "sm" | "default" | "lg"} style={btnStyle}>
         <Link href={urlJoin(baseHref, "/")}>{t("storefront.continueShopping")}</Link>
       </Button>
     </div>

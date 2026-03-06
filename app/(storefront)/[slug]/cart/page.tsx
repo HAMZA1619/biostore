@@ -22,7 +22,7 @@ import { useBaseHref } from "@/lib/hooks/use-base-href"
 import { useMarket } from "@/lib/hooks/use-market"
 import { usePixel } from "@/lib/hooks/use-pixel"
 import { useTiktokPixel } from "@/lib/hooks/use-tiktok-pixel"
-import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
+import { useButtonStyle, useButtonSize, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { useStoreConfig } from "@/lib/store/store-config"
 import Script from "next/script"
 import "@/lib/i18n"
@@ -44,6 +44,7 @@ export default function CartPage() {
   const track = usePixel()
   const ttTrack = useTiktokPixel()
   const buttonStyle = useButtonStyle()
+  const buttonSize = useButtonSize()
   const router = useRouter()
   const [couponCode, setCouponCode] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
@@ -699,7 +700,7 @@ export default function CartPage() {
         <Button
           type="submit"
           className="w-full"
-          size="lg"
+          size={buttonSize}
           disabled={loading}
           style={getButtonStyleProps(buttonStyle)}
         >

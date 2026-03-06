@@ -5,6 +5,7 @@ import { createContext, useContext } from "react"
 export interface StoreConfig {
   currency: string
   buttonStyle: string
+  buttonSize: string
   baseHref: string
   market: { id: string; slug: string } | null
   showEmail: boolean

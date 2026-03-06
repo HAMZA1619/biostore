@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { SingleImageUpload } from "@/components/dashboard/single-image-upload"
 import { cn } from "@/lib/utils"
-import { FONT_OPTIONS, BORDER_RADIUS_OPTIONS, COLOR_THEME_PRESETS, BUTTON_STYLE_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
+import { FONT_OPTIONS, BORDER_RADIUS_OPTIONS, COLOR_THEME_PRESETS, BUTTON_STYLE_OPTIONS, BUTTON_SIZE_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search } from "lucide-react"
 import type { DesignState, PreviewTab } from "./design-preview"
 import { useTranslation } from "react-i18next"
@@ -427,6 +427,37 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                 </div>
               </div>
 
+              {/* Button Size */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{t("design.buttonSize")}</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {BUTTON_SIZE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => onChange({ buttonSize: opt.value as DesignState["buttonSize"] })}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
+                        state.buttonSize === opt.value
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "w-full bg-primary text-primary-foreground flex items-center justify-center font-medium rounded-md",
+                          opt.value === "sm" && "h-5 text-[8px]",
+                          opt.value === "default" && "h-6 text-[9px]",
+                          opt.value === "lg" && "h-7 text-[10px]"
+                        )}
+                      >
+                        {t(`design.buttonSize${opt.label}`)}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Border Radius */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">{t("design.borderRadius")}</h3>
@@ -525,28 +556,6 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                         <div className="h-4 flex-1 rounded-sm bg-muted" />
                       </div>
                       <span className="text-[10px] font-medium">{t(`design.spacing${opt.label}`)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card Hover Effect */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">{t("design.cardHoverEffect")}</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["none", "lift", "border"] as const).map((effect) => (
-                    <button
-                      key={effect}
-                      type="button"
-                      onClick={() => onChange({ cardHoverEffect: effect })}
-                      className={cn(
-                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
-                        state.cardHoverEffect === effect
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/50"
-                      )}
-                    >
-                      <span className="text-[10px] font-medium">{t(`design.hover${effect.charAt(0).toUpperCase() + effect.slice(1)}`)}</span>
                     </button>
                   ))}
                 </div>

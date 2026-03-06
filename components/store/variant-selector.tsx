@@ -7,7 +7,7 @@ import { useMarket } from "@/lib/hooks/use-market"
 import { Button } from "@/components/ui/button"
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
-import { useButtonStyle, getButtonStyleProps } from "@/lib/hooks/use-button-style"
+import { useButtonStyle, useButtonSize, getButtonStyleProps } from "@/lib/hooks/use-button-style"
 import { ShoppingCart } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -48,6 +48,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
   const currency = useStoreCurrency()
   const market = useMarket()
   const buttonStyle = useButtonStyle()
+  const buttonSize = useButtonSize()
   const [selected, setSelected] = useState<Record<string, string>>({})
 
   const allSelected = options.every((o) => selected[o.name])
@@ -174,7 +175,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
 
       <Button
         onClick={handleAdd}
-        size="lg"
+        size={buttonSize}
         className="w-full"
         disabled={!allSelected || !variantInStock}
         style={getButtonStyleProps(buttonStyle)}

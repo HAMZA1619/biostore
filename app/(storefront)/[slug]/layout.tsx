@@ -180,7 +180,7 @@ export default async function StoreLayout({
       data-show-city={ds.checkoutShowCity}
       data-show-note={ds.checkoutShowNote}
       data-thank-you-message={ds.thankYouMessage}
-      data-card-hover={ds.cardHoverEffect}
+      data-button-size={ds.buttonSize || "default"}
       data-product-align={ds.productInfoAlign}
       data-show-card-atc={ds.showCardAddToCart}
       style={
@@ -235,6 +235,7 @@ export default async function StoreLayout({
       <StoreConfigProvider config={{
         currency: activeCurrency || store.currency,
         buttonStyle: ds.buttonStyle || "filled",
+        buttonSize: ds.buttonSize || "default",
         baseHref,
         market: activeMarket ? { id: activeMarket.id, slug: activeMarket.slug } : null,
         showEmail: ds.checkoutShowEmail !== false,
