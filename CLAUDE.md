@@ -1,4 +1,4 @@
-# CLAUDE.md — BioStore Project Rules
+# CLAUDE.md — Leadivo Project Rules
 
 ## Project Overview
 

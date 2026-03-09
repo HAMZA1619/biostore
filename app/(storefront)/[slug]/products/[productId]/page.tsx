@@ -72,7 +72,7 @@ export default async function ProductPage({
 
   // Market price resolution
   const cookieStore = await cookies()
-  const marketSlug = cookieStore.get("biostore-market")?.value
+  const marketSlug = cookieStore.get("leadivo-market")?.value
   const markets = await getStoreMarkets(store.id)
   let activeMarket: MarketInfo | null = null
   if (markets && markets.length > 0) {

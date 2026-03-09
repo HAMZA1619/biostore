@@ -15,7 +15,7 @@ interface DesktopPhoneFrameProps {
 }
 
 const subscribe = () => () => {}
-const getSnapshot = () => typeof window !== "undefined" && sessionStorage.getItem("biostore-desktop-mode") === "1"
+const getSnapshot = () => typeof window !== "undefined" && sessionStorage.getItem("leadivo-desktop-mode") === "1"
 const getServerSnapshot = () => false
 
 export function DesktopPhoneFrame({ storeName, logoPath, storeUrl, children }: DesktopPhoneFrameProps) {
@@ -26,7 +26,7 @@ export function DesktopPhoneFrame({ storeName, logoPath, storeUrl, children }: D
   const isDismissed = dismissed || savedDismissed
 
   const handleContinue = () => {
-    sessionStorage.setItem("biostore-desktop-mode", "1")
+    sessionStorage.setItem("leadivo-desktop-mode", "1")
     setDismissed(true)
   }
 

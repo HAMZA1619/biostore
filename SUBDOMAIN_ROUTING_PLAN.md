@@ -14,9 +14,9 @@ Split the single-domain app into subdomains:
 
 ## New Environment Variable
 
-Add `NEXT_PUBLIC_ROOT_DOMAIN` (e.g., `biostore.app`). When not set (or `localhost`), falls back to current path-based routing for development.
+Add `NEXT_PUBLIC_ROOT_DOMAIN` (e.g., `leadivo.app`). When not set (or `localhost`), falls back to current path-based routing for development.
 
-`NEXT_PUBLIC_APP_URL` stays as-is for production (set to `https://app.biostore.app`).
+`NEXT_PUBLIC_APP_URL` stays as-is for production (set to `https://app.leadivo.app`).
 
 ---
 
@@ -42,8 +42,8 @@ Vercel wildcard domains **require the Nameservers method** (not A records):
 
 Set in Vercel dashboard → Project Settings → Environment Variables:
 ```
-NEXT_PUBLIC_ROOT_DOMAIN=biostore.app
-NEXT_PUBLIC_APP_URL=https://app.biostore.app
+NEXT_PUBLIC_ROOT_DOMAIN=leadivo.app
+NEXT_PUBLIC_APP_URL=https://app.leadivo.app
 ```
 
 ### 4. Vercel Preview Deployments
@@ -156,7 +156,7 @@ Use `ROOT_DOMAIN` for the canonical base:
 ```typescript
 const APP_URL = process.env.NEXT_PUBLIC_ROOT_DOMAIN
   ? `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`
-  : process.env.NEXT_PUBLIC_APP_URL || "https://biostore.app"
+  : process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
 ```
 
 ### 6. `app/robots.ts` and `app/sitemap.ts`

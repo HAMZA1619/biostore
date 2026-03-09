@@ -16,6 +16,6 @@ export const useLanguageStore = create<LanguageStore>()(
       language: "en",
       setLanguage: (language) => set({ language }),
     }),
-    { name: "biostore-lang" }
+    { name: "leadivo-lang" }
   )
 )

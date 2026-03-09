@@ -36,7 +36,7 @@ export default async function StorePage({
 
   // Market resolution (before product fetch so we can apply exclusions)
   const cookieStore = await cookies()
-  const marketSlug = cookieStore.get("biostore-market")?.value
+  const marketSlug = cookieStore.get("leadivo-market")?.value
   const markets = await getStoreMarkets(store.id)
   let activeMarket: MarketInfo | null = null
   if (markets && markets.length > 0) {

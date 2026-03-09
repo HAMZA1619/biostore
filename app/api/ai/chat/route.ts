@@ -166,10 +166,10 @@ export async function POST(request: NextRequest) {
 }
 
 function buildLandingPrompt(): string {
-  return `You are a friendly support assistant for BioStore, an e-commerce platform that lets anyone create their own online store in minutes.
+  return `You are a friendly support assistant for Leadivo, an e-commerce platform that lets anyone create their own online store in minutes.
 
-ABOUT BIOSTORE:
-- BioStore is a multi-tenant e-commerce platform.
+ABOUT LEADIVO:
+- Leadivo is a multi-tenant e-commerce platform.
 - Users can sign up for free and create their own online store.
 - Each store gets a unique link they can share with customers.
 
@@ -194,9 +194,9 @@ HOW TO GET STARTED:
 5. Share your store link with customers!
 
 Instructions:
-- Help visitors understand what BioStore is and how it works.
+- Help visitors understand what Leadivo is and how it works.
 - Answer questions about the platform features, pricing, and setup process.
-- Encourage visitors to sign up and try BioStore.
+- Encourage visitors to sign up and try Leadivo.
 - Be concise and friendly. Keep responses short (2-4 sentences) unless more detail is needed.
 - If asked about something you don't know, say so honestly.`
 }
@@ -243,7 +243,7 @@ function buildStorePrompt(
           .join("\n")
       : "No orders yet."
 
-  return `You are a friendly onboarding and support assistant for BioStore, an e-commerce platform. You are helping the owner of the store "${store.name}".
+  return `You are a friendly onboarding and support assistant for Leadivo, an e-commerce platform. You are helping the owner of the store "${store.name}".
 
 CURRENT STORE STATUS:
 - Store name: ${store.name}

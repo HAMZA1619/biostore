@@ -1,11 +1,11 @@
-export function BiostoreIcon({ className }: { className?: string }) {
+export function LeadivoIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="BioStore"
+      aria-label="Leadivo"
     >
       <rect x="8" y="16" width="26" height="26" rx="4" className="fill-primary" />
       <path

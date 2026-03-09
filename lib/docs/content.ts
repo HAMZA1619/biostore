@@ -149,17 +149,17 @@ export const ARTICLES: DocArticle[] = [
       fr: "Comment créer votre compte",
     },
     description: {
-      en: "Sign up for BioStore using email or Google.",
-      ar: "سجّل في BioStore باستخدام البريد الإلكتروني أو جوجل.",
-      fr: "Inscrivez-vous sur BioStore avec votre email ou Google.",
+      en: "Sign up for Leadivo using email or Google.",
+      ar: "سجّل في Leadivo باستخدام البريد الإلكتروني أو جوجل.",
+      fr: "Inscrivez-vous sur Leadivo avec votre email ou Google.",
     },
     steps: [
       {
         title: { en: "Go to the signup page", ar: "انتقل إلى صفحة التسجيل", fr: "Allez sur la page d'inscription" },
         description: {
-          en: "Visit biostore.com and click the \"Get Started\" button in the top-right corner. This will take you to the registration form where you can create your free account in under a minute.",
-          ar: "قم بزيارة biostore.com وانقر على زر \"ابدأ الآن\" في الزاوية العلوية. سينقلك هذا إلى نموذج التسجيل حيث يمكنك إنشاء حسابك المجاني في أقل من دقيقة.",
-          fr: "Visitez biostore.com et cliquez sur le bouton « Commencer » en haut à droite. Cela vous amènera au formulaire d'inscription où vous pourrez créer votre compte gratuit en moins d'une minute.",
+          en: "Visit leadivo.app and click the \"Get Started\" button in the top-right corner. This will take you to the registration form where you can create your free account in under a minute.",
+          ar: "قم بزيارة leadivo.app وانقر على زر \"ابدأ الآن\" في الزاوية العلوية. سينقلك هذا إلى نموذج التسجيل حيث يمكنك إنشاء حسابك المجاني في أقل من دقيقة.",
+          fr: "Visitez leadivo.app et cliquez sur le bouton « Commencer » en haut à droite. Cela vous amènera au formulaire d'inscription où vous pourrez créer votre compte gratuit en moins d'une minute.",
         },
         image: "/docs/getting-started/create-account-1.svg",
       },
@@ -209,9 +209,9 @@ export const ARTICLES: DocArticle[] = [
       {
         title: { en: "Fill in store details", ar: "أدخل تفاصيل المتجر", fr: "Remplissez les détails de la boutique" },
         description: {
-          en: "Enter your store name (this appears in the header of your storefront). Choose a URL slug — this is the unique link customers will use to visit your store (e.g., biostore.com/your-slug). Select your primary currency for product pricing, and write a short description that tells customers what you sell. You can also set the store language to match your target audience.",
-          ar: "أدخل اسم المتجر (يظهر في رأس واجهة المتجر). اختر رابط URL — هذا هو الرابط الفريد الذي سيستخدمه العملاء لزيارة متجرك (مثلاً biostore.com/رابطك). حدد العملة الرئيسية لتسعير المنتجات، واكتب وصفًا قصيرًا يخبر العملاء بما تبيعه. يمكنك أيضًا تحديد لغة المتجر لتتناسب مع جمهورك المستهدف.",
-          fr: "Entrez le nom de votre boutique (il apparaît dans l'en-tête de votre vitrine). Choisissez un slug URL — c'est le lien unique que les clients utiliseront pour visiter votre boutique (ex : biostore.com/votre-slug). Sélectionnez votre devise principale pour les prix, et rédigez une courte description indiquant aux clients ce que vous vendez. Vous pouvez aussi définir la langue de la boutique pour correspondre à votre audience cible.",
+          en: "Enter your store name (this appears in the header of your storefront). Choose a URL slug — this is the unique link customers will use to visit your store (e.g., leadivo.app/your-slug). Select your primary currency for product pricing, and write a short description that tells customers what you sell. You can also set the store language to match your target audience.",
+          ar: "أدخل اسم المتجر (يظهر في رأس واجهة المتجر). اختر رابط URL — هذا هو الرابط الفريد الذي سيستخدمه العملاء لزيارة متجرك (مثلاً leadivo.app/رابطك). حدد العملة الرئيسية لتسعير المنتجات، واكتب وصفًا قصيرًا يخبر العملاء بما تبيعه. يمكنك أيضًا تحديد لغة المتجر لتتناسب مع جمهورك المستهدف.",
+          fr: "Entrez le nom de votre boutique (il apparaît dans l'en-tête de votre vitrine). Choisissez un slug URL — c'est le lien unique que les clients utiliseront pour visiter votre boutique (ex : leadivo.app/votre-slug). Sélectionnez votre devise principale pour les prix, et rédigez une courte description indiquant aux clients ce que vous vendez. Vous pouvez aussi définir la langue de la boutique pour correspondre à votre audience cible.",
         },
         image: "/docs/getting-started/setup-store-2.svg",
       },
@@ -312,18 +312,18 @@ export const ARTICLES: DocArticle[] = [
       {
         title: { en: "Go to Settings", ar: "انتقل إلى الإعدادات", fr: "Allez dans les Paramètres" },
         description: {
-          en: "Navigate to Settings from the sidebar and scroll down to find the \"Custom Domain\" section. A custom domain lets customers visit your store using your own brand name (e.g., shop.yourbrand.com) instead of the default biostore.com link.",
-          ar: "انتقل إلى الإعدادات من الشريط الجانبي وانزل للأسفل للعثور على قسم \"النطاق المخصص\". النطاق المخصص يتيح للعملاء زيارة متجرك باستخدام اسم علامتك التجارية (مثلاً shop.yourbrand.com) بدلاً من رابط biostore.com الافتراضي.",
-          fr: "Allez dans Paramètres depuis la barre latérale et descendez pour trouver la section « Domaine personnalisé ». Un domaine personnalisé permet à vos clients de visiter votre boutique avec votre propre nom de marque (ex : shop.votrebrand.com) au lieu du lien biostore.com par défaut.",
+          en: "Navigate to Settings from the sidebar and scroll down to find the \"Custom Domain\" section. A custom domain lets customers visit your store using your own brand name (e.g., shop.yourbrand.com) instead of the default leadivo.app link.",
+          ar: "انتقل إلى الإعدادات من الشريط الجانبي وانزل للأسفل للعثور على قسم \"النطاق المخصص\". النطاق المخصص يتيح للعملاء زيارة متجرك باستخدام اسم علامتك التجارية (مثلاً shop.yourbrand.com) بدلاً من رابط leadivo.app الافتراضي.",
+          fr: "Allez dans Paramètres depuis la barre latérale et descendez pour trouver la section « Domaine personnalisé ». Un domaine personnalisé permet à vos clients de visiter votre boutique avec votre propre nom de marque (ex : shop.votrebrand.com) au lieu du lien leadivo.app par défaut.",
         },
         image: "/docs/store/custom-domain-1.svg",
       },
       {
         title: { en: "Enter your domain", ar: "أدخل نطاقك", fr: "Entrez votre domaine" },
         description: {
-          en: "Type your domain name in the field (e.g., shop.yourbrand.com) and click \"Save Domain\". You'll need to add a CNAME record in your domain registrar's DNS settings pointing to biostore.com. DNS changes can take up to 24 hours to propagate, so your domain may not work immediately.",
-          ar: "اكتب اسم نطاقك في الحقل (مثلاً shop.yourbrand.com) وانقر \"حفظ النطاق\". ستحتاج إلى إضافة سجل CNAME في إعدادات DNS لمسجّل النطاق الخاص بك يشير إلى biostore.com. قد تستغرق تغييرات DNS حتى 24 ساعة للانتشار، لذا قد لا يعمل نطاقك فورًا.",
-          fr: "Tapez votre nom de domaine dans le champ (ex : shop.votrebrand.com) et cliquez sur « Enregistrer le domaine ». Vous devrez ajouter un enregistrement CNAME dans les paramètres DNS de votre registraire de domaine pointant vers biostore.com. Les changements DNS peuvent prendre jusqu'à 24 heures pour se propager, donc votre domaine peut ne pas fonctionner immédiatement.",
+          en: "Type your domain name in the field (e.g., shop.yourbrand.com) and click \"Save Domain\". You'll need to add a CNAME record in your domain registrar's DNS settings pointing to leadivo.app. DNS changes can take up to 24 hours to propagate, so your domain may not work immediately.",
+          ar: "اكتب اسم نطاقك في الحقل (مثلاً shop.yourbrand.com) وانقر \"حفظ النطاق\". ستحتاج إلى إضافة سجل CNAME في إعدادات DNS لمسجّل النطاق الخاص بك يشير إلى leadivo.app. قد تستغرق تغييرات DNS حتى 24 ساعة للانتشار، لذا قد لا يعمل نطاقك فورًا.",
+          fr: "Tapez votre nom de domaine dans le champ (ex : shop.votrebrand.com) et cliquez sur « Enregistrer le domaine ». Vous devrez ajouter un enregistrement CNAME dans les paramètres DNS de votre registraire de domaine pointant vers leadivo.app. Les changements DNS peuvent prendre jusqu'à 24 heures pour se propager, donc votre domaine peut ne pas fonctionner immédiatement.",
         },
         image: "/docs/store/custom-domain-2.svg",
       },
@@ -615,9 +615,9 @@ export const ARTICLES: DocArticle[] = [
       {
         title: { en: "How it works", ar: "كيف يعمل", fr: "Comment ça marche" },
         description: {
-          en: "When a customer enters their phone number on the checkout page but leaves without placing an order, BioStore captures their cart as an abandoned checkout. After 30 minutes, if no order was placed, the system automatically sends a recovery notification through your enabled integrations (WhatsApp, Google Sheets, etc.) with a link for the customer to complete their purchase.",
-          ar: "عندما يدخل عميل رقم هاتفه في صفحة الدفع لكن يغادر بدون تقديم طلب، يلتقط BioStore سلته كسلة متروكة. بعد 30 دقيقة، إذا لم يُقدّم أي طلب، يرسل النظام تلقائياً إشعار استرداد عبر التكاملات المفعلة (واتساب، Google Sheets، إلخ) مع رابط للعميل لإتمام الشراء.",
-          fr: "Lorsqu'un client entre son numéro de téléphone sur la page de paiement mais part sans passer commande, BioStore capture son panier comme un panier abandonné. Après 30 minutes, si aucune commande n'a été passée, le système envoie automatiquement une notification de récupération via vos intégrations activées (WhatsApp, Google Sheets, etc.) avec un lien pour que le client finalise son achat.",
+          en: "When a customer enters their phone number on the checkout page but leaves without placing an order, Leadivo captures their cart as an abandoned checkout. After 30 minutes, if no order was placed, the system automatically sends a recovery notification through your enabled integrations (WhatsApp, Google Sheets, etc.) with a link for the customer to complete their purchase.",
+          ar: "عندما يدخل عميل رقم هاتفه في صفحة الدفع لكن يغادر بدون تقديم طلب، يلتقط Leadivo سلته كسلة متروكة. بعد 30 دقيقة، إذا لم يُقدّم أي طلب، يرسل النظام تلقائياً إشعار استرداد عبر التكاملات المفعلة (واتساب، Google Sheets، إلخ) مع رابط للعميل لإتمام الشراء.",
+          fr: "Lorsqu'un client entre son numéro de téléphone sur la page de paiement mais part sans passer commande, Leadivo capture son panier comme un panier abandonné. Après 30 minutes, si aucune commande n'a été passée, le système envoie automatiquement une notification de récupération via vos intégrations activées (WhatsApp, Google Sheets, etc.) avec un lien pour que le client finalise son achat.",
         },
       },
       {

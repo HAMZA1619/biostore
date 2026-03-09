@@ -524,7 +524,7 @@ SELECT cron.schedule(
   '*/30 * * * *',
   $$
   SELECT net.http_post(
-    url := 'https://biostore-indol.vercel.app/api/cron/abandoned-checkouts',
+    url := 'https://leadivo.vercel.app/api/cron/abandoned-checkouts',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer <CRON_SECRET from .env.local>'

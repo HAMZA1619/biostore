@@ -1,3 +1,3 @@
-Contact: mailto:security@biostore.app
+Contact: mailto:security@leadivo.app
 Expires: 2027-03-09T00:00:00.000Z
 Preferred-Languages: en, fr, ar

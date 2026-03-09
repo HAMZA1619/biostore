@@ -13,9 +13,9 @@ export function CartRepricer() {
   const clearCart = useCartStore((s) => s.clearCart)
 
   useEffect(() => {
-    const flag = sessionStorage.getItem("biostore-reprice")
+    const flag = sessionStorage.getItem("leadivo-reprice")
     if (flag !== "1") return
-    sessionStorage.removeItem("biostore-reprice")
+    sessionStorage.removeItem("leadivo-reprice")
 
     if (items.length === 0) return
 

@@ -125,6 +125,6 @@ export const useCartStore = create<CartStore>()(
       getItemCount: () =>
         get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: "biostore-cart" }
+    { name: "leadivo-cart" }
   )
 )

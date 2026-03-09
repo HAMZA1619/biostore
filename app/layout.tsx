@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://biostore.app"
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
 
 export const viewport = {
   width: "device-width",
@@ -25,13 +25,13 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "BioStore — Turn Your Social Media Into a Store",
-    template: "%s | BioStore",
+    default: "Leadivo — Turn Your Social Media Into a Store",
+    template: "%s | Leadivo",
   },
   description:
     "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
   keywords: [
-    "BioStore",
+    "Leadivo",
     "online store builder",
     "link in bio store",
     "ecommerce",
@@ -41,15 +41,15 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    siteName: "BioStore",
-    title: "BioStore — Turn Your Social Media Into a Store",
+    siteName: "Leadivo",
+    title: "Leadivo — Turn Your Social Media Into a Store",
     description:
       "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BioStore — Turn Your Social Media Into a Store",
+    title: "Leadivo — Turn Your Social Media Into a Store",
     description:
       "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
   },

@@ -103,7 +103,7 @@ export default async function StoreLayout({
 
   const headersList = await headers()
   const cookieStore = await cookies()
-  const marketCookie = cookieStore.get("biostore-market")?.value
+  const marketCookie = cookieStore.get("leadivo-market")?.value
   const geoCountry = headersList.get("cf-ipcountry") || headersList.get("x-vercel-ip-country") || null
 
   let activeMarket: (typeof markets extends (infer T)[] | null ? T : never) | null = null
@@ -136,7 +136,7 @@ export default async function StoreLayout({
   const enabledLangs = ds.enabledLanguages?.length > 0
     ? [primaryLang, ...ds.enabledLanguages.filter((l: string) => l !== primaryLang)]
     : [primaryLang]
-  const langCookie = cookieStore.get("biostore-lang")?.value
+  const langCookie = cookieStore.get("leadivo-lang")?.value
   const storeLang = (langCookie && enabledLangs.includes(langCookie)) ? langCookie : primaryLang
   const isRtl = RTL_LANGUAGES.has(storeLang)
   const radiusCss = BORDER_RADIUS_OPTIONS.find((r) => r.value === ds.borderRadius)?.css || "8px"

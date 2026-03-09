@@ -18,7 +18,7 @@ export function MarketSuggestionBanner({ suggestedMarket, currentMarketSlug }: M
   if (dismissed) return null
 
   function setMarketCookie(slug: string) {
-    document.cookie = `biostore-market=${slug};path=/;max-age=31536000;SameSite=Lax`
+    document.cookie = `leadivo-market=${slug};path=/;max-age=31536000;SameSite=Lax`
   }
 
   const clearCart = useCartStore((s) => s.clearCart)

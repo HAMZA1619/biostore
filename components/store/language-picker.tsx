@@ -16,7 +16,7 @@ export function LanguagePicker({ languages, activeLanguage }: LanguagePickerProp
   const active = languages.find((l) => l.code === activeLanguage) || languages[0]
 
   function handleSelect(code: string) {
-    document.cookie = `biostore-lang=${code};path=/;max-age=31536000;SameSite=Lax`
+    document.cookie = `leadivo-lang=${code};path=/;max-age=31536000;SameSite=Lax`
     setOpen(false)
     window.location.reload()
   }

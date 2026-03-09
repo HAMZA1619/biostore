@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next"
 import { createStaticClient } from "@/lib/supabase/static"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://biostore.app"
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },

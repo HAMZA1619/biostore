@@ -5,7 +5,7 @@ import en from "./locales/en.json"
 function getStoredLanguage(): string {
   if (typeof window === "undefined") return "en"
   try {
-    const stored = localStorage.getItem("biostore-lang")
+    const stored = localStorage.getItem("leadivo-lang")
     if (stored) {
       const parsed = JSON.parse(stored)
       return parsed?.state?.language || "en"

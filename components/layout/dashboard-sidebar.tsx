@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { BiostoreLogo } from "@/components/icons/biostore-logo"
+import { LeadivoLogo } from "@/components/icons/leadivo-logo"
 import { useLanguageStore } from "@/lib/store/language-store"
 import "@/lib/i18n"
 import type { LucideIcon } from "lucide-react"
@@ -82,7 +82,7 @@ function SidebarContent({ pathname, onNavigate }: {
     <>
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" onClick={onNavigate}>
-          <BiostoreLogo className="h-6" />
+          <LeadivoLogo className="h-6" />
         </Link>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -181,7 +181,7 @@ export function MobileNav() {
         </SheetContent>
       </Sheet>
       <Link href="/dashboard" className="ms-2">
-        <BiostoreLogo className="h-6" />
+        <LeadivoLogo className="h-6" />
       </Link>
     </div>
   )

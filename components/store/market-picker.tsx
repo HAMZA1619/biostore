@@ -24,9 +24,9 @@ export function MarketPicker({ markets, activeMarketSlug }: MarketPickerProps) {
 
   function handleSelect(slug: string) {
     if (slug !== activeMarketSlug) {
-      sessionStorage.setItem("biostore-reprice", "1")
+      sessionStorage.setItem("leadivo-reprice", "1")
     }
-    document.cookie = `biostore-market=${slug};path=/;max-age=31536000;SameSite=Lax`
+    document.cookie = `leadivo-market=${slug};path=/;max-age=31536000;SameSite=Lax`
     setOpen(false)
     window.location.reload()
   }
