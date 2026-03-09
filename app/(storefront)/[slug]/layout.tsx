@@ -8,6 +8,7 @@ import { TrackingScripts } from "@/components/store/tracking-scripts"
 import { MarketSuggestionBanner } from "@/components/store/market-suggestion-banner"
 import { DesktopPhoneFrame } from "@/components/store/desktop-phone-frame"
 import { CartRepricer } from "@/components/store/cart-repricer"
+import { AnnouncementCountdown } from "@/components/store/announcement-countdown"
 import { StoreConfigProvider } from "@/lib/store/store-config"
 import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
@@ -244,16 +245,22 @@ export default async function StoreLayout({
         showNote: ds.checkoutShowNote !== false,
         thankYouMessage: ds.thankYouMessage || "",
         requireCaptcha: ds.requireCaptcha !== false,
+        checkoutFields: ds.checkoutFields || {},
       }}>
       <StorefrontI18nProvider lang={storeLang}>
         {storeContent(
           <>
             {ds.announcementText && (
-              <div className="text-center text-xs font-medium py-2 px-4 sm:text-sm" style={{ backgroundColor: accent, color: btnText }}>
-                {ds.announcementLink && isValidHttpUrl(ds.announcementLink) ? (
-                  <a href={ds.announcementLink} className="hover:underline">{ds.announcementText}</a>
-                ) : (
-                  ds.announcementText
+              <div data-announcement className={cn("flex items-center justify-center gap-2 sm:gap-3 text-center text-xs font-medium py-1.5 px-3 sm:py-2 sm:px-4 sm:text-sm flex-wrap", ds.announcementCountdown && ds.stickyHeader && "sticky top-0 z-50")} style={{ backgroundColor: accent, color: btnText }}>
+                <span>
+                  {ds.announcementLink && isValidHttpUrl(ds.announcementLink) ? (
+                    <a href={ds.announcementLink} className="hover:underline">{ds.announcementText}</a>
+                  ) : (
+                    ds.announcementText
+                  )}
+                </span>
+                {ds.announcementCountdown && (
+                  <AnnouncementCountdown targetDate={ds.announcementCountdown} sticky={!!(ds.stickyHeader)} />
                 )}
               </div>
             )}
@@ -269,6 +276,7 @@ export default async function StoreLayout({
               logoPath={ds.logoPath}
               bannerPath={ds.bannerPath}
               stickyHeader={ds.stickyHeader}
+              stickyAnnouncement={!!(ds.announcementCountdown && ds.announcementText && ds.stickyHeader)}
               markets={hasMarkets ? markets.map((m) => ({ slug: m.slug, name: m.name, currency: m.currency })) : undefined}
               activeMarketSlug={activeMarket?.slug}
               enabledLanguages={enabledLangs.length > 1 ? enabledLangs.map((code: string) => {

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { SingleImageUpload } from "@/components/dashboard/single-image-upload"
 import { cn } from "@/lib/utils"
 import { FONT_OPTIONS, BORDER_RADIUS_OPTIONS, COLOR_THEME_PRESETS, BUTTON_STYLE_OPTIONS, BUTTON_SIZE_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search } from "lucide-react"
+import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search, ChevronsUpDown } from "lucide-react"
 import type { DesignState, PreviewTab } from "./design-preview"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
@@ -229,12 +229,26 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   className="text-sm"
                 />
                 {state.announcementText && (
-                  <Input
-                    value={state.announcementLink}
-                    onChange={(e) => onChange({ announcementLink: e.target.value })}
-                    placeholder={t("design.announcementLink")}
-                    className="text-sm"
-                  />
+                  <>
+                    <Input
+                      value={state.announcementLink}
+                      onChange={(e) => onChange({ announcementLink: e.target.value })}
+                      placeholder={t("design.announcementLink")}
+                      className="text-sm"
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="announcement-countdown" className="text-xs text-muted-foreground">
+                        {t("design.announcementCountdownHint")}
+                      </Label>
+                      <Input
+                        id="announcement-countdown"
+                        type="datetime-local"
+                        value={state.announcementCountdown}
+                        onChange={(e) => onChange({ announcementCountdown: e.target.value })}
+                        className="text-sm"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             </>
@@ -628,6 +642,82 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   />
                 </div>
               </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium">{t("design.fieldLabels")}</h3>
+                  <p className="text-[11px] text-muted-foreground">{t("design.fieldLabelsHint")}</p>
+                </div>
+                {(() => {
+                  const allLangs = [state.language, ...state.enabledLanguages.filter((l) => l !== state.language)]
+                  const fields = state.checkoutFields || {}
+                  const updateField = (key: string, prop: "label" | "placeholder", lang: string, value: string) => {
+                    const prev = { ...fields }
+                    const field = { ...prev[key] }
+                    const map = { ...field[prop] }
+                    if (value) {
+                      map[lang] = value
+                    } else {
+                      delete map[lang]
+                    }
+                    if (Object.keys(map).length > 0) {
+                      field[prop] = map
+                    } else {
+                      delete field[prop]
+                    }
+                    if (Object.keys(field).length > 0) {
+                      prev[key] = field
+                    } else {
+                      delete prev[key]
+                    }
+                    onChange({ checkoutFields: prev })
+                  }
+
+                  const CHECKOUT_FIELDS: { key: string; labelKey: string; hasPlaceholder: boolean; visible: boolean }[] = [
+                    { key: "heading", labelKey: "design.checkoutHeading", hasPlaceholder: false, visible: true },
+                    { key: "fullName", labelKey: "design.fullNameField", hasPlaceholder: true, visible: true },
+                    { key: "phone", labelKey: "design.phoneField", hasPlaceholder: true, visible: true },
+                    { key: "email", labelKey: "design.emailField", hasPlaceholder: true, visible: state.checkoutShowEmail },
+                    { key: "country", labelKey: "design.countryField", hasPlaceholder: false, visible: state.checkoutShowCountry },
+                    { key: "city", labelKey: "design.cityField", hasPlaceholder: true, visible: state.checkoutShowCity },
+                    { key: "address", labelKey: "design.addressField", hasPlaceholder: true, visible: true },
+                    { key: "note", labelKey: "design.noteField", hasPlaceholder: true, visible: state.checkoutShowNote },
+                    { key: "orderButton", labelKey: "design.orderButtonField", hasPlaceholder: false, visible: true },
+                  ]
+
+                  return CHECKOUT_FIELDS.filter((f) => f.visible).map(({ key, labelKey, hasPlaceholder }) => (
+                    <details key={key} className="group rounded-md border">
+                      <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/50">
+                        {t(labelKey)}
+                        <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="space-y-3 border-t px-3 py-3">
+                        {allLangs.map((lang) => (
+                          <div key={lang} className="space-y-1.5">
+                            {allLangs.length > 1 && (
+                              <span className="text-[10px] font-medium uppercase text-muted-foreground">{lang}</span>
+                            )}
+                            <Input
+                              value={fields[key]?.label?.[lang] || ""}
+                              onChange={(e) => updateField(key, "label", lang, e.target.value)}
+                              placeholder={t("design.labelPlaceholder")}
+                              className="text-sm"
+                            />
+                            {hasPlaceholder && (
+                              <Input
+                                value={fields[key]?.placeholder?.[lang] || ""}
+                                onChange={(e) => updateField(key, "placeholder", lang, e.target.value)}
+                                placeholder={t("design.placeholderPlaceholder")}
+                                className="text-sm"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  ))
+                })()}
+              </div>
             </div>
           )}
 
@@ -644,6 +734,21 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                   rows={3}
                   className="text-sm"
                 />
+              </div>
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-[11px] text-muted-foreground">{t("design.thankYouElementsHint")}</p>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="ty-summary" className="text-sm">{t("design.thankYouShowSummary")}</Label>
+                  <Switch id="ty-summary" checked={state.thankYouShowSummary} onCheckedChange={(v) => onChange({ thankYouShowSummary: v })} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="ty-cod" className="text-sm">{t("design.thankYouShowCod")}</Label>
+                  <Switch id="ty-cod" checked={state.thankYouShowCod} onCheckedChange={(v) => onChange({ thankYouShowCod: v })} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="ty-address" className="text-sm">{t("design.thankYouShowAddress")}</Label>
+                  <Switch id="ty-address" checked={state.thankYouShowAddress} onCheckedChange={(v) => onChange({ thankYouShowAddress: v })} />
+                </div>
               </div>
             </div>
           )}

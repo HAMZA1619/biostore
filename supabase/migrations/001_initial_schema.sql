@@ -761,6 +761,7 @@ CREATE TABLE abandoned_checkouts (
   total DECIMAL(10,2) NOT NULL DEFAULT 0,
   currency TEXT NOT NULL,
   market_id UUID REFERENCES markets(id) ON DELETE SET NULL,
+  recovery_token TEXT NOT NULL DEFAULT encode(gen_random_bytes(16), 'hex'),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'sent', 'recovered', 'expired')),
   recovered_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,

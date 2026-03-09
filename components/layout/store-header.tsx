@@ -19,13 +19,14 @@ interface StoreHeaderProps {
   logoPath?: string | null
   bannerPath?: string | null
   stickyHeader?: boolean
+  stickyAnnouncement?: boolean
   markets?: { slug: string; name: string; currency: string }[]
   activeMarketSlug?: string | null
   enabledLanguages?: { code: string; name: string }[]
   activeLanguage?: string
 }
 
-export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = true, markets, activeMarketSlug, enabledLanguages, activeLanguage }: StoreHeaderProps) {
+export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = true, stickyAnnouncement, markets, activeMarketSlug, enabledLanguages, activeLanguage }: StoreHeaderProps) {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const baseHref = useBaseHref()
@@ -38,7 +39,7 @@ export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = t
 
   return (
     <>
-    <header className={cn("top-0 z-40 border-b backdrop-blur", stickyHeader && "sticky")} style={{ backgroundColor: "color-mix(in srgb, var(--store-bg) 95%, transparent)" }}>
+    <header className={cn("z-40 border-b backdrop-blur", stickyHeader && "sticky top-0")} style={{ top: stickyAnnouncement ? "var(--announcement-h, 0px)" : undefined, backgroundColor: "color-mix(in srgb, var(--store-bg) 95%, transparent)" }}>
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <Link href={urlJoin(baseHref, "/")} className="flex items-center gap-2">
           {logoUrl && (

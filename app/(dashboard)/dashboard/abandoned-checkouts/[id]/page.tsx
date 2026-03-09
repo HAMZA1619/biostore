@@ -90,7 +90,7 @@ export default async function AbandonedCheckoutDetailPage({
     store.custom_domain && store.domain_verified
       ? `https://${store.custom_domain}`
       : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)
-  const recoveryLink = urlJoin(storeUrl, "cart") + `?checkout=${checkout.id}`
+  const recoveryLink = urlJoin(storeUrl, "cart") + `?checkout=${checkout.id}&token=${checkout.recovery_token}`
 
   return (
     <div className="space-y-6">

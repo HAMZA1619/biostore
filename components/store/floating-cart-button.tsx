@@ -40,8 +40,11 @@ export function FloatingCartButton() {
     >
       <Link
         href={`${baseHref}/cart`}
-        className="animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5"
-        style={getButtonStyleProps(buttonStyle)}
+        className={`animate-[subtle-bounce_5s_ease-in-out_infinite] flex items-center justify-center gap-3 px-5 py-3 shadow-lg transition-transform hover:scale-105 active:scale-95 sm:gap-4 sm:px-8 sm:py-3.5${buttonStyle === "outline" ? " backdrop-blur-md" : ""}`}
+        style={{
+          ...getButtonStyleProps(buttonStyle),
+          ...(buttonStyle === "outline" ? { backgroundColor: "color-mix(in srgb, var(--store-bg) 70%, transparent)" } : {}),
+        }}
       >
         <div className="relative">
           <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />

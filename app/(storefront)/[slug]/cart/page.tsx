@@ -28,7 +28,7 @@ import Script from "next/script"
 import "@/lib/i18n"
 
 export default function CartPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { slug } = useParams<{ slug: string }>()
   const currency = useStoreCurrency()
   const baseHref = useBaseHref()
@@ -68,10 +68,11 @@ export default function CartPage() {
 
   const searchParams = useSearchParams()
   const recoverId = searchParams.get("checkout")
+  const recoverToken = searchParams.get("token")
 
   useEffect(() => {
-    if (!recoverId) return
-    fetch(`/api/recover/${recoverId}`)
+    if (!recoverId || !recoverToken) return
+    fetch(`/api/recover/${recoverId}?token=${encodeURIComponent(recoverToken)}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (!data) return
@@ -101,7 +102,7 @@ export default function CartPage() {
         }))
       })
       .catch(() => {})
-  }, [recoverId, slug])
+  }, [recoverId, recoverToken, slug])
 
   const [loading, setLoading] = useState(false)
   const captchaRef = useRef<HTMLDivElement>(null)
@@ -203,6 +204,10 @@ export default function CartPage() {
     city: storeConfig?.showCity ?? true,
     note: storeConfig?.showNote ?? true,
   }
+  const cf = storeConfig?.checkoutFields || {}
+  const lang = i18n.language
+  const fl = (key: string, fallback: string) => cf[key]?.label?.[lang] || cf[key]?.label?.en || fallback
+  const fp = (key: string, fallback: string) => cf[key]?.placeholder?.[lang] || cf[key]?.placeholder?.en || fallback
 
   useEffect(() => {
     if (items.length === 0) return
@@ -598,41 +603,41 @@ export default function CartPage() {
       </div>
 
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 border-t pt-6">
-        <h2 className="text-lg font-bold">{t("storefront.deliveryInformation")}</h2>
+        <h2 className="text-lg font-bold">{fl("heading", t("storefront.deliveryInformation"))}</h2>
 
         <div className="space-y-2">
-          <Label htmlFor="name">{t("storefront.fullName")}</Label>
+          <Label htmlFor="name">{fl("fullName", t("storefront.fullName"))}</Label>
           <Input
             id="name"
             value={form.customer_name}
             onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-            placeholder={t("storefront.fullNamePlaceholder")}
+            placeholder={fp("fullName", t("storefront.fullNamePlaceholder"))}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">{t("storefront.phone")}</Label>
+          <Label htmlFor="phone">{fl("phone", t("storefront.phone"))}</Label>
           <Input
             id="phone"
             type="tel"
             value={form.customer_phone}
             onChange={(e) => setForm({ ...form, customer_phone: e.target.value })}
             onBlur={saveCheckoutSession}
-            placeholder={t("storefront.phonePlaceholder")}
+            placeholder={fp("phone", t("storefront.phonePlaceholder"))}
             required
           />
         </div>
 
         {showFields.email && (
           <div className="space-y-2">
-            <Label htmlFor="email">{t("storefront.email")}</Label>
+            <Label htmlFor="email">{fl("email", t("storefront.email"))}</Label>
             <Input
               id="email"
               type="email"
               value={form.customer_email}
               onChange={(e) => setForm({ ...form, customer_email: e.target.value })}
-              placeholder={t("storefront.emailPlaceholder")}
+              placeholder={fp("email", t("storefront.emailPlaceholder"))}
               required
             />
           </div>
@@ -640,7 +645,7 @@ export default function CartPage() {
 
         {showFields.country && (
           <div className="space-y-2">
-            <Label>{t("storefront.country")}</Label>
+            <Label>{fl("country", t("storefront.country"))}</Label>
             <CountryCombobox
               value={form.customer_country}
               onChange={(v) => setForm({ ...form, customer_country: v })}
@@ -650,24 +655,24 @@ export default function CartPage() {
 
         {showFields.city && (
           <div className="space-y-2">
-            <Label htmlFor="city">{t("storefront.city")}</Label>
+            <Label htmlFor="city">{fl("city", t("storefront.city"))}</Label>
             <CityAutocomplete
               value={form.customer_city}
               onChange={(v) => setForm({ ...form, customer_city: v })}
               cities={availableCities}
-              placeholder={t("storefront.cityPlaceholder")}
+              placeholder={fp("city", t("storefront.cityPlaceholder"))}
               required
             />
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="address">{t("storefront.address")}</Label>
+          <Label htmlFor="address">{fl("address", t("storefront.address"))}</Label>
           <Textarea
             id="address"
             value={form.customer_address}
             onChange={(e) => setForm({ ...form, customer_address: e.target.value })}
-            placeholder={t("storefront.addressPlaceholder")}
+            placeholder={fp("address", t("storefront.addressPlaceholder"))}
             rows={2}
             required
           />
@@ -675,12 +680,12 @@ export default function CartPage() {
 
         {showFields.note && (
           <div className="space-y-2">
-            <Label htmlFor="note">{t("storefront.note")}</Label>
+            <Label htmlFor="note">{fl("note", t("storefront.note"))}</Label>
             <Textarea
               id="note"
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
-              placeholder={t("storefront.notePlaceholder")}
+              placeholder={fp("note", t("storefront.notePlaceholder"))}
               rows={2}
             />
           </div>
@@ -704,7 +709,7 @@ export default function CartPage() {
           disabled={loading}
           style={getButtonStyleProps(buttonStyle)}
         >
-          {loading ? t("storefront.placingOrder") : t("storefront.orderNow")}
+          {loading ? t("storefront.placingOrder") : fl("orderButton", t("storefront.orderNow"))}
         </Button>
       </form>
     </div>

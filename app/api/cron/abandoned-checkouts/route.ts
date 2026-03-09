@@ -82,7 +82,7 @@ async function handleCron(request: Request) {
         store.custom_domain && store.domain_verified
           ? `https://${store.custom_domain}`
           : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)
-      const recoveryUrl = urlJoin(baseStoreUrl, "cart") + `?checkout=${checkout.id}`
+      const recoveryUrl = urlJoin(baseStoreUrl, "cart") + `?checkout=${checkout.id}&token=${checkout.recovery_token}`
 
       // Build payload compatible with integration handlers
       const items = (checkout.cart_items as { product_name: string; product_price: number; quantity: number; variant_options?: Record<string, string> | null }[]) || []

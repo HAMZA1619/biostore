@@ -103,6 +103,7 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     // Header
     announcementText: (raw.announcementText as string) || "",
     announcementLink: (raw.announcementLink as string) || "",
+    announcementCountdown: (raw.announcementCountdown as string) || "",
     stickyHeader: typeof raw.stickyHeader === "boolean" ? raw.stickyHeader : true,
     // Footer
     socialInstagram: (raw.socialInstagram as string) || "",
@@ -114,10 +115,16 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     requireCaptcha: typeof raw.requireCaptcha === "boolean" ? raw.requireCaptcha : true,
     whatsappFloat: (raw.whatsappFloat as string) || "",
     mobileOnly: typeof raw.mobileOnly === "boolean" ? raw.mobileOnly : false,
+    // Thank you page
+    thankYouShowSummary: typeof raw.thankYouShowSummary === "boolean" ? raw.thankYouShowSummary : true,
+    thankYouShowCod: typeof raw.thankYouShowCod === "boolean" ? raw.thankYouShowCod : false,
+    thankYouShowAddress: typeof raw.thankYouShowAddress === "boolean" ? raw.thankYouShowAddress : false,
     // SEO
     seoTitle: (raw.seoTitle as string) || "",
     seoDescription: (raw.seoDescription as string) || "",
     seoKeywords: (raw.seoKeywords as string) || "",
     seoImagePath: (raw.seoImagePath as string) || null,
+    // Checkout field overrides
+    checkoutFields: (raw.checkoutFields as Record<string, { label?: Record<string, string>; placeholder?: Record<string, string> }>) || {},
   }
 }

@@ -45,6 +45,7 @@ export interface DesignState {
   // Header
   announcementText: string
   announcementLink: string
+  announcementCountdown: string
   stickyHeader: boolean
   // Footer
   socialInstagram: string
@@ -61,6 +62,12 @@ export interface DesignState {
   seoDescription: string
   seoKeywords: string
   seoImagePath: string | null
+  // Thank you page
+  thankYouShowSummary: boolean
+  thankYouShowCod: boolean
+  thankYouShowAddress: boolean
+  // Checkout field overrides
+  checkoutFields: Record<string, { label?: Record<string, string>; placeholder?: Record<string, string> }>
 }
 
 interface DesignPreviewProps {
@@ -306,7 +313,7 @@ export function DesignPreview({ state, storeName, storeDescription, currency, pr
             />
           )}
           {previewTab === "thankyou" && (
-            <ThankYouPreview state={state} storeName={storeName} radiusCss={radiusCss} st={st} />
+            <ThankYouPreview state={state} storeName={storeName} currency={currency} radiusCss={radiusCss} st={st} />
           )}
         </div>
       </div>
@@ -358,8 +365,18 @@ function StorePreview({
   return (
     <>
       {state.announcementText && (
-        <div className="px-1.5 py-1 text-center text-[8px] font-medium" style={{ backgroundColor: "var(--store-accent)", color: state.buttonTextColor }}>
-          {state.announcementText}
+        <div className="flex items-center justify-center gap-1 px-1.5 py-1 text-center text-[8px] font-medium flex-wrap" style={{ backgroundColor: "var(--store-accent)", color: state.buttonTextColor }}>
+          <span>{state.announcementText}</span>
+          {state.announcementCountdown && (
+            <span dir="ltr" className="inline-flex items-center gap-px font-mono">
+              {["02","14","33","07"].map((v, i) => (
+                <span key={i} className="flex items-center gap-px">
+                  {i > 0 && <span className="text-[5px] font-bold opacity-50">:</span>}
+                  <span className="rounded bg-white/20 px-0.5 text-[6px] font-bold tabular-nums leading-tight">{v}</span>
+                </span>
+              ))}
+            </span>
+          )}
         </div>
       )}
       <PreviewHeader state={state} storeName={storeName} cartCount={cartCount} onCartClick={onGoToCheckout} enabledLanguages={enabledLangs} activeLanguage={previewLang} onLanguageChange={setPreviewLang} />
@@ -526,22 +543,26 @@ function CheckoutPreview({
           </div>
         )}
 
-        {cartItems.length > 0 && (
-          <>
+        {(() => {
+          const cf = state.checkoutFields || {}
+          const lang = state.language
+          const fl = (key: string, fallback: string) => cf[key]?.label?.[lang] || cf[key]?.label?.en || fallback
+          const fp = (key: string, fallback: string) => cf[key]?.placeholder?.[lang] || cf[key]?.placeholder?.en || fallback
+          return <>
             <div className="border-t pt-2">
-              <p className="text-[10px] font-bold">{st("storefront.deliveryInformation")}</p>
+              <p className="text-[10px] font-bold">{fl("heading", st("storefront.deliveryInformation"))}</p>
             </div>
 
-            <PreviewField label={st("storefront.fullName")} />
-            <PreviewField label={st("storefront.phone")} />
+            <PreviewField label={fl("fullName", st("storefront.fullName"))} placeholder={fp("fullName", st("storefront.fullNamePlaceholder"))} />
+            <PreviewField label={fl("phone", st("storefront.phone"))} placeholder={fp("phone", st("storefront.phonePlaceholder"))} />
 
-            {state.checkoutShowEmail && <PreviewField label={st("storefront.email")} />}
-            {state.checkoutShowCountry && <PreviewField label={st("storefront.country")} />}
-            {state.checkoutShowCity && <PreviewField label={st("storefront.city")} />}
+            {state.checkoutShowEmail && <PreviewField label={fl("email", st("storefront.email"))} placeholder={fp("email", st("storefront.emailPlaceholder"))} />}
+            {state.checkoutShowCountry && <PreviewField label={fl("country", st("storefront.country"))} />}
+            {state.checkoutShowCity && <PreviewField label={fl("city", st("storefront.city"))} placeholder={fp("city", st("storefront.cityPlaceholder"))} />}
 
-            <PreviewField label={st("storefront.address")} tall />
+            <PreviewField label={fl("address", st("storefront.address"))} placeholder={fp("address", st("storefront.addressPlaceholder"))} tall />
 
-            {state.checkoutShowNote && <PreviewField label={st("storefront.note")} tall />}
+            {state.checkoutShowNote && <PreviewField label={fl("note", st("storefront.note"))} placeholder={fp("note", st("storefront.notePlaceholder"))} tall />}
 
             <button
               type="button"
@@ -554,55 +575,134 @@ function CheckoutPreview({
                 border: state.buttonStyle === "outline" ? "1.5px solid var(--store-accent)" : "none",
               }}
             >
-              {st("storefront.orderNow")}
+              {fl("orderButton", st("storefront.orderNow"))}
             </button>
           </>
-        )}
+        })()}
       </div>
     </>
   )
 }
 
 /* ── Thank you tab ── */
+
+const MOCK_ITEMS = [
+  { name: "Product A", qty: 2, price: 29.99 },
+  { name: "Product B", qty: 1, price: 49.99 },
+] as const
+const MOCK_SUBTOTAL = MOCK_ITEMS.reduce((s, i) => s + i.price * i.qty, 0)
+const MOCK_DELIVERY = 5
+const MOCK_TOTAL = MOCK_SUBTOTAL + MOCK_DELIVERY
+
 function ThankYouPreview({
   state,
   storeName,
+  currency,
   radiusCss,
   st,
 }: {
   state: DesignState
   storeName: string
+  currency: string
   radiusCss: string
   st: TFunction
 }) {
   const message = state.thankYouMessage || DEFAULT_THANK_YOU
+  const fmt = (n: number) => `${n.toFixed(2)} ${currency}`
 
   return (
     <>
       <PreviewHeader state={state} storeName={storeName} />
-      <div className="flex flex-col items-center gap-2 px-3 py-8 text-center">
+      <div className="flex flex-col items-center gap-2 px-3 py-6 text-center">
         <div
           className="flex h-12 w-12 items-center justify-center rounded-full"
           style={{ backgroundColor: "var(--store-accent)", color: state.buttonTextColor }}
         >
           <CheckCircle className="h-6 w-6" />
         </div>
+
         <p className="text-sm font-bold">{st("storefront.orderConfirmed")}</p>
         <p className="text-[10px] opacity-60">{st("storefront.orderNumber", { number: "1234" })}</p>
-        <p className="text-[10px] leading-relaxed opacity-60">{message}</p>
+        <p className="max-w-[180px] text-[10px] leading-relaxed opacity-60">{message}</p>
+
+        {state.thankYouShowSummary && (
+          <PreviewOrderSummary fmt={fmt} st={st} />
+        )}
+
+        {state.thankYouShowCod && (
+          <PreviewCodBadge total={MOCK_TOTAL} fmt={fmt} st={st} />
+        )}
+
+        {state.thankYouShowAddress && (
+          <PreviewDeliveryAddress st={st} />
+        )}
+
         <button
           type="button"
-          className="mt-2 px-4 py-1.5 text-[10px] font-medium"
+          className="mt-1 w-full py-1.5 text-[9px] font-medium"
           style={{
-            backgroundColor: "var(--store-accent)",
-            color: state.buttonTextColor,
-            borderRadius: radiusCss,
+            backgroundColor: state.buttonStyle === "outline" ? "transparent" : "var(--store-accent)",
+            color: state.buttonStyle === "outline" ? "var(--store-accent)" : state.buttonTextColor,
+            borderRadius: state.buttonStyle === "pill" ? "9999px" : radiusCss,
+            border: state.buttonStyle === "outline" ? "1.5px solid var(--store-accent)" : "none",
           }}
         >
           {st("storefront.continueShopping")}
         </button>
       </div>
     </>
+  )
+}
+
+function PreviewOrderSummary({ fmt, st }: { fmt: (n: number) => string; st: TFunction }) {
+  return (
+    <div className="w-full mt-1 space-y-1.5 text-start">
+      <div className="divide-y rounded border">
+        {MOCK_ITEMS.map((item) => (
+          <div key={item.name} className="flex items-center gap-1.5 p-1.5">
+            <div className="h-6 w-6 shrink-0 rounded bg-current/5" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[8px] font-medium">{item.name}</p>
+              <p className="text-[7px] opacity-50">x{item.qty}</p>
+            </div>
+            <p className="text-[8px] font-semibold">{fmt(item.price * item.qty)}</p>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-0.5 text-[8px] px-0.5">
+        <div className="flex justify-between opacity-60">
+          <span>{st("storefront.subtotal")}</span>
+          <span>{fmt(MOCK_SUBTOTAL)}</span>
+        </div>
+        <div className="flex justify-between opacity-60">
+          <span>{st("storefront.deliveryFee")}</span>
+          <span>{fmt(MOCK_DELIVERY)}</span>
+        </div>
+        <div className="flex justify-between border-t pt-0.5 font-bold">
+          <span>{st("storefront.total")}</span>
+          <span>{fmt(MOCK_TOTAL)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PreviewCodBadge({ total, fmt, st }: { total: number; fmt: (n: number) => string; st: TFunction }) {
+  return (
+    <div className="w-full rounded border-2 border-dashed p-1.5 text-center" style={{ borderColor: "var(--store-accent)" }}>
+      <p className="text-[7px] font-medium opacity-60">{st("storefront.codPayment")}</p>
+      <p className="text-[10px] font-bold" style={{ color: "var(--store-accent)" }}>{fmt(total)}</p>
+    </div>
+  )
+}
+
+function PreviewDeliveryAddress({ st }: { st: TFunction }) {
+  return (
+    <div className="w-full rounded border p-1.5 text-start space-y-0.5">
+      <p className="text-[7px] font-medium opacity-50">{st("storefront.deliveryTo")}</p>
+      <p className="text-[8px] font-medium">John Doe</p>
+      <p className="text-[8px] opacity-70">123 Main St, Algiers, Algeria</p>
+    </div>
   )
 }
 
@@ -676,16 +776,20 @@ function PreviewHeader({
   )
 }
 
-function PreviewField({ label, tall }: { label: string; tall?: boolean }) {
+function PreviewField({ label, placeholder, tall }: { label: string; placeholder?: string; tall?: boolean }) {
   return (
     <div className="space-y-0.5">
       <p className="text-[9px] font-medium opacity-70">{label}</p>
       <div
         className={cn(
-          "w-full rounded border border-current/10 bg-current/5",
+          "flex items-start w-full rounded border border-current/10 bg-current/5 px-1",
           tall ? "h-8" : "h-5"
         )}
-      />
+      >
+        {placeholder && (
+          <span className="truncate text-[8px] opacity-30 leading-5">{placeholder}</span>
+        )}
+      </div>
     </div>
   )
 }

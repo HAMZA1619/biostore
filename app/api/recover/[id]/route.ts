@@ -2,16 +2,24 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const { searchParams } = new URL(request.url)
+  const token = searchParams.get("token")
+
+  if (!token) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   const supabase = createAdminClient()
 
   const { data: checkout } = await supabase
     .from("abandoned_checkouts")
     .select("*, stores!inner(slug, custom_domain, domain_verified)")
     .eq("id", id)
+    .eq("recovery_token", token)
     .single()
 
   if (!checkout) {
