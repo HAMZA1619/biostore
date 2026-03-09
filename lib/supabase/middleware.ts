@@ -10,6 +10,7 @@ function isCustomDomainRequest(hostname: string): boolean {
   if (hostname === APP_HOSTNAME) return false
   if (hostname === "localhost" || hostname === "127.0.0.1") return false
   if (hostname.endsWith(`.${APP_HOSTNAME}`)) return false
+  if (hostname.endsWith(".vercel.app")) return false
   return true
 }
 
