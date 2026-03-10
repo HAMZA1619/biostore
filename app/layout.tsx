@@ -14,7 +14,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 })
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
+const APP_URL = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+  ? `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`
+  : process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
 
 export const viewport = {
   width: "device-width",

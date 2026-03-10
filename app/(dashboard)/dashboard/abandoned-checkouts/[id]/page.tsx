@@ -1,5 +1,6 @@
 import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
+import { getStoreUrl } from "@/lib/utils"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
@@ -86,10 +87,7 @@ export default async function AbandonedCheckoutDetailPage({
     .toUpperCase()
     .slice(0, 2)
 
-  const storeUrl =
-    store.custom_domain && store.domain_verified
-      ? `https://${store.custom_domain}`
-      : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)
+  const storeUrl = getStoreUrl(store.slug, store.custom_domain, store.domain_verified)
   const recoveryLink = urlJoin(storeUrl, "cart") + `?checkout=${checkout.id}&token=${checkout.recovery_token}`
 
   return (

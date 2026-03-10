@@ -1,5 +1,6 @@
 import urlJoin from "url-join"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getStoreUrl } from "@/lib/utils"
 import { dispatchSingle } from "@/lib/integrations/handlers"
 import { APPS } from "@/lib/integrations/registry"
 import { NextResponse } from "next/server"
@@ -78,10 +79,7 @@ async function handleCron(request: Request) {
       }
 
       // Build recovery URL
-      const baseStoreUrl =
-        store.custom_domain && store.domain_verified
-          ? `https://${store.custom_domain}`
-          : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)
+      const baseStoreUrl = getStoreUrl(store.slug, store.custom_domain, store.domain_verified)
       const recoveryUrl = urlJoin(baseStoreUrl, "cart") + `?checkout=${checkout.id}&token=${checkout.recovery_token}`
 
       // Build payload compatible with integration handlers

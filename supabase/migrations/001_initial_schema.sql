@@ -900,3 +900,33 @@ CREATE TRIGGER enforce_status_transition
   FOR EACH ROW
   WHEN (OLD.status IS DISTINCT FROM NEW.status)
   EXECUTE FUNCTION public.enforce_order_status_transition();
+
+-- ============================================================
+-- Storage: product-images bucket
+-- ============================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-images', 'product-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Anyone can view product images (public bucket)
+CREATE POLICY "Public read access on product-images"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'product-images');
+
+-- Authenticated users can upload to their store folder
+CREATE POLICY "Authenticated upload to product-images"
+  ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'product-images');
+
+-- Authenticated users can update their uploads
+CREATE POLICY "Authenticated update on product-images"
+  ON storage.objects FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'product-images');
+
+-- Authenticated users can delete their uploads
+CREATE POLICY "Authenticated delete from product-images"
+  ON storage.objects FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'product-images');

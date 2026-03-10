@@ -3,7 +3,10 @@ import type { MetadataRoute } from "next"
 import { createStaticClient } from "@/lib/supabase/static"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+  const baseUrl = rootDomain
+    ? `https://${rootDomain}`
+    : process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
@@ -20,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq("is_published", true)
 
   const storePages: MetadataRoute.Sitemap = (stores || []).map((store) => ({
-    url: urlJoin(baseUrl, store.slug),
+    url: rootDomain ? `https://${store.slug}.${rootDomain}` : urlJoin(baseUrl, store.slug),
     lastModified: store.updated_at ? new Date(store.updated_at) : new Date(),
     changeFrequency: "daily" as const,
     priority: 0.8,

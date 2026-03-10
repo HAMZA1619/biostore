@@ -21,6 +21,14 @@ export function formatPriceSymbol(price: number, currency: string) {
   return `${getCurrencySymbol(currency)} ${price.toFixed(2)}`
 }
 
+export function getStoreUrl(slug: string, customDomain?: string | null, domainVerified?: boolean): string {
+  if (customDomain && domainVerified) return `https://${customDomain}`
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+  if (rootDomain && rootDomain !== "localhost")
+    return `https://${slug}.${rootDomain}`
+  return `${process.env.NEXT_PUBLIC_APP_URL}/${slug}`
+}
+
 export function slugify(text: string) {
   return text
     .toLowerCase()

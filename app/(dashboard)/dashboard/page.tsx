@@ -1,5 +1,5 @@
-import urlJoin from "url-join"
 import { createClient } from "@/lib/supabase/server"
+import { getStoreUrl } from "@/lib/utils"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -50,13 +50,11 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold"><T k="dashboard.overview" /></h1>
         {store.is_published && (
           <Link
-            href={store.custom_domain && store.domain_verified ? `https://${store.custom_domain}` : `/${store.slug}`}
+            href={getStoreUrl(store.slug, store.custom_domain, store.domain_verified)}
             target="_blank"
             className="max-w-full truncate text-sm text-primary underline"
           >
-            {store.custom_domain && store.domain_verified
-              ? store.custom_domain
-              : urlJoin(process.env.NEXT_PUBLIC_APP_URL!, store.slug)}
+            {getStoreUrl(store.slug, store.custom_domain, store.domain_verified).replace(/^https?:\/\//, "")}
           </Link>
         )}
       </div>

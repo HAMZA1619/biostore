@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { getStoreUrl } from "@/lib/utils"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { MobileNav } from "@/components/layout/dashboard-sidebar"
@@ -28,7 +29,7 @@ export async function DashboardHeader({ access }: { access: SubscriptionAccess }
           <MobileNav />
           {store?.slug && (
             <Link
-              href={store.custom_domain && store.domain_verified ? `https://${store.custom_domain}` : `/${store.slug}`}
+              href={getStoreUrl(store.slug, store.custom_domain, store.domain_verified)}
               target="_blank"
               className="hidden items-center gap-1 text-sm text-muted-foreground hover:text-foreground sm:flex"
             >

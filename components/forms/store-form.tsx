@@ -201,15 +201,31 @@ export function StoreForm({ userId, title, initialData, children }: StoreFormPro
           <div className="space-y-2">
             <Label htmlFor="slug">{t("storeForm.storeUrl")}</Label>
             <div className="flex items-center gap-1 overflow-hidden">
-              <span className="shrink-0 truncate text-sm text-muted-foreground max-w-[150px] sm:max-w-none">
-                {process.env.NEXT_PUBLIC_APP_URL}/
-              </span>
-              <Input
-                id="slug"
-                {...register("slug")}
-                placeholder={t("storeForm.storeUrlPlaceholder")}
-                disabled={!!initialData}
-              />
+              {process.env.NEXT_PUBLIC_ROOT_DOMAIN && process.env.NEXT_PUBLIC_ROOT_DOMAIN !== "localhost" ? (
+                <>
+                  <Input
+                    id="slug"
+                    {...register("slug")}
+                    placeholder={t("storeForm.storeUrlPlaceholder")}
+                    disabled={!!initialData}
+                  />
+                  <span className="shrink-0 truncate text-sm text-muted-foreground max-w-[150px] sm:max-w-none">
+                    .{process.env.NEXT_PUBLIC_ROOT_DOMAIN}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="shrink-0 truncate text-sm text-muted-foreground max-w-[150px] sm:max-w-none">
+                    {process.env.NEXT_PUBLIC_APP_URL}/
+                  </span>
+                  <Input
+                    id="slug"
+                    {...register("slug")}
+                    placeholder={t("storeForm.storeUrlPlaceholder")}
+                    disabled={!!initialData}
+                  />
+                </>
+              )}
             </div>
             {errors.slug && (
               <p className="text-sm text-red-600">{t(errors.slug.message!)}</p>
