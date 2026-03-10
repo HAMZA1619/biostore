@@ -17,7 +17,7 @@ const LANG_NAMES: Record<string, string> = {
 const FALLBACK_CLARIFICATION = "Sorry, I didn't understand. Could you reply with *yes* to confirm or *no* to cancel?"
 
 async function generateClarificationMessage(customerText: string, language: string): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GROQ_API_KEY_WHATSAPP
   if (!apiKey) return FALLBACK_CLARIFICATION
 
   const langName = LANG_NAMES[language] || "English"
@@ -80,7 +80,7 @@ async function sendWhatsAppText(instanceName: string, phone: string, text: strin
 }
 
 async function classifyResponse(text: string): Promise<"confirm" | "cancel" | "unknown" | null> {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GROQ_API_KEY_WHATSAPP
   if (!apiKey) return null
 
   async function callGroq(): Promise<"confirm" | "cancel" | "unknown" | null> {

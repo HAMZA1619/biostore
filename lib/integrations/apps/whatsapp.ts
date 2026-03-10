@@ -207,7 +207,7 @@ async function generateAIMessage(
   language: string,
   codConfirmation?: boolean
 ): Promise<string | null> {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GROQ_API_KEY_WHATSAPP
   if (!apiKey) return null
 
   const langName = LANGUAGE_NAMES[language] || "English"
