@@ -74,7 +74,8 @@ function createSubdomainRewrite(request: NextRequest, slug: string): NextRespons
 }
 
 export async function updateSession(request: NextRequest) {
-  const hostname = request.nextUrl.hostname
+  const hostHeader = request.headers.get("host") || request.nextUrl.hostname
+  const hostname = hostHeader.split(":")[0]
   const pathname = request.nextUrl.pathname
 
   // --- 1. Custom domain handling ---
