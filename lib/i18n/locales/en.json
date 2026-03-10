@@ -690,7 +690,21 @@
     "creatingAccount": "Creating account...",
     "alreadyHaveAccount": "Already have an account?",
     "continueWithGoogle": "Continue with Google",
-    "or": "or"
+    "or": "or",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordDescription": "Enter your email and we'll send you a reset link",
+    "sendResetLink": "Send reset link",
+    "sendingResetLink": "Sending...",
+    "resetEmailSent": "Check your email for a password reset link. It may take a minute to arrive.",
+    "backToLogin": "Back to login",
+    "resetPassword": "Reset password",
+    "resetPasswordDescription": "Enter your new password below",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Your new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "resettingPassword": "Resetting...",
+    "passwordsDoNotMatch": "Passwords do not match"
   },
   "domain": {
     "title": "Custom Domain",

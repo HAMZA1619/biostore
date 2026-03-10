@@ -28,7 +28,7 @@ const ROOT_PATHS = new Set(["/", "/privacy", "/terms", "/docs", "/pricing"])
 function isRootPagePath(pathname: string): boolean {
   if (ROOT_PATHS.has(pathname)) return true
   if (pathname.startsWith("/dashboard")) return true
-  if (pathname.startsWith("/login") || pathname.startsWith("/signup")) return true
+  if (pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password")) return true
   if (pathname.startsWith("/auth/")) return true
   if (pathname.startsWith("/api/")) return true
   if (pathname.startsWith("/_next/")) return true

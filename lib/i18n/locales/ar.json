@@ -690,7 +690,21 @@
     "creatingAccount": "جارٍ إنشاء الحساب...",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
     "continueWithGoogle": "المتابعة مع Google",
-    "or": "أو"
+    "or": "أو",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "forgotPasswordDescription": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "sendingResetLink": "جارٍ الإرسال...",
+    "resetEmailSent": "تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.",
+    "backToLogin": "العودة لتسجيل الدخول",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetPasswordDescription": "أدخل كلمة المرور الجديدة أدناه",
+    "newPassword": "كلمة المرور الجديدة",
+    "newPasswordPlaceholder": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "تأكيد كلمة المرور الجديدة",
+    "resettingPassword": "جارٍ إعادة التعيين...",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
   },
   "domain": {
     "title": "نطاق مخصص",
