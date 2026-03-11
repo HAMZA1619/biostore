@@ -36,15 +36,20 @@ export async function generateMetadata({
   const iconUrl = seoImageUrl || logoUrl
   const ogImageUrl = seoImageUrl || logoUrl
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
+  const canonical = `${appUrl}/${slug}`
+
   return {
     title,
     description,
+    alternates: { canonical },
     ...(ds.seoKeywords ? { keywords: ds.seoKeywords.split(",").map((k) => k.trim()).filter(Boolean) } : {}),
     ...(iconUrl ? { icons: { icon: iconUrl, apple: iconUrl } } : {}),
     openGraph: {
       title,
       description,
       type: "website",
+      url: canonical,
       ...(ogImageUrl ? { images: [{ url: ogImageUrl }] } : {}),
     },
     twitter: {

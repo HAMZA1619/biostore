@@ -29,5 +29,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...storePages]
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, updated_at, store_id, stores!inner(slug, is_published)")
+    .eq("is_active", true)
+    .eq("stores.is_published", true)
+
+  const productPages: MetadataRoute.Sitemap = (products || []).map((product) => {
+    const store = product.stores as unknown as { slug: string }
+    const storeBase = rootDomain
+      ? `https://${store.slug}.${rootDomain}`
+      : urlJoin(baseUrl, store.slug)
+    return {
+      url: urlJoin(storeBase, "products", product.id),
+      lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }
+  })
+
+  return [...staticPages, ...storePages, ...productPages]
 }

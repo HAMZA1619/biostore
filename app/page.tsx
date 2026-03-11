@@ -56,11 +56,15 @@ const jsonLd = {
     priceCurrency: "USD",
     description: "Free trial included",
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "120",
-  },
+}
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Leadivo",
+  url: APP_URL,
+  logo: `${APP_URL}/icon.png`,
+  sameAs: [],
 }
 
 const faqJsonLd = {
@@ -124,6 +128,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ l
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
       <script
         type="application/ld+json"

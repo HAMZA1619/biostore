@@ -37,13 +37,18 @@ export async function generateMetadata({
     ? product.description.slice(0, 160)
     : `${product.name} — ${formatPriceSymbol(Number(product.price), store.currency)}`
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
+  const canonical = `${appUrl}/${slug}/products/${productId}`
+
   return {
     title,
     description,
+    alternates: { canonical },
     openGraph: {
       title,
       description,
       type: "website",
+      url: canonical,
       ...(ogImage ? { images: [{ url: ogImage }] } : {}),
     },
     twitter: {
@@ -155,8 +160,29 @@ export default async function ProductPage({
   const productInStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
   const t = getT(store.language || "en")
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    ...(product.description ? { description: product.description } : {}),
+    ...(resolvedImageUrls.length > 0 ? { image: resolvedImageUrls } : {}),
+    ...(product.sku && !hasOptions ? { sku: product.sku } : {}),
+    offers: {
+      "@type": "Offer",
+      price: resolvedProduct.price,
+      priceCurrency: displayCurrency,
+      availability: productInStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  }
+
   return (
     <div className="space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <PixelViewContent productName={product.name} productId={product.id} price={resolvedProduct.price} currency={displayCurrency} />
       <TiktokPixelViewContent productName={product.name} productId={product.id} price={resolvedProduct.price} currency={displayCurrency} />
       <ProductImageGallery images={resolvedImageUrls} productName={product.name} />

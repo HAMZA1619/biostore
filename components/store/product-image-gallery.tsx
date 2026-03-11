@@ -86,7 +86,7 @@ export function ProductImageGallery({ images, productName }: ProductImageGallery
               i === current ? "ring-2 ring-[var(--store-accent)]" : "opacity-60 hover:opacity-100"
             )}
           >
-            <Image src={url} alt="" width={64} height={64} className="h-full w-full object-cover" />
+            <Image src={url} alt={`${productName} ${i + 1}`} width={64} height={64} className="h-full w-full object-cover" />
           </button>
         ))}
       </div>

@@ -8,6 +8,11 @@ import { headers } from "next/headers"
 import { getSubscriptionAccess, type SubscriptionAccess } from "@/lib/subscription"
 import { SubscriptionGate } from "@/components/dashboard/subscription-gate"
 import { AiChat } from "@/components/dashboard/ai-chat"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 export default async function DashboardLayout({
   children,

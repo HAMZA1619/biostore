@@ -141,7 +141,7 @@ function OrderSummary({ order, currency, fmt, t }: { order: OrderData; currency:
           return (
             <div key={i} className="flex items-center gap-3 p-3">
               {imgUrl ? (
-                <Image src={imgUrl} alt="" width={48} height={48} className="h-12 w-12 shrink-0 rounded object-cover" />
+                <Image src={imgUrl} alt={item.product_name} width={48} height={48} className="h-12 w-12 shrink-0 rounded object-cover" />
               ) : (
                 <div className="h-12 w-12 shrink-0 rounded bg-current/5" />
               )}

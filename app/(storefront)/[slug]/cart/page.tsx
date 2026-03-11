@@ -457,7 +457,7 @@ export default function CartPage() {
             {item.imageUrl ? (
               <Image
                 src={item.imageUrl}
-                alt=""
+                alt={item.name}
                 width={64}
                 height={64}
                 className="h-16 w-16 shrink-0 rounded-md object-cover"

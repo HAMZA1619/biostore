@@ -22,7 +22,7 @@ export default async function StorePage({
   const { slug } = await params
   const { collection, search } = await searchParams
 
-  const store = await getStoreBySlug(slug, "id, currency, description, design_settings")
+  const store = await getStoreBySlug(slug, "id, name, currency, description, design_settings")
 
   if (!store) notFound()
 
@@ -96,9 +96,13 @@ export default async function StorePage({
     }
   })
 
+  const ds = parseDesignSettings((store.design_settings || {}) as Record<string, unknown>)
+  const storeName = ds.seoTitle || store.name
+
   return (
     <div className="space-y-6">
       <ViewTracker storeId={store.id} marketId={activeMarket?.id} />
+      <h1 className="sr-only">{storeName}</h1>
       {store.description && (
         <p className="text-muted-foreground">{store.description}</p>
       )}
