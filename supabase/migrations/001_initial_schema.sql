@@ -17,7 +17,7 @@ CREATE TABLE profiles (
 CREATE TABLE stores (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  slug TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE CHECK (slug NOT IN ('app', 'api', 'admin', 'www')),
   name TEXT NOT NULL,
   description TEXT,
   design_settings JSONB NOT NULL DEFAULT '{}',
@@ -31,7 +31,6 @@ CREATE TABLE stores (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_stores_owner ON stores(owner_id);
-CREATE INDEX idx_stores_slug ON stores(slug);
 CREATE INDEX idx_stores_custom_domain ON stores(custom_domain) WHERE custom_domain IS NOT NULL;
 
 -- Collections
@@ -148,7 +147,7 @@ CREATE INDEX idx_market_prices_product ON market_prices(product_id);
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  order_number SERIAL,
+  order_number INTEGER NOT NULL DEFAULT 0,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT,
@@ -172,6 +171,22 @@ CREATE TABLE orders (
 CREATE INDEX idx_orders_store ON orders(store_id);
 CREATE INDEX idx_orders_status ON orders(store_id, status);
 CREATE INDEX idx_orders_created_at ON orders(store_id, created_at DESC);
+CREATE UNIQUE INDEX idx_orders_store_number ON orders(store_id, order_number);
+
+-- Auto-assign per-store sequential order number
+CREATE OR REPLACE FUNCTION public.set_order_number()
+RETURNS TRIGGER AS $$
+BEGIN
+  SELECT COALESCE(MAX(order_number), 0) + 1 INTO NEW.order_number
+  FROM public.orders
+  WHERE store_id = NEW.store_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+CREATE TRIGGER set_order_number
+  BEFORE INSERT ON orders
+  FOR EACH ROW EXECUTE FUNCTION public.set_order_number();
 
 -- Order Items
 CREATE TABLE order_items (
@@ -218,6 +233,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
+-- Atomic stock decrement (returns false if insufficient stock)
+CREATE OR REPLACE FUNCTION public.decrement_stock(
+  p_items JSONB -- array of { product_id, variant_id, quantity }
+) RETURNS BOOLEAN AS $$
+DECLARE
+  item RECORD;
+  current_stock INTEGER;
+BEGIN
+  FOR item IN SELECT * FROM jsonb_to_recordset(p_items) AS x(product_id UUID, variant_id UUID, quantity INTEGER)
+  LOOP
+    IF item.variant_id IS NOT NULL THEN
+      SELECT stock INTO current_stock FROM public.product_variants WHERE id = item.variant_id FOR UPDATE;
+      IF current_stock IS NOT NULL THEN
+        IF current_stock < item.quantity THEN RETURN FALSE; END IF;
+        UPDATE public.product_variants SET stock = stock - item.quantity WHERE id = item.variant_id;
+      END IF;
+    ELSE
+      SELECT stock INTO current_stock FROM public.products WHERE id = item.product_id FOR UPDATE;
+      IF current_stock IS NOT NULL THEN
+        IF current_stock < item.quantity THEN RETURN FALSE; END IF;
+        UPDATE public.products SET stock = stock - item.quantity WHERE id = item.product_id;
+      END IF;
+    END IF;
+  END LOOP;
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
 -- Increment store view (atomic upsert for hourly counter per market)
 CREATE OR REPLACE FUNCTION public.increment_store_view(p_store_id UUID, p_hour TIMESTAMPTZ, p_market_id UUID DEFAULT NULL)
 RETURNS VOID AS $$
@@ -228,6 +271,25 @@ BEGIN
   DO UPDATE SET view_count = store_views_hourly.view_count + 1;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+-- Auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = '';
+
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON stores FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON discounts FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON markets FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON shipping_zones FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON store_integrations FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON abandoned_checkouts FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Auto-create profile on signup trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -646,6 +708,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 ALTER TABLE integration_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Owners can view own events" ON integration_events FOR SELECT
   USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = integration_events.store_id AND stores.owner_id = (select auth.uid())));
+CREATE POLICY "Owners can delete own events" ON integration_events FOR DELETE
+  USING (EXISTS (SELECT 1 FROM stores WHERE stores.id = integration_events.store_id AND stores.owner_id = (select auth.uid())));
 
 -- Trigger: log event when order is created
 CREATE OR REPLACE FUNCTION public.handle_order_created()
@@ -913,20 +977,38 @@ CREATE POLICY "Public read access on product-images"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'product-images');
 
--- Authenticated users can upload to their store folder
+-- Authenticated users can upload to their own store folder
 CREATE POLICY "Authenticated upload to product-images"
   ON storage.objects FOR INSERT
   TO authenticated
-  WITH CHECK (bucket_id = 'product-images');
+  WITH CHECK (
+    bucket_id = 'product-images'
+    AND EXISTS (
+      SELECT 1 FROM stores WHERE stores.id::text = (storage.foldername(name))[1]
+      AND stores.owner_id = (select auth.uid())
+    )
+  );
 
--- Authenticated users can update their uploads
+-- Authenticated users can update files in their own store folder
 CREATE POLICY "Authenticated update on product-images"
   ON storage.objects FOR UPDATE
   TO authenticated
-  USING (bucket_id = 'product-images');
+  USING (
+    bucket_id = 'product-images'
+    AND EXISTS (
+      SELECT 1 FROM stores WHERE stores.id::text = (storage.foldername(name))[1]
+      AND stores.owner_id = (select auth.uid())
+    )
+  );
 
--- Authenticated users can delete their uploads
+-- Authenticated users can delete files in their own store folder
 CREATE POLICY "Authenticated delete from product-images"
   ON storage.objects FOR DELETE
   TO authenticated
-  USING (bucket_id = 'product-images');
+  USING (
+    bucket_id = 'product-images'
+    AND EXISTS (
+      SELECT 1 FROM stores WHERE stores.id::text = (storage.foldername(name))[1]
+      AND stores.owner_id = (select auth.uid())
+    )
+  );

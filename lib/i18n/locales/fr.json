@@ -553,6 +553,7 @@
     "slugMin": "Le slug doit contenir au moins 3 caractères",
     "slugMax": "Le slug ne doit pas dépasser 30 caractères",
     "slugFormat": "Uniquement des lettres minuscules, chiffres et tirets",
+    "slugReserved": "Ce slug est réservé et ne peut pas être utilisé",
     "currencyRequired": "La devise est requise",
     "optionNameRequired": "Le nom de l'option est requis",
     "atLeastOneValue": "Au moins une valeur requise",

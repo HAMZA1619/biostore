@@ -129,11 +129,14 @@ export async function handleMetaCAPI(
     body.test_event_code = config.test_event_code
   }
 
-  const url = urlJoin("https://graph.facebook.com", "v21.0", config.pixel_id, "events") + `?access_token=${config.access_token}`
+  const url = urlJoin("https://graph.facebook.com", "v21.0", config.pixel_id, "events")
 
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${config.access_token}`,
+    },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(15000),
   })

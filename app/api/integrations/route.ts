@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { revalidateTag } from "next/cache"
 import { NextResponse } from "next/server"
@@ -163,8 +164,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Delete associated events
-    await supabase
+    // Delete associated events (use admin client to bypass RLS — ownership already verified)
+    const admin = createAdminClient()
+    await admin
       .from("integration_events")
       .delete()
       .eq("store_id", integration.store_id)

@@ -169,7 +169,6 @@ export async function POST(request: Request) {
                   {
                     values: headers.map((h) => ({
                       userEnteredValue: { stringValue: h },
-                      userEnteredFormat: { textFormat: { bold: true } },
                     })),
                   },
                 ],

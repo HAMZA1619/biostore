@@ -131,8 +131,7 @@ async function classifyResponse(text: string): Promise<"confirm" | "cancel" | "u
 
 export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const secret = searchParams.get("secret")
+    const secret = request.headers.get("x-webhook-secret") || new URL(request.url).searchParams.get("secret")
     if (!secret || secret !== process.env.WHATSAPP_WEBHOOK_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

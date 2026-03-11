@@ -6,7 +6,8 @@ export const storeSchema = z.object({
     .string()
     .min(3, "validation.slugMin")
     .max(30, "validation.slugMax")
-    .regex(/^[a-z0-9-]+$/, "validation.slugFormat"),
+    .regex(/^[a-z0-9-]+$/, "validation.slugFormat")
+    .refine((s) => !["app", "api", "admin", "www"].includes(s), "validation.slugReserved"),
   description: z.string().max(500).optional(),
   language: z.string().min(2).max(5).default("en"),
   currency: z.string().min(1, "validation.currencyRequired"),

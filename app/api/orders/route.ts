@@ -64,6 +64,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    if (!Array.isArray(items) || items.length > 100 || !items.every((i: Record<string, unknown>) =>
+      typeof i.product_id === "string" && i.product_id.length > 0 &&
+      typeof i.quantity === "number" && Number.isInteger(i.quantity) && i.quantity > 0 && i.quantity <= 1000
+    )) {
+      return NextResponse.json({ error: "Invalid items" }, { status: 400 })
+    }
+
     const supabase = createStaticClient()
 
     const { createAdminClient } = await import("@/lib/supabase/admin")
@@ -142,15 +149,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Some products are unavailable" }, { status: 400 })
     }
 
-    // Verify product availability and stock for non-variant items
+    // Verify product availability for non-variant items
     for (const item of items) {
       if (!item.variant_id) {
         const product = products.find((p) => p.id === item.product_id)
         if (!product || !product.is_available || product.status !== "active") {
           return NextResponse.json({ error: "Some products are unavailable" }, { status: 400 })
-        }
-        if (product.stock !== null && product.stock < item.quantity) {
-          return NextResponse.json({ error: "Not enough stock for this product" }, { status: 400 })
         }
       }
     }
@@ -193,11 +197,6 @@ export async function POST(request: Request) {
           if (!variant || variant.product_id !== item.product_id || !variant.is_available) {
             return NextResponse.json({
               error: "Invalid or unavailable variant selection",
-            }, { status: 400 })
-          }
-          if (variant.stock !== null && variant.stock < item.quantity) {
-            return NextResponse.json({
-              error: "Not enough stock for this variant",
             }, { status: 400 })
           }
         }
@@ -418,6 +417,33 @@ export async function POST(request: Request) {
     if (itemsError) {
       console.error("[orders] Order items insert failed:", itemsError)
       return NextResponse.json({ error: "Order created but failed to add items" }, { status: 500 })
+    }
+
+    // Atomic stock decrement (SELECT FOR UPDATE prevents race conditions)
+    const stockItems = items
+      .filter((i: { product_id: string; variant_id?: string; quantity: number }) => {
+        if (i.variant_id) {
+          const v = variantsMap[i.variant_id]
+          return v && v.stock !== null
+        }
+        const p = products.find((p) => p.id === i.product_id)
+        return p && p.stock !== null
+      })
+      .map((i: { product_id: string; variant_id?: string; quantity: number }) => ({
+        product_id: i.product_id,
+        variant_id: i.variant_id || null,
+        quantity: i.quantity,
+      }))
+
+    if (stockItems.length > 0) {
+      const { data: stockOk } = await admin.rpc("decrement_stock", {
+        p_items: stockItems,
+      })
+      if (stockOk === false) {
+        // Rollback: delete the order (cascades to order_items)
+        await admin.from("orders").delete().eq("id", order.id)
+        return NextResponse.json({ error: "Not enough stock" }, { status: 400 })
+      }
     }
 
     // Increment discount usage
