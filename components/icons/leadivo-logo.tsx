@@ -1,12 +1,24 @@
-import { LeadivoIcon } from "@/components/icons/leadivo-icon"
+import Image from "next/image"
 
 export function LeadivoLogo({ className }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-1.5 ${className || ""}`}>
-      <LeadivoIcon className="size-[22px] shrink-0" />
-      <span className="whitespace-nowrap text-lg font-semibold leading-none tracking-tight">
-        Leadivo
-      </span>
+    <div className={className || ""}>
+      <Image
+        src="/logo-light.png"
+        alt="Leadivo"
+        width={938}
+        height={244}
+        className="h-full w-auto dark:hidden"
+        priority
+      />
+      <Image
+        src="/logo-dark.png"
+        alt="Leadivo"
+        width={938}
+        height={245}
+        className="hidden h-full w-auto dark:block"
+        priority
+      />
     </div>
   )
 }

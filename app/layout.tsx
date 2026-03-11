@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s | Leadivo",
   },
   description:
-    "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+    "Turn followers into customers. Create a beautiful storefront in seconds. Share one link in your bio — no coding needed.",
   keywords: [
     "Leadivo",
     "online store builder",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "Leadivo",
     title: "Leadivo — Turn Your Social Media Into a Store",
     description:
-      "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+      "Turn followers into customers. Create a beautiful storefront in seconds. Share one link in your bio — no coding needed.",
     locale: "en_US",
     images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Leadivo" }],
   },
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Leadivo — Turn Your Social Media Into a Store",
     description:
-      "Create a beautiful storefront in seconds. Share one link in your bio. Receive orders directly — no coding needed.",
+      "Turn followers into customers. Create a beautiful storefront in seconds. Share one link in your bio — no coding needed.",
     images: ["/og-image.png"],
   },
   icons: {

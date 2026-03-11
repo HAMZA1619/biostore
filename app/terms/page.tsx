@@ -74,7 +74,7 @@ function TermsContent() {
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:justify-between md:text-start">
             <div>
-              <LeadivoLogo className="mx-auto h-10 md:mx-0" />
+              <LeadivoLogo className="mx-auto h-8 md:mx-0" />
               <p className="mt-2 text-sm text-muted-foreground">{t("landing.footerTagline")}</p>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">

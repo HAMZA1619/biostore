@@ -17,13 +17,17 @@ import {
   Settings,
   Menu,
   ChevronDown,
+  Home,
+  CircleHelp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { LeadivoLogo } from "@/components/icons/leadivo-logo"
-import { useLanguageStore } from "@/lib/store/language-store"
+import { useLanguageStore, type Language } from "@/lib/store/language-store"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Languages, Check } from "lucide-react"
 import "@/lib/i18n"
 import type { LucideIcon } from "lucide-react"
 
@@ -77,6 +81,18 @@ function SidebarContent({ pathname, onNavigate }: {
   const ordersChildPaths = ["/dashboard/orders", "/dashboard/abandoned-checkouts"]
   const isOrdersActive = ordersChildPaths.some((p) => isActive(pathname, p))
   const [ordersOpen, setOrdersOpen] = useState(isOrdersActive)
+
+  const { language, setLanguage } = useLanguageStore()
+  const [langOpen, setLangOpen] = useState(false)
+
+  const LANGUAGE_CODES: Language[] = ["en", "fr", "ar"]
+
+  function handleLangChange(lang: Language) {
+    setLanguage(lang)
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"
+    document.documentElement.lang = lang
+    setLangOpen(false)
+  }
 
   return (
     <>
@@ -146,6 +162,49 @@ function SidebarContent({ pathname, onNavigate }: {
           )
         })}
       </nav>
+      <div className="flex items-center justify-between border-t px-4 py-3">
+        <Link
+          href="/?landing=true"
+          onClick={onNavigate}
+          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title={t("landing.home")}
+        >
+          <Home className="h-5 w-5" />
+        </Link>
+        <Popover open={langOpen} onOpenChange={setLangOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              title={t(`language.${language}`)}
+            >
+              <Languages className="h-5 w-5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="top" align="center" className="w-36 p-1">
+            {LANGUAGE_CODES.map((code) => (
+              <button
+                key={code}
+                onClick={() => handleLangChange(code)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-sm px-3 py-1.5 text-sm transition-colors hover:bg-muted",
+                  language === code && "font-medium"
+                )}
+              >
+                {t(`language.${code}`)}
+                {language === code && <Check className="h-3 w-3" />}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
+        <Link
+          href="/docs"
+          onClick={onNavigate}
+          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          title={t("docs.title")}
+        >
+          <CircleHelp className="h-5 w-5" />
+        </Link>
+      </div>
     </>
   )
 }
