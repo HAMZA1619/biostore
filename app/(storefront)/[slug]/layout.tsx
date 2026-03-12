@@ -10,7 +10,7 @@ import { DesktopPhoneFrame } from "@/components/store/desktop-phone-frame"
 import { CartRepricer } from "@/components/store/cart-repricer"
 import { AnnouncementCountdown } from "@/components/store/announcement-countdown"
 import { StoreConfigProvider } from "@/lib/store/store-config"
-import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl } from "@/lib/utils"
+import { cn, parseDesignSettings, getImageUrl, sanitizeCss, isValidHttpUrl, getStoreUrl } from "@/lib/utils"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { getStoreBySlug, getStoreIntegration, getStoreOwnerAccess, getStoreMarkets } from "@/lib/storefront/cache"
 import { detectMarketByCountry } from "@/lib/market/detect-market"
@@ -36,8 +36,7 @@ export async function generateMetadata({
   const iconUrl = seoImageUrl || logoUrl
   const ogImageUrl = seoImageUrl || logoUrl
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const canonical = `${appUrl}/${slug}`
+  const canonical = getStoreUrl(slug)
 
   return {
     title,

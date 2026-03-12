@@ -28,6 +28,7 @@ const ROOT_PATHS = new Set(["/", "/privacy", "/terms", "/docs", "/pricing"])
 function isRootPagePath(pathname: string): boolean {
   if (ROOT_PATHS.has(pathname)) return true
   if (pathname.startsWith("/dashboard")) return true
+  if (pathname.startsWith("/docs")) return true
   if (pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password")) return true
   if (pathname.startsWith("/auth/")) return true
   if (pathname.startsWith("/api/")) return true
@@ -51,6 +52,20 @@ async function resolveCustomDomain(
     .eq("is_published", true)
     .single()
   return data?.slug ?? null
+}
+
+async function resolveStoreBySlug(slug: string): Promise<boolean> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { data } = await supabase
+    .from("stores")
+    .select("slug")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .single()
+  return !!data
 }
 
 function createSubdomainRewrite(request: NextRequest, slug: string): NextResponse {
@@ -112,7 +127,15 @@ export async function updateSession(request: NextRequest) {
   if (!isLocalOrPreview) {
     const subdomain = getSubdomain(hostname)
 
-    if (subdomain && subdomain !== "www") {
+    // Redirect www → root domain (canonical is non-www)
+    if (subdomain === "www") {
+      const url = new URL(`https://${ROOT_DOMAIN}`)
+      url.pathname = pathname
+      url.search = request.nextUrl.search
+      return NextResponse.redirect(url, 301)
+    }
+
+    if (subdomain) {
       // --- Store subdomain (slug.domain.com) ---
       if (pathname.startsWith("/api/")) {
         return NextResponse.next()
@@ -129,19 +152,28 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
       }
 
+      // Validate subdomain is an actual published store
+      const storeExists = await resolveStoreBySlug(subdomain)
+      if (!storeExists) {
+        return new NextResponse("Store not found", { status: 404 })
+      }
+
       return createSubdomainRewrite(request, subdomain)
     }
 
     // --- Root domain / www (domain.com) ---
-    // Redirect unknown paths to subdomain (e.g. /mystore → mystore.domain.com)
+    // Redirect unknown paths to subdomain only if the slug is a real store
     if (!isRootPagePath(pathname)) {
       const possibleSlug = pathname.split("/")[1]
       if (possibleSlug) {
-        const rest = pathname.slice(`/${possibleSlug}`.length) || "/"
-        const url = new URL(`https://${possibleSlug}.${ROOT_DOMAIN}`)
-        url.pathname = rest
-        url.search = request.nextUrl.search
-        return NextResponse.redirect(url, 301)
+        const storeExists = await resolveStoreBySlug(possibleSlug)
+        if (storeExists) {
+          const rest = pathname.slice(`/${possibleSlug}`.length) || "/"
+          const url = new URL(`https://${possibleSlug}.${ROOT_DOMAIN}`)
+          url.pathname = rest
+          url.search = request.nextUrl.search
+          return NextResponse.redirect(url, 301)
+        }
       }
     }
   }

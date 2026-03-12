@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
-import { formatPriceSymbol, getImageUrl } from "@/lib/utils"
+import { formatPriceSymbol, getImageUrl, getStoreUrl } from "@/lib/utils"
 import { AddToCartButton } from "@/components/store/add-to-cart-button"
 import { ProductImageGallery } from "@/components/store/product-image-gallery"
 import { VariantSelector } from "@/components/store/variant-selector"
@@ -37,8 +37,7 @@ export async function generateMetadata({
     ? product.description.slice(0, 160)
     : `${product.name} — ${formatPriceSymbol(Number(product.price), store.currency)}`
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const canonical = `${appUrl}/${slug}/products/${productId}`
+  const canonical = `${getStoreUrl(slug)}/products/${productId}`
 
   return {
     title,
