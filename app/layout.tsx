@@ -26,6 +26,7 @@ export const viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
+  alternates: { canonical: "/" },
   title: {
     default: "Leadivo — Turn Your Social Media Into a Store",
     template: "%s | Leadivo",
