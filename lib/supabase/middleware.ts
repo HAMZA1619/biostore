@@ -127,15 +127,7 @@ export async function updateSession(request: NextRequest) {
   if (!isLocalOrPreview) {
     const subdomain = getSubdomain(hostname)
 
-    // Redirect www → root domain (canonical is non-www)
-    if (subdomain === "www") {
-      const url = new URL(`https://${ROOT_DOMAIN}`)
-      url.pathname = pathname
-      url.search = request.nextUrl.search
-      return NextResponse.redirect(url, 301)
-    }
-
-    if (subdomain) {
+    if (subdomain && subdomain !== "www") {
       // --- Store subdomain (slug.domain.com) ---
       if (pathname.startsWith("/api/")) {
         return NextResponse.next()

@@ -5,8 +5,8 @@ import { CATEGORIES, ARTICLES } from "@/lib/docs/content"
 export default function sitemap(): MetadataRoute.Sitemap {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
   const baseUrl = rootDomain
-    ? `https://${rootDomain}`
-    : process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
+    ? `https://www.${rootDomain}`
+    : process.env.NEXT_PUBLIC_APP_URL || "https://www.leadivo.app"
 
   const docCategoryPages: MetadataRoute.Sitemap = CATEGORIES.map((cat) => ({
     url: urlJoin(baseUrl, "docs", cat.slug),
