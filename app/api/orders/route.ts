@@ -91,7 +91,7 @@ export async function POST(request: Request) {
 
     // Verify hCaptcha if enabled
     const ds = (store.design_settings || {}) as Record<string, unknown>
-    const requireCaptcha = typeof ds.requireCaptcha === "boolean" ? ds.requireCaptcha : true
+    const requireCaptcha = typeof ds.requireCaptcha === "boolean" ? ds.requireCaptcha : false
     if (requireCaptcha && (!captcha_token || !(await verifyCaptcha(captcha_token)))) {
       return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 400 })
     }

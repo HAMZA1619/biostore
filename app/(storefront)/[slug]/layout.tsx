@@ -249,7 +249,7 @@ export default async function StoreLayout({
         showCity: ds.checkoutShowCity !== false,
         showNote: ds.checkoutShowNote !== false,
         thankYouMessage: ds.thankYouMessage || "",
-        requireCaptcha: ds.requireCaptcha !== false,
+        requireCaptcha: ds.requireCaptcha === true,
         checkoutFields: ds.checkoutFields || {},
       }}>
       <StorefrontI18nProvider lang={storeLang}>

@@ -205,7 +205,7 @@ export default function CartPage() {
   }, [slug, form, items, getTotal, getDiscountedTotal, market, appliedDiscount, deliveryFee])
 
   const storeConfig = useStoreConfig()
-  const requireCaptcha = storeConfig?.requireCaptcha ?? true
+  const requireCaptcha = storeConfig?.requireCaptcha ?? false
   const showFields = {
     email: storeConfig?.showEmail ?? true,
     country: storeConfig?.showCountry ?? true,

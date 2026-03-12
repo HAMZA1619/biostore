@@ -120,7 +120,7 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     socialWhatsapp: (raw.socialWhatsapp as string) || "",
     // Preferences
     showCardAddToCart: typeof raw.showCardAddToCart === "boolean" ? raw.showCardAddToCart : true,
-    requireCaptcha: typeof raw.requireCaptcha === "boolean" ? raw.requireCaptcha : true,
+    requireCaptcha: typeof raw.requireCaptcha === "boolean" ? raw.requireCaptcha : false,
     whatsappFloat: (raw.whatsappFloat as string) || "",
     mobileOnly: typeof raw.mobileOnly === "boolean" ? raw.mobileOnly : false,
     // Thank you page
