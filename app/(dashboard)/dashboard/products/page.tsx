@@ -6,6 +6,8 @@ import { Plus } from "lucide-react"
 import { ProductSearch } from "@/components/dashboard/product-search"
 import { ProductsTable } from "@/components/dashboard/products-table"
 import { T } from "@/components/dashboard/translated-text"
+import { checkResourceLimit } from "@/lib/check-limit"
+import { UpgradeBanner } from "@/components/dashboard/upgrade-banner"
 
 const PAGE_SIZE = 20
 
@@ -39,18 +41,31 @@ export default async function ProductsPage({
     query = query.ilike("name", `%${q.trim()}%`)
   }
 
-  const { data: products } = await query
+  const [{ data: products }, limit] = await Promise.all([
+    query,
+    checkResourceLimit(supabase, user.id, store.id, "products"),
+  ])
 
   return (
     <div className="space-y-4">
+      {limit.tier === "free" && (
+        <UpgradeBanner
+          resource="products"
+          current={limit.current}
+          limit={limit.limit}
+          variant={limit.allowed ? "warning" : "blocked"}
+        />
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold"><T k="products.title" /></h1>
-        <Button asChild>
-          <Link href="/dashboard/products/new">
-            <Plus className="me-2 h-4 w-4" />
-            <T k="products.addProduct" />
-          </Link>
-        </Button>
+        {limit.allowed && (
+          <Button asChild>
+            <Link href="/dashboard/products/new">
+              <Plus className="me-2 h-4 w-4" />
+              <T k="products.addProduct" />
+            </Link>
+          </Button>
+        )}
       </div>
 
       <ProductSearch />

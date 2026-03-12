@@ -29,9 +29,10 @@ interface Market {
 
 interface MarketsTableProps {
   initialMarkets: Market[]
+  limitReached?: boolean
 }
 
-export function MarketsTable({ initialMarkets }: MarketsTableProps) {
+export function MarketsTable({ initialMarkets, limitReached = false }: MarketsTableProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [markets, setMarkets] = useState(initialMarkets)
@@ -69,12 +70,14 @@ export function MarketsTable({ initialMarkets }: MarketsTableProps) {
           <h1 className="text-xl font-bold sm:text-2xl">{t("markets.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("markets.subtitle")}</p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/dashboard/markets/new">
-            <Plus className="me-2 h-4 w-4" />
-            {t("markets.create")}
-          </Link>
-        </Button>
+        {!limitReached && (
+          <Button asChild size="sm">
+            <Link href="/dashboard/markets/new">
+              <Plus className="me-2 h-4 w-4" />
+              {t("markets.create")}
+            </Link>
+          </Button>
+        )}
       </div>
 
       {markets.length === 0 ? (
@@ -82,12 +85,14 @@ export function MarketsTable({ initialMarkets }: MarketsTableProps) {
           <MapPin className="mx-auto mb-4 h-10 w-10 text-muted-foreground/50" />
           <h3 className="text-base font-medium">{t("markets.emptyTitle")}</h3>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{t("markets.emptyDescription")}</p>
-          <Button asChild size="sm" className="mt-4">
-            <Link href="/dashboard/markets/new">
-              <Plus className="me-2 h-4 w-4" />
-              {t("markets.createFirst")}
-            </Link>
-          </Button>
+          {!limitReached && (
+            <Button asChild size="sm" className="mt-4">
+              <Link href="/dashboard/markets/new">
+                <Plus className="me-2 h-4 w-4" />
+                {t("markets.createFirst")}
+              </Link>
+            </Button>
+          )}
         </div>
       ) : (
         <div className="rounded-md border">

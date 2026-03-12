@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { shippingZoneSchema } from "@/lib/validations/shipping"
+import { checkResourceLimit, limitErrorMessage } from "@/lib/check-limit"
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,6 +58,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
+
+    const limit = await checkResourceLimit(supabase, user.id, store.id, "shipping_zones")
+    if (!limit.allowed) {
+      return NextResponse.json({ error: limitErrorMessage("shipping zones", limit.limit) }, { status: 403 })
+    }
 
     const { country_code, country_name, default_rate, free_shipping_threshold, is_active } = parsed.data
     const market_id = body.market_id || null

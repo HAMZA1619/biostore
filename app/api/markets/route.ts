@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { marketSchema } from "@/lib/validations/market"
+import { checkResourceLimit, limitErrorMessage } from "@/lib/check-limit"
 
 export async function GET() {
   try {
@@ -58,6 +59,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
+
+    const limit = await checkResourceLimit(supabase, user.id, store_id, "markets")
+    if (!limit.allowed) {
+      return NextResponse.json({ error: limitErrorMessage("markets", limit.limit) }, { status: 403 })
+    }
 
     // Check country overlap with existing markets
     const { data: existing } = await supabase

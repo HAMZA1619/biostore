@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 import sharp from "sharp"
 import { isSafeExternalUrl } from "@/lib/utils"
+import { checkResourceLimit, limitErrorMessage } from "@/lib/check-limit"
 
 export const maxDuration = 120
 
@@ -27,6 +28,11 @@ export async function POST(request: Request) {
       .single()
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 403 })
+
+    const limit = await checkResourceLimit(supabase, user.id, storeId, "store_images")
+    if (!limit.allowed) {
+      return NextResponse.json({ error: limitErrorMessage("images", limit.limit) }, { status: 403 })
+    }
 
     const results = await Promise.all(
       urls.map(async (imgUrl: string) => {

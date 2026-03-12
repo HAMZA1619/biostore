@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { checkResourceLimit, limitErrorMessage } from "@/lib/check-limit"
 
 export async function GET() {
   try {
@@ -50,6 +51,11 @@ export async function POST(request: Request) {
       .single()
 
     if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 })
+
+    const limit = await checkResourceLimit(supabase, user.id, store_id, "discounts")
+    if (!limit.allowed) {
+      return NextResponse.json({ error: limitErrorMessage("discounts", limit.limit) }, { status: 403 })
+    }
 
     const { data, error } = await supabase
       .from("discounts")

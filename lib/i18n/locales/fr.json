@@ -1249,6 +1249,13 @@
     "invoices": "Factures",
     "noInvoices": "Aucune facture pour le moment"
   },
+  "limits": {
+    "blockedTitle": "Limite du forfait gratuit atteinte",
+    "blockedDescription": "Vous avez utilisé la totalité des {{limit}} {{resource}} inclus dans le forfait gratuit. Passez à Pro pour créer des {{resource}} illimités et débloquer toutes les fonctionnalités.",
+    "warningMessage": "Il vous reste {{remaining}} {{resource}} sur le forfait gratuit ({{current}}/{{limit}}).",
+    "upgradeToPro": "Passer à Pro",
+    "upgradeLink": "Passer à Pro"
+  },
   "shipping": {
     "title": "Livraison",
     "description": "Configurez les frais de livraison par pays et par ville.",

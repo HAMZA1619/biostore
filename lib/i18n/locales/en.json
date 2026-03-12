@@ -1249,6 +1249,13 @@
     "invoices": "Invoices",
     "noInvoices": "No invoices yet"
   },
+  "limits": {
+    "blockedTitle": "Free tier limit reached",
+    "blockedDescription": "You've used all {{limit}} {{resource}} included in the free tier. Upgrade to Pro to create unlimited {{resource}} and unlock all features.",
+    "warningMessage": "You have {{remaining}} {{resource}} remaining on the free tier ({{current}}/{{limit}}).",
+    "upgradeToPro": "Upgrade to Pro",
+    "upgradeLink": "Upgrade to Pro"
+  },
   "shipping": {
     "title": "Shipping",
     "description": "Configure delivery fees by country and city.",

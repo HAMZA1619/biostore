@@ -177,7 +177,7 @@ CREATE UNIQUE INDEX idx_orders_store_number ON orders(store_id, order_number);
 CREATE OR REPLACE FUNCTION public.set_order_number()
 RETURNS TRIGGER AS $$
 BEGIN
-  SELECT COALESCE(MAX(order_number), 0) + 1 INTO NEW.order_number
+  SELECT COALESCE(MAX(order_number), 14) + 1 INTO NEW.order_number
   FROM public.orders
   WHERE store_id = NEW.store_id;
   RETURN NEW;

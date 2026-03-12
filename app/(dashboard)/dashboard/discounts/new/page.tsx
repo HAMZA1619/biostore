@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { DiscountForm } from "@/components/forms/discount-form"
+import { checkResourceLimit } from "@/lib/check-limit"
+import { UpgradeBanner } from "@/components/dashboard/upgrade-banner"
 
 export default async function NewDiscountPage() {
   const supabase = await createClient()
@@ -15,14 +17,37 @@ export default async function NewDiscountPage() {
 
   if (!store) redirect("/dashboard/store")
 
-  const { data: markets } = await supabase
-    .from("markets")
-    .select("id, name")
-    .eq("store_id", store.id)
-    .eq("is_active", true)
-    .order("name")
+  const [{ data: markets }, limit] = await Promise.all([
+    supabase
+      .from("markets")
+      .select("id, name")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+      .order("name"),
+    checkResourceLimit(supabase, user.id, store.id, "discounts"),
+  ])
+
+  if (!limit.allowed) {
+    return (
+      <UpgradeBanner
+        resource="discounts"
+        current={limit.current}
+        limit={limit.limit}
+      />
+    )
+  }
 
   return (
-    <DiscountForm storeId={store.id} currency={store.currency} markets={markets || []} />
+    <>
+      {limit.tier === "free" && (
+        <UpgradeBanner
+          resource="discounts"
+          current={limit.current}
+          limit={limit.limit}
+          variant="warning"
+        />
+      )}
+      <DiscountForm storeId={store.id} currency={store.currency} markets={markets || []} />
+    </>
   )
 }

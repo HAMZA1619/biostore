@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { Check, ChevronDown, ChevronsUpDown, Gift, Loader2, Plus, Trash2, X } from "lucide-react"
+import { Check, ChevronDown, ChevronsUpDown, Gift, Loader2, Plus, Trash2, Truck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,9 +41,10 @@ interface ShippingManagerProps {
   initialZones: ShippingZone[]
   currency: string
   markets: Array<{ id: string; name: string }>
+  limitReached?: boolean
 }
 
-export function ShippingManager({ initialZones, currency, markets }: ShippingManagerProps) {
+export function ShippingManager({ initialZones, currency, markets, limitReached = false }: ShippingManagerProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [zones, setZones] = useState(initialZones)
@@ -306,7 +307,7 @@ export function ShippingManager({ initialZones, currency, markets }: ShippingMan
               ))}
             </select>
           )}
-          <Button size="sm" onClick={() => setShowAddZone(true)}>
+          <Button size="sm" onClick={() => setShowAddZone(true)} disabled={limitReached}>
             <Plus className="me-2 h-4 w-4" />
             {t("shipping.addZone")}
           </Button>
@@ -318,7 +319,7 @@ export function ShippingManager({ initialZones, currency, markets }: ShippingMan
           <Truck className="mb-3 h-10 w-10 text-muted-foreground/40" />
           <p className="font-medium">{t("shipping.noZones")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{t("shipping.noZonesDesc")}</p>
-          <Button size="sm" className="mt-4" onClick={() => setShowAddZone(true)}>
+          <Button size="sm" className="mt-4" onClick={() => setShowAddZone(true)} disabled={limitReached}>
             <Plus className="me-2 h-4 w-4" />
             {t("shipping.addZone")}
           </Button>

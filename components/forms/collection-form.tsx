@@ -46,9 +46,11 @@ interface Collection {
 export function CollectionsManager({
   storeId,
   initialCollections,
+  limitReached = false,
 }: {
   storeId: string
   initialCollections: Collection[]
+  limitReached?: boolean
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null)
@@ -273,7 +275,7 @@ export function CollectionsManager({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t("collections.title")}</h1>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} disabled={limitReached}>
           <Plus className="me-2 h-4 w-4" />
           {t("collections.createCollection")}
         </Button>

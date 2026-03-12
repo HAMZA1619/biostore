@@ -172,6 +172,12 @@ In short: any new order field must flow end-to-end — schema → trigger payloa
 - Fixed/sticky floating elements (buttons, toasts) must not overlap each other — offset them vertically.
 - Test storefront components at 320px (mobile preview) since that's the primary target.
 
+## Internationalization (i18n)
+
+- **Dashboard translations** (keys like `"limits"`, `"dashboard"`, etc.) are only added to the three main locale files: `en.json`, `ar.json`, and `fr.json`.
+- **Storefront translations** (keys like `"storefront"`, `"search"`, `"language"`) are translated in **all** locale files.
+- In short: `en`, `ar`, `fr` get both dashboard + storefront keys. All other locales (`es`, `pt`, `de`, `it`, `nl`, `tr`, `ru`, `zh`, `ja`, `ko`, `hi`, `id`, `ms`, `pl`, `sv`, `th`, `vi`) get storefront keys only.
+
 ## Don'ts
 
 - Don't create new migration files — modify the single `001_initial_schema.sql`.
@@ -179,3 +185,4 @@ In short: any new order field must flow end-to-end — schema → trigger payloa
 - Don't install new dependencies without asking first.
 - Don't add comments, docstrings, or type annotations to code you didn't change.
 - Don't over-engineer — keep changes minimal and focused on what was asked.
+- Don't add dashboard translation keys to storefront-only locale files (see Internationalization section).

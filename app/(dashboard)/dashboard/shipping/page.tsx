@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { ShippingManager } from "@/components/dashboard/shipping-manager"
+import { checkResourceLimit } from "@/lib/check-limit"
+import { UpgradeBanner } from "@/components/dashboard/upgrade-banner"
 
 export default async function ShippingPage() {
   const supabase = await createClient()
@@ -15,7 +17,7 @@ export default async function ShippingPage() {
 
   if (!store) redirect("/dashboard/store")
 
-  const [{ data: zones }, { data: markets }] = await Promise.all([
+  const [{ data: zones }, { data: markets }, limit] = await Promise.all([
     supabase
       .from("shipping_zones")
       .select("*, shipping_city_rates(*)")
@@ -28,7 +30,20 @@ export default async function ShippingPage() {
       .eq("store_id", store.id)
       .eq("is_active", true)
       .order("is_default", { ascending: false }),
+    checkResourceLimit(supabase, user.id, store.id, "shipping_zones"),
   ])
 
-  return <ShippingManager initialZones={zones || []} currency={store.currency} markets={markets || []} />
+  return (
+    <div className="space-y-4">
+      {limit.tier === "free" && (
+        <UpgradeBanner
+          resource="shipping zones"
+          current={limit.current}
+          limit={limit.limit}
+          variant={limit.allowed ? "warning" : "blocked"}
+        />
+      )}
+      <ShippingManager initialZones={zones || []} currency={store.currency} markets={markets || []} limitReached={!limit.allowed} />
+    </div>
+  )
 }

@@ -1249,6 +1249,13 @@
     "invoices": "الفواتير",
     "noInvoices": "لا توجد فواتير بعد"
   },
+  "limits": {
+    "blockedTitle": "تم الوصول إلى حد الباقة المجانية",
+    "blockedDescription": "لقد استخدمت جميع {{limit}} {{resource}} المتاحة في الباقة المجانية. قم بالترقية إلى Pro لإنشاء {{resource}} غير محدودة وفتح جميع الميزات.",
+    "warningMessage": "لديك {{remaining}} {{resource}} متبقية في الباقة المجانية ({{current}}/{{limit}}).",
+    "upgradeToPro": "الترقية إلى Pro",
+    "upgradeLink": "الترقية إلى Pro"
+  },
   "shipping": {
     "title": "الشحن",
     "description": "إعداد رسوم التوصيل حسب الدولة والمدينة.",
