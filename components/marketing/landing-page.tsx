@@ -261,13 +261,13 @@ function LandingContent() {
                       { label: "Revenue", value: "$4,230", icon: Coins },
                     ].map((stat) => (
                       <div key={stat.label} className="rounded-lg border p-2.5 sm:p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground sm:text-xs">{stat.label}</span>
-                          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 sm:h-7 sm:w-7">
+                        <div className="flex items-start justify-between">
+                          <span className="text-[10px] font-medium text-muted-foreground sm:text-xs">{stat.label}</span>
+                          <div className="rounded-lg bg-primary/10 p-1.5 sm:p-2">
                             <stat.icon className="h-3 w-3 text-primary sm:h-3.5 sm:w-3.5" />
                           </div>
                         </div>
-                        <p className="mt-1 text-base font-bold sm:text-xl">{stat.value}</p>
+                        <p className="mt-1.5 text-base font-bold sm:text-xl">{stat.value}</p>
                       </div>
                     ))}
                   </div>
@@ -280,19 +280,23 @@ function LandingContent() {
                       { label: "Sales", value: "$4,230", change: "+23%", bars: [55, 40, 75, 60, 85, 50, 70, 95, 65, 80, 45, 90, 75, 60, 85] },
                     ].map((metric) => (
                       <div key={metric.label} className="rounded-lg border p-2.5 sm:p-3">
-                        <p className="text-[10px] text-muted-foreground sm:text-xs">{metric.label}</p>
-                        <p className="mt-0.5 text-sm font-bold sm:text-base">{metric.value}</p>
+                        <p className="text-[10px] font-medium text-muted-foreground sm:text-xs">{metric.label}</p>
+                        <p className="mt-0.5 truncate text-sm font-bold sm:text-base">{metric.value}</p>
                         <div className="mt-0.5 flex items-center gap-0.5">
                           <TrendingUp className="h-2.5 w-2.5 text-emerald-500" />
                           <span className="text-[9px] text-emerald-500 sm:text-[10px]">{metric.change}</span>
+                          <span className="text-[8px] text-muted-foreground sm:text-[9px]">vs prev</span>
                         </div>
                         {/* Mini bar chart */}
                         <div className="mt-2 flex items-end gap-[2px]" style={{ height: 36 }}>
                           {metric.bars.map((h, i) => (
                             <div
                               key={i}
-                              className="flex-1 min-w-[2px] rounded-t bg-primary/50"
-                              style={{ height: `${h}%` }}
+                              className="flex-1 min-w-[2px] rounded-t"
+                              style={{
+                                height: `${h}%`,
+                                background: "linear-gradient(to bottom, rgba(16,185,129,0.4), rgba(16,185,129,0.2))",
+                              }}
                             />
                           ))}
                         </div>
