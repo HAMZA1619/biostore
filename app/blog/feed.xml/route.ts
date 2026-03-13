@@ -39,6 +39,7 @@ export function GET() {
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${APP_URL}/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://pubsubhubbub.appspot.com" rel="hub" />
     <image>
       <url>${APP_URL}/logo.png</url>
       <title>Leadivo Blog</title>
