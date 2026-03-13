@@ -25,7 +25,7 @@ export function GET() {
       <description>${escapeXml(post.description)}</description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <category>${escapeXml(post.category.replace("-", " "))}</category>
-      <author>${escapeXml(post.author)}</author>${post.image ? `\n      <enclosure url="${APP_URL}${post.image}" type="image/webp" />` : ""}
+      <author>${escapeXml(post.author)}</author>${post.image ? `\n      <enclosure url="${APP_URL}${post.image}" type="image/webp" length="0" />` : ""}
     </item>`
     )
     .join("\n")
