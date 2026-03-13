@@ -1,6 +1,7 @@
 import urlJoin from "url-join"
 import type { MetadataRoute } from "next"
 import { CATEGORIES, ARTICLES } from "@/lib/docs/content"
+import { getAllPosts } from "@/lib/blog/content"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN
@@ -25,11 +26,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   })
 
+  const blogPosts: MetadataRoute.Sitemap = getAllPosts().map((post) => ({
+    url: urlJoin(baseUrl, "blog", post.slug),
+    lastModified: new Date(post.updated || post.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }))
+
   return [
-    { url: baseUrl, lastModified: new Date("2026-03-12"), changeFrequency: "daily" as const, priority: 1.0 },
+    { url: baseUrl, lastModified: new Date("2026-03-13"), changeFrequency: "daily" as const, priority: 1.0 },
+    { url: urlJoin(baseUrl, "fr"), lastModified: new Date("2026-03-13"), changeFrequency: "weekly" as const, priority: 0.9 },
+    { url: urlJoin(baseUrl, "ar"), lastModified: new Date("2026-03-13"), changeFrequency: "weekly" as const, priority: 0.9 },
+    { url: urlJoin(baseUrl, "dz"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: urlJoin(baseUrl, "ma"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: urlJoin(baseUrl, "tn"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: urlJoin(baseUrl, "sa"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: urlJoin(baseUrl, "eg"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: urlJoin(baseUrl, "ae"), lastModified: new Date("2026-03-13"), changeFrequency: "monthly" as const, priority: 0.8 },
     { url: urlJoin(baseUrl, "docs"), lastModified: new Date("2026-03-01"), changeFrequency: "weekly" as const, priority: 0.8 },
     ...docCategoryPages,
     ...docArticlePages,
+    { url: urlJoin(baseUrl, "blog"), lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 },
+    ...blogPosts,
     { url: urlJoin(baseUrl, "privacy"), lastModified: new Date("2026-01-01"), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: urlJoin(baseUrl, "terms"), lastModified: new Date("2026-01-01"), changeFrequency: "yearly" as const, priority: 0.3 },
   ]

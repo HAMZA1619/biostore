@@ -159,15 +159,18 @@ export default async function ProductPage({
   const productInStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
   const t = getT(store.language || "en")
 
+  const productUrl = `${getStoreUrl(slug)}/products/${product.id}`
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
+    url: productUrl,
     ...(product.description ? { description: product.description } : {}),
     ...(resolvedImageUrls.length > 0 ? { image: resolvedImageUrls } : {}),
     ...(product.sku && !hasOptions ? { sku: product.sku } : {}),
     offers: {
       "@type": "Offer",
+      url: productUrl,
       price: resolvedProduct.price,
       priceCurrency: displayCurrency,
       availability: productInStock

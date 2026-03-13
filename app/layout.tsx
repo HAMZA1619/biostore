@@ -22,11 +22,29 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   interactiveWidget: "resizes-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 }
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  alternates: { canonical: "/" },
+  manifest: "/manifest.json",
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/",
+      fr: "/fr",
+      ar: "/ar",
+      "fr-DZ": "/dz",
+      "fr-MA": "/ma",
+      "fr-TN": "/tn",
+      "ar-SA": "/sa",
+      "ar-EG": "/eg",
+      "ar-AE": "/ae",
+    },
+  },
   title: {
     default: "Leadivo — Turn Your Social Media Into a Store",
     template: "%s | Leadivo",

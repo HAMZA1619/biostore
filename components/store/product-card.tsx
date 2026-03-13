@@ -11,6 +11,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
+import { useBaseHref } from "@/lib/hooks/use-base-href"
 import "@/lib/i18n"
 
 interface ProductCardProps {
@@ -35,6 +36,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
   const market = useMarket()
   const buttonStyle = useButtonStyle()
   const buttonSize = useButtonSize()
+  const baseHref = useBaseHref()
   const hasVariants = product.options && product.options.length > 0
   const inStock = product.is_available && (product.stock === null || product.stock === undefined || product.stock > 0)
 
@@ -75,7 +77,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
 
   return (
     <div className={cn("store-card group overflow-hidden")} style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
-      <Link href={`/${storeSlug}/products/${product.id}`}>
+      <Link href={`${baseHref}/products/${product.id}`}>
         <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
           {product.image_urls[0] ? (
             <Image
@@ -93,7 +95,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
         </div>
       </Link>
       <div className={cn(isCentered && "text-center")} style={{ padding: "var(--store-card-padding)" }}>
-        <Link href={`/${storeSlug}/products/${product.id}`}>
+        <Link href={`${baseHref}/products/${product.id}`}>
           <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight" style={{ fontFamily: "var(--store-heading-font)" }}>{product.name}</h3>
         </Link>
         <div className={cn("mt-1 flex items-center gap-2", isCentered && "justify-center")}>
@@ -116,7 +118,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
                 className="mt-2 w-full text-xs"
                 style={getButtonStyleProps(buttonStyle)}
               >
-                <Link href={`/${storeSlug}/products/${product.id}`}>
+                <Link href={`${baseHref}/products/${product.id}`}>
                   {t("storefront.chooseOptions")}
                 </Link>
               </Button>

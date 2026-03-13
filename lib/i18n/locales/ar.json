@@ -826,6 +826,11 @@
     "ctaTitle": "مستعد للبدء بالبيع؟",
     "ctaDescription": "انضم لمئات البائعين الذين يستخدمون Leadivo. جهّز متجرك في أقل من دقيقتين.",
     "ctaCta": "أنشئ متجرك — مجاناً",
+    "heroTitleCountry": "ابدأ البيع أونلاين في",
+    "heroHighlightCountry": "{{country}}",
+    "heroDescriptionCountry": "أنشئ متجرك الإلكتروني في {{country}} في دقيقتين. الدفع عند الاستلام، تحليلات COD، إشعارات واتساب وأسعار بالعملة المحلية — بدون أي خبرة تقنية.",
+    "ctaTitleCountry": "أطلق متجرك في {{country}}",
+    "ctaDescriptionCountry": "مئات البائعين في {{country}} يستخدمون Leadivo. أنشئ متجرك مجاناً في أقل من دقيقتين.",
     "footerTagline": "حوّل المتابعين إلى عملاء.",
     "footerCopyright": "\u00a9 2026 Leadivo. جميع الحقوق محفوظة.",
     "footer": "Leadivo — حوّل المتابعين إلى عملاء.",
@@ -1306,6 +1311,22 @@
     "days": "منذ {{count}} يوم",
     "months": "منذ {{count}} ش",
     "years": "منذ {{count}} سنة"
+  },
+  "blog": {
+    "title": "المدونة",
+    "subtitle": "أدلة واستراتيجيات لتنمية تجارتك الإلكترونية.",
+    "searchPlaceholder": "ابحث في المقالات...",
+    "all": "الكل",
+    "featured": "مميز",
+    "updated": "محدّث",
+    "noArticles": "لم يتم العثور على مقالات.",
+    "relatedArticles": "مقالات ذات صلة",
+    "categories": {
+      "getting-started": "البدء",
+      "growth": "النمو",
+      "social-commerce": "التجارة الاجتماعية",
+      "country-guides": "أدلة الدول"
+    }
   },
   "language": {
     "en": "English",

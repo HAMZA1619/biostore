@@ -23,19 +23,6 @@ function getSubdomain(hostname: string): string | null {
   return sub || null
 }
 
-const ROOT_PATHS = new Set(["/", "/privacy", "/terms", "/docs", "/pricing"])
-
-function isRootPagePath(pathname: string): boolean {
-  if (ROOT_PATHS.has(pathname)) return true
-  if (pathname.startsWith("/dashboard")) return true
-  if (pathname.startsWith("/docs")) return true
-  if (pathname.startsWith("/login") || pathname.startsWith("/signup") || pathname.startsWith("/forgot-password") || pathname.startsWith("/reset-password")) return true
-  if (pathname.startsWith("/auth/")) return true
-  if (pathname.startsWith("/api/")) return true
-  if (pathname.startsWith("/_next/")) return true
-  if (/\.\w+$/.test(pathname)) return true // static files
-  return false
-}
 
 async function resolveCustomDomain(
   hostname: string
@@ -154,20 +141,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // --- Root domain / www (domain.com) ---
-    // Redirect unknown paths to subdomain only if the slug is a real store
-    if (!isRootPagePath(pathname)) {
-      const possibleSlug = pathname.split("/")[1]
-      if (possibleSlug) {
-        const storeExists = await resolveStoreBySlug(possibleSlug)
-        if (storeExists) {
-          const rest = pathname.slice(`/${possibleSlug}`.length) || "/"
-          const url = new URL(`https://${possibleSlug}.${ROOT_DOMAIN}`)
-          url.pathname = rest
-          url.search = request.nextUrl.search
-          return NextResponse.redirect(url, 301)
-        }
-      }
-    }
+    // Stores are only accessible via subdomains or custom domains.
+    // All root domain paths are website pages — no slug redirect needed.
   }
 
   // --- 3. Normal app domain handling (auth middleware) ---

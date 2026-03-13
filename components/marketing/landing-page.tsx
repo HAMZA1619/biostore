@@ -115,17 +115,18 @@ const faqItems = [
   { qKey: "landing.faq9Question", aKey: "landing.faq9Answer" },
 ]
 
-export function LandingPage() {
+export function LandingPage({ lang, countryName }: { lang?: string; countryName?: string } = {}) {
   return (
-    <I18nProvider>
-      <LandingContent />
-      <LanguageSwitcher />
+    <I18nProvider overrideLang={lang}>
+      <LandingContent countryName={countryName} />
+      {!lang && <LanguageSwitcher />}
     </I18nProvider>
   )
 }
 
-function LandingContent() {
+function LandingContent({ countryName }: { countryName?: string }) {
   const { t } = useTranslation()
+  const countryInterp = countryName ? { country: countryName } : undefined
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -163,13 +164,13 @@ function LandingContent() {
         <div className="relative mx-auto max-w-3xl text-center">
           <FadeIn>
             <h1 className="text-4xl font-semibold leading-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
-              {t("landing.heroTitle")}{" "}
-              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">{t("landing.heroHighlight")}</span>
+              {t(countryName ? "landing.heroTitleCountry" : "landing.heroTitle")}{" "}
+              <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">{t(countryName ? "landing.heroHighlightCountry" : "landing.heroHighlight", countryInterp)}</span>
             </h1>
           </FadeIn>
           <FadeIn delay={100}>
             <p className="mx-auto mt-6 max-w-xl text-lg font-medium text-muted-foreground text-balance md:text-xl">
-              {t("landing.heroDescription")}
+              {t(countryName ? "landing.heroDescriptionCountry" : "landing.heroDescription", countryInterp)}
             </p>
           </FadeIn>
           <FadeIn delay={180}>
@@ -383,7 +384,7 @@ function LandingContent() {
                       ].map((product) => (
                         <div key={product.name} className="overflow-hidden rounded-lg border">
                           <div className="aspect-square overflow-hidden bg-muted">
-                            <img src={product.img} alt="" className="h-full w-full object-cover" />
+                            <img src={product.img} alt={product.name} className="h-full w-full object-cover" />
                           </div>
                           <div className="p-1.5">
                             <p className="text-[10px] font-medium leading-tight">{product.name}</p>
@@ -534,9 +535,9 @@ function LandingContent() {
         </div>
         <FadeIn>
           <div className="relative mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold text-balance sm:text-4xl">{t("landing.ctaTitle")}</h2>
+            <h2 className="text-3xl font-semibold text-balance sm:text-4xl">{t(countryName ? "landing.ctaTitleCountry" : "landing.ctaTitle", countryInterp)}</h2>
             <p className="mx-auto mt-4 max-w-lg text-lg opacity-90">
-              {t("landing.ctaDescription")}
+              {t(countryName ? "landing.ctaDescriptionCountry" : "landing.ctaDescription", countryInterp)}
             </p>
             <Button asChild size="lg" variant="secondary" className="mt-8 shadow-lg">
               <Link href="/signup">{t("landing.ctaCta")}</Link>

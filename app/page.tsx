@@ -3,7 +3,9 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { LandingPage } from "@/components/marketing/landing-page"
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://leadivo.app"
+const APP_URL = process.env.NEXT_PUBLIC_ROOT_DOMAIN
+  ? `https://www.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`
+  : process.env.NEXT_PUBLIC_APP_URL || "https://www.leadivo.app"
 
 export const metadata: Metadata = {
   title: "Leadivo — Turn Your Social Media Into a Store",

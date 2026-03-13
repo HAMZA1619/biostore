@@ -899,7 +899,7 @@ function MetricCard({
           </span>
           <span className="text-muted-foreground">{t("analytics.vsPrevPeriod")}</span>
         </div>
-        <div className="mt-3" style={{ height: 150 }}>
+        <div className="mt-3" dir="ltr" style={{ height: 150 }}>
           <ResponsiveContainer width="100%" height="100%">
             {chartType === "area" ? (
               <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>

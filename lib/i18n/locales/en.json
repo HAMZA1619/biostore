@@ -826,6 +826,11 @@
     "ctaTitle": "Ready to start selling?",
     "ctaDescription": "Join hundreds of sellers already using Leadivo. Set up your store in under 2 minutes.",
     "ctaCta": "Create your store — free",
+    "heroTitleCountry": "Start selling online in",
+    "heroHighlightCountry": "{{country}}",
+    "heroDescriptionCountry": "Create your ecommerce store in {{country}} in 2 minutes. Cash on delivery, COD analytics, WhatsApp notifications, and local currency pricing — no coding needed.",
+    "ctaTitleCountry": "Launch your store in {{country}}",
+    "ctaDescriptionCountry": "Hundreds of sellers in {{country}} already use Leadivo. Create your store for free in under 2 minutes.",
     "footerTagline": "Turn followers into customers.",
     "footerCopyright": "\u00a9 2026 Leadivo. All rights reserved.",
     "footer": "Leadivo — Turn followers into customers.",
@@ -1306,6 +1311,22 @@
     "days": "{{count}} day ago",
     "months": "{{count}}mo ago",
     "years": "{{count}}y ago"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Guides and strategies to grow your ecommerce business.",
+    "searchPlaceholder": "Search articles...",
+    "all": "All",
+    "featured": "Featured",
+    "updated": "Updated",
+    "noArticles": "No articles found.",
+    "relatedArticles": "Related Articles",
+    "categories": {
+      "getting-started": "Getting Started",
+      "growth": "Growth",
+      "social-commerce": "Social Commerce",
+      "country-guides": "Country Guides"
+    }
   },
   "language": {
     "en": "English",

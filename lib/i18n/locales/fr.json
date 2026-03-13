@@ -826,6 +826,11 @@
     "ctaTitle": "Prêt à commencer à vendre ?",
     "ctaDescription": "Rejoignez des centaines de vendeurs utilisant Leadivo. Configurez votre boutique en moins de 2 minutes.",
     "ctaCta": "Créez votre boutique — gratuit",
+    "heroTitleCountry": "Vendez en ligne en",
+    "heroHighlightCountry": "{{country}}",
+    "heroDescriptionCountry": "Créez votre boutique e-commerce en {{country}} en 2 minutes. Paiement à la livraison, analytics COD, notifications WhatsApp et prix en devise locale — sans aucune compétence technique.",
+    "ctaTitleCountry": "Lancez votre boutique en {{country}}",
+    "ctaDescriptionCountry": "Des centaines de vendeurs en {{country}} utilisent déjà Leadivo. Créez votre boutique gratuitement en moins de 2 minutes.",
     "footerTagline": "Transformez vos abonnés en clients.",
     "footerCopyright": "\u00a9 2026 Leadivo. Tous droits réservés.",
     "footer": "Leadivo — Transformez vos abonnés en clients.",
@@ -1306,6 +1311,22 @@
     "days": "il y a {{count}} jour",
     "months": "il y a {{count}} mois",
     "years": "il y a {{count}}a"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Guides et stratégies pour développer votre commerce en ligne.",
+    "searchPlaceholder": "Rechercher des articles...",
+    "all": "Tous",
+    "featured": "À la une",
+    "updated": "Mis à jour",
+    "noArticles": "Aucun article trouvé.",
+    "relatedArticles": "Articles similaires",
+    "categories": {
+      "getting-started": "Premiers pas",
+      "growth": "Croissance",
+      "social-commerce": "Commerce social",
+      "country-guides": "Guides par pays"
+    }
   },
   "language": {
     "en": "English",

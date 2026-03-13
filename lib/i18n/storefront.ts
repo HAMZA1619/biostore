@@ -26,7 +26,9 @@ const translations: Record<string, Record<string, unknown>> = {
 export function getT(lang: string) {
   const dict = translations[lang] || translations.en
   const fallback = translations.en
-  return (key: string, values?: Record<string, string>) => {
+  return (key: string, valuesOrFallback?: Record<string, string> | string) => {
+    const values = typeof valuesOrFallback === "object" ? valuesOrFallback : undefined
+    const fallbackStr = typeof valuesOrFallback === "string" ? valuesOrFallback : undefined
     const parts = key.split(".")
     let val: unknown = dict
     for (const p of parts) {
@@ -39,7 +41,7 @@ export function getT(lang: string) {
         val = (val as Record<string, unknown>)?.[p]
       }
     }
-    if (typeof val !== "string") return key
+    if (typeof val !== "string") return fallbackStr ?? key
     if (values) {
       return Object.entries(values).reduce(
         (str, [k, v]) => str.replace(new RegExp(`{{${k}}}`, "g"), v),

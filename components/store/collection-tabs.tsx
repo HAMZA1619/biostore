@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useBaseHref } from "@/lib/hooks/use-base-href"
 import "@/lib/i18n"
 
 interface CollectionTabsProps {
@@ -14,6 +15,7 @@ interface CollectionTabsProps {
 export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
+  const baseHref = useBaseHref()
   const activeCollection = searchParams.get("collection")
 
   if (collections.length === 0) return null
@@ -23,7 +25,7 @@ export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2">
       <Link
-        href={`/${storeSlug}`}
+        href={baseHref || "/"}
         className={cn(
           "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
           !activeCollection
@@ -37,7 +39,7 @@ export function CollectionTabs({ storeSlug, collections }: CollectionTabsProps) 
       {collections.map((c) => (
         <Link
           key={c.id}
-          href={`/${storeSlug}?collection=${c.slug}`}
+          href={`${baseHref || "/"}?collection=${c.slug}`}
           className={cn(
             "shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors",
             activeCollection === c.slug
