@@ -37,7 +37,6 @@ export async function POST(request: Request) {
       prompt: "consent",
       scope: [
         "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive.file",
       ],
       state: store_id,
     })

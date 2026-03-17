@@ -62,7 +62,6 @@ export async function GET(request: Request) {
     const grantedScopes = (tokens.scope || "").split(" ")
     const requiredScopes = [
       "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/drive.file",
     ]
     const missingScopes = requiredScopes.filter((s) => !grantedScopes.includes(s))
     if (missingScopes.length > 0) {
