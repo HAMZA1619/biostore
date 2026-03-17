@@ -216,6 +216,11 @@ In short: any new order field must flow end-to-end — schema → trigger payloa
 - **Storefront translations** (keys like `"storefront"`, `"search"`, `"language"`) are translated in **all** locale files.
 - In short: `en`, `ar`, `fr` get both dashboard + storefront keys. All other locales (`es`, `pt`, `de`, `it`, `nl`, `tr`, `ru`, `zh`, `ja`, `ko`, `hi`, `id`, `ms`, `pl`, `sv`, `th`, `vi`) get storefront keys only.
 
+## SEO Rules
+
+- **Page titles must be under 60 characters** (before the `| Leadivo` suffix). The root layout appends `" | Leadivo"` (10 chars) via the `template: "%s | Leadivo"` setting, so the final rendered title must stay under 70 characters total. This applies to all `metaTitle`, `title`, and `metadata.title` values across the codebase.
+- **Meta descriptions must be under 160 characters.**
+
 ## Don'ts
 
 - Don't create new migration files — modify the single `001_initial_schema.sql`.

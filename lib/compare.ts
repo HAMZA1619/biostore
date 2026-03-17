@@ -33,7 +33,7 @@ export const COMPARE_PLATFORMS: ComparePlatform[] = [
     slug: "shopify",
     name: "Shopify",
     metaTitle: {
-      en: "Leadivo vs Shopify — Best COD Store Builder for Social Sellers",
+      en: "Leadivo vs Shopify — COD Store Builder Comparison",
       ar: "Leadivo مقابل Shopify — أفضل منشئ متاجر الدفع عند الاستلام",
       fr: "Leadivo vs Shopify — Créateur de boutiques COD pour vendeurs sociaux",
     },
@@ -174,7 +174,7 @@ export const COMPARE_PLATFORMS: ComparePlatform[] = [
     slug: "youcan",
     name: "YouCan",
     metaTitle: {
-      en: "Leadivo vs YouCan — COD Analytics & Multi-Market Store Builder",
+      en: "Leadivo vs YouCan — COD & Multi-Market Comparison",
       ar: "Leadivo مقابل YouCan — تحليلات COD ومنشئ متاجر متعدد الأسواق",
       fr: "Leadivo vs YouCan — Analytiques COD et boutique multi-marché",
     },
