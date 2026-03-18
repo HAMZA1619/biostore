@@ -17,6 +17,7 @@ import "@/lib/i18n"
 interface ProductCardProps {
   product: {
     id: string
+    slug?: string | null
     name: string
     price: number
     compare_at_price: number | null
@@ -24,7 +25,7 @@ interface ProductCardProps {
     is_available: boolean
     stock?: number | null
     options?: unknown[]
-    product_variants?: { price: number }[]
+    product_variants?: { price: number; is_available: boolean; stock: number | null }[]
   }
   storeSlug: string
 }
@@ -67,17 +68,24 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
     )
   }
 
-  const minVariantPrice = product.product_variants?.length
-    ? Math.min(...product.product_variants.map((v) => v.price))
-    : null
+  const availableVariants = product.product_variants?.filter(
+    (v) => v.is_available && (v.stock === null || v.stock > 0)
+  ) || []
+  const minVariantPrice = availableVariants.length
+    ? Math.min(...availableVariants.map((v) => v.price))
+    : product.product_variants?.length
+      ? Math.min(...product.product_variants.map((v) => v.price))
+      : null
 
   const displayPrice = hasVariants && minVariantPrice != null ? minVariantPrice : product.price
 
   const isCentered = cardSettings.align === "center"
 
+  const productHref = `${baseHref}/products/${product.slug || product.id}`
+
   return (
     <div className={cn("store-card group overflow-hidden")} style={{ borderRadius: "var(--store-radius)", boxShadow: "var(--store-card-shadow)" }}>
-      <Link href={`${baseHref}/products/${product.id}`}>
+      <Link href={productHref}>
         <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "var(--store-image-ratio)" }}>
           {product.image_urls[0] ? (
             <Image
@@ -95,7 +103,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
         </div>
       </Link>
       <div className={cn(isCentered && "text-center")} style={{ padding: "var(--store-card-padding)" }}>
-        <Link href={`${baseHref}/products/${product.id}`}>
+        <Link href={productHref}>
           <h3 className="line-clamp-2 min-h-[2lh] font-medium leading-tight" style={{ fontFamily: "var(--store-heading-font)" }}>{product.name}</h3>
         </Link>
         <div className={cn("mt-1 flex items-center gap-2", isCentered && "justify-center")}>
@@ -118,7 +126,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
                 className="mt-2 w-full text-xs"
                 style={getButtonStyleProps(buttonStyle)}
               >
-                <Link href={`${baseHref}/products/${product.id}`}>
+                <Link href={productHref}>
                   {t("storefront.chooseOptions")}
                 </Link>
               </Button>

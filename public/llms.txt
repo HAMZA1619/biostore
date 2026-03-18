@@ -1,0 +1,44 @@
+# Leadivo
+
+> Leadivo is the all-in-one e-commerce platform purpose-built for COD (Cash on Delivery) sellers across MENA and North Africa. Launch a professional online store, manage orders, and grow your social commerce business — fast.
+
+## What is Leadivo?
+
+Leadivo empowers social media sellers and small businesses to build beautiful, high-converting online stores optimized for Cash on Delivery markets. With 20+ languages, multi-currency support, and deep integrations with WhatsApp, Facebook, TikTok, and Google — Leadivo gives sellers everything they need to scale.
+
+## Why Sellers Choose Leadivo
+
+- **Launch in Minutes**: Go from zero to a fully branded storefront with 20+ color themes, 50+ Google Fonts, and a drag-and-drop design builder — no coding required.
+- **Built for COD Markets**: The only platform designed from the ground up for Cash on Delivery — the preferred payment method across MENA and North Africa.
+- **Sell in Any Currency**: Create markets by country with automatic exchange rates, smart price adjustments, and professional rounding rules.
+- **Reach Customers in Their Language**: Support for 20+ languages including Arabic (full RTL), French, English, Spanish, Portuguese, German, and more.
+- **Powerful Product Tools**: Manage products, variants, and collections with ease. Import your catalog via Shopify-compatible CSV in seconds.
+- **Streamlined Order Management**: Track every order from placement to delivery with a visual timeline, bulk status updates, and smart filtering.
+- **Flexible Shipping**: Set country-level and city-level shipping rates, offer free shipping thresholds, and handle city exclusions effortlessly.
+- **Smart Discount Codes**: Create percentage or fixed-amount coupons with advanced rules — minimum order, usage caps, date ranges, and market-specific targeting.
+- **WhatsApp Integration**: Send automatic order confirmations and recover abandoned carts through WhatsApp Business API — right where your customers are.
+- **Facebook Pixel & Meta CAPI**: Full-funnel conversion tracking with both client-side pixel events and server-side Meta Conversions API.
+- **TikTok Event API**: Track conversions from TikTok ads to optimize your campaigns.
+- **Google Sheets Sync**: Automatically sync orders to Google Sheets with fully customizable column mapping.
+- **Google Analytics**: Built-in GA4 tracking to understand your store traffic.
+- **Abandoned Cart Recovery**: Automatically identify and recover abandoned checkouts to recapture lost sales.
+- **Custom Store Design**: Fine-tune every detail — colors, fonts, button styles, spacing, shadows, product card layouts — all with a real-time live preview.
+- **Custom Domains**: Connect your own domain for a fully branded shopping experience.
+- **AI-Powered Assistant**: Get instant help managing your store with a built-in AI chat assistant.
+
+## Who is Leadivo For?
+
+Leadivo is built for social media sellers, dropshippers, and small businesses in Algeria, Morocco, Tunisia, Egypt, Saudi Arabia, UAE, and across the MENA region — where Cash on Delivery drives e-commerce. Whether you sell on Instagram, Facebook, or TikTok, Leadivo turns your social audience into paying customers.
+
+## Get Started
+
+Start your 14-day free trial today and experience every feature Leadivo has to offer — no credit card required.
+
+## Links
+
+- Homepage: https://www.leadivo.app
+- Documentation: https://www.leadivo.app/docs
+- Blog: https://www.leadivo.app/blog
+- Compare with Shopify: https://www.leadivo.app/compare/shopify
+- Compare with YouCan: https://www.leadivo.app/compare/youcan
+- Compare with Salla: https://www.leadivo.app/compare/salla

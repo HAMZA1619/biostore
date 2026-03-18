@@ -14,14 +14,13 @@ interface MarketSuggestionBannerProps {
 export function MarketSuggestionBanner({ suggestedMarket, currentMarketSlug }: MarketSuggestionBannerProps) {
   const [dismissed, setDismissed] = useState(false)
   const { t } = useTranslation()
+  const clearCart = useCartStore((s) => s.clearCart)
 
   if (dismissed) return null
 
   function setMarketCookie(slug: string) {
     document.cookie = `leadivo-market=${slug};path=/;max-age=31536000;SameSite=Lax`
   }
-
-  const clearCart = useCartStore((s) => s.clearCart)
 
   function handleSwitch() {
     clearCart()

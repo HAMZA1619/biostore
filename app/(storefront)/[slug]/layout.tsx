@@ -267,6 +267,10 @@ export default async function StoreLayout({
         thankYouMessage: ds.thankYouMessage || "",
         requireCaptcha: ds.requireCaptcha === true,
         checkoutFields: ds.checkoutFields || {},
+        variantStyle: ds.variantStyle || "buttons",
+        faqStyle: ds.faqStyle || "cards",
+        showProductSku: ds.showProductSku !== false,
+        showStockBadge: ds.showStockBadge === true,
       }}>
       <StorefrontI18nProvider lang={storeLang}>
         {storeContent(

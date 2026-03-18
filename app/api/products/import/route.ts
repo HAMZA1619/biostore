@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { checkResourceLimit } from "@/lib/check-limit"
 import { csvRowSchema } from "@/lib/validations/product"
+import { slugify } from "@/lib/utils"
 
 interface ParsedProduct {
   name: string
@@ -76,7 +77,7 @@ function parseRows(rows: Record<string, string>[]): { products: ParsedProduct[];
     })
 
     if (!parsed.success) {
-      errors.push(`Row ${rowNum}: ${parsed.error.errors.map((e) => e.message).join(", ")}`)
+      errors.push(`Row ${rowNum}: ${parsed.error.issues.map((e) => e.message).join(", ")}`)
       continue
     }
 
@@ -243,6 +244,7 @@ export async function POST(req: Request) {
       .insert({
         store_id: store.id,
         name: product.name,
+        slug: slugify(product.name),
         description: product.description,
         sku: product.sku,
         price: product.price,

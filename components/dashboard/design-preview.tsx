@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { CheckCircle, Languages, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
+import { CheckCircle, ChevronDown, Languages, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react"
 import { BORDER_RADIUS_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
 import { cn, getImageUrl, sanitizeCss } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
@@ -10,7 +10,7 @@ import "@/lib/i18n"
 import { loadLocale } from "@/lib/i18n"
 import { RTL_LANGUAGES } from "@/lib/i18n/languages"
 
-export type PreviewTab = "store" | "checkout" | "thankyou"
+export type PreviewTab = "store" | "product" | "checkout" | "thankyou"
 
 export interface DesignState {
   logoPath: string | null
@@ -68,6 +68,11 @@ export interface DesignState {
   thankYouShowAddress: boolean
   // Checkout field overrides
   checkoutFields: Record<string, { label?: Record<string, string>; placeholder?: Record<string, string> }>
+  // Product page
+  variantStyle: "buttons" | "dropdown"
+  faqStyle: "cards" | "accordion"
+  showProductSku: boolean
+  showStockBadge: boolean
 }
 
 interface DesignPreviewProps {
@@ -158,6 +163,7 @@ function getSpacing(spacing: string) {
 
 const tabs: { value: PreviewTab; labelKey: string }[] = [
   { value: "store", labelKey: "designPreview.tabStore" },
+  { value: "product", labelKey: "designPreview.tabProduct" },
   { value: "checkout", labelKey: "designPreview.tabCheckout" },
   { value: "thankyou", labelKey: "designPreview.tabThankYou" },
 ]
@@ -277,6 +283,7 @@ export function DesignPreview({ state, storeName, storeDescription, currency, pr
             } as React.CSSProperties
           }
         >
+          <style dangerouslySetInnerHTML={{ __html: `.store-preview-scope button, .store-preview-scope select, .store-preview-scope input { outline: none !important; box-shadow: none !important; -webkit-tap-highlight-color: transparent !important; }` }} />
           {state.customCss && (
             <style dangerouslySetInnerHTML={{ __html: scopeCss(state.customCss, ".store-preview-scope") }} />
           )}
@@ -295,6 +302,18 @@ export function DesignPreview({ state, storeName, storeDescription, currency, pr
               enabledLangs={enabledLangs}
               previewLang={previewLang}
               setPreviewLang={setPreviewLang}
+            />
+          )}
+          {previewTab === "product" && (
+            <ProductPreview
+              state={state}
+              storeName={storeName}
+              currency={currency}
+              radiusCss={radiusCss}
+              st={st}
+              onAddToCart={addToCart}
+              onGoToCheckout={() => onTabChange("checkout")}
+              cartCount={itemCount}
             />
           )}
           {previewTab === "checkout" && (
@@ -441,6 +460,291 @@ function StorePreview({
           </button>
         </div>
       )}
+
+      {state.whatsappFloat && (
+        <div className="sticky bottom-1.5 flex justify-end px-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] shadow-lg">
+            <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.607-1.476A11.937 11.937 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-2.168 0-4.186-.581-5.932-1.594l-.424-.253-2.731.876.864-2.655-.278-.44A9.79 9.79 0 012.182 12c0-5.418 4.4-9.818 9.818-9.818 5.418 0 9.818 4.4 9.818 9.818 0 5.418-4.4 9.818-9.818 9.818z"/></svg>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+/* ── Product tab ── */
+const MOCK_VARIANT_OPTIONS = [
+  { name: "Size", values: ["S", "M", "L", "XL"] },
+  { name: "Color", values: ["Black", "White", "Blue"] },
+]
+
+const MOCK_FAQS = [
+  { question: "What is the return policy?", answer: "You can return within 30 days of purchase for a full refund." },
+  { question: "How long does shipping take?", answer: "Delivery typically takes 3-5 business days depending on your location." },
+]
+
+function ProductPreview({
+  state,
+  storeName,
+  currency,
+  radiusCss,
+  st,
+  onAddToCart,
+  onGoToCheckout,
+  cartCount,
+}: {
+  state: DesignState
+  storeName: string
+  currency: string
+  radiusCss: string
+  st: TFunction
+  onAddToCart: (name: string, price: number) => void
+  onGoToCheckout: () => void
+  cartCount: number
+}) {
+  const [img1] = pickImages(storeName)
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [added, setAdded] = useState(false)
+
+  const allSelected = MOCK_VARIANT_OPTIONS.every((o) => selectedOptions[o.name])
+  const mockPrice = 99
+  const mockComparePrice = 149
+
+  const pillRadius = state.buttonStyle === "pill" ? "9999px" : radiusCss
+  const isOutline = state.buttonStyle === "outline"
+
+  function handleAdd() {
+    if (!allSelected) return
+    onAddToCart(st("designPreview.sampleProduct"), mockPrice)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 600)
+  }
+
+  return (
+    <>
+      <PreviewHeader state={state} storeName={storeName} cartCount={cartCount} onCartClick={onGoToCheckout} />
+
+      {/* Product Image */}
+      <div className="px-2 pt-2">
+        <div className="overflow-hidden bg-gray-100" style={{ borderRadius: radiusCss, aspectRatio: getImageRatioCss(state.productImageRatio) }}>
+          <img src={img1} alt="" className="h-full w-full object-cover grayscale" />
+        </div>
+      </div>
+
+      <div className="space-y-3 p-2">
+        {/* Product Name */}
+        <h2 className="text-sm font-bold" style={{ fontFamily: "var(--store-heading-font)" }}>
+          {st("designPreview.sampleProduct")}
+        </h2>
+
+        {/* SKU */}
+        {state.showProductSku && (
+          <p className="text-[8px] opacity-50">{st("storefront.sku")}: SKU-001</p>
+        )}
+
+        {/* Price */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-bold" style={{ color: "var(--store-primary)" }}>
+            {mockPrice.toFixed(2)} {currency}
+          </span>
+          <span className="text-[10px] opacity-50 line-through">
+            {mockComparePrice.toFixed(2)} {currency}
+          </span>
+        </div>
+
+        {/* Stock Badge */}
+        {state.showStockBadge && (
+          <div className="flex items-center gap-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            <span className="text-[8px] font-medium text-green-600">{st("designPreview.inStock")}</span>
+          </div>
+        )}
+
+        {/* Description */}
+        <p className="text-[9px] leading-relaxed opacity-60">
+          {st("designPreview.sampleDescription")}
+        </p>
+
+        {/* Variant Selector */}
+        <div className="space-y-2 border-t pt-2">
+          {MOCK_VARIANT_OPTIONS.map((option) => (
+            <div key={option.name} className="space-y-1">
+              <p className="text-[9px] font-medium">
+                {option.name}
+                {selectedOptions[option.name] && (
+                  <span className="ms-0.5 font-normal opacity-50">: {selectedOptions[option.name]}</span>
+                )}
+              </p>
+              {state.variantStyle === "buttons" ? (
+                <div className="flex flex-wrap gap-1">
+                  {option.values.map((value) => {
+                    const isSelected = selectedOptions[option.name] === value
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => {
+                          setSelectedOptions((prev) => {
+                            if (prev[option.name] === value) {
+                              const next = { ...prev }
+                              delete next[option.name]
+                              return next
+                            }
+                            return { ...prev, [option.name]: value }
+                          })
+                        }}
+                        className="px-1.5 py-0.5 text-[8px] transition-colors"
+                        style={{
+                          borderRadius: state.buttonStyle === "pill" ? "9999px" : radiusCss,
+                          outline: "none",
+                          ...(isSelected
+                            ? state.buttonStyle === "outline"
+                              ? {
+                                  backgroundColor: "transparent",
+                                  color: "var(--store-accent)",
+                                  border: "1.5px solid var(--store-accent)",
+                                }
+                              : {
+                                  backgroundColor: "var(--store-accent)",
+                                  color: "var(--store-btn-text)",
+                                  border: "1px solid var(--store-accent)",
+                                }
+                            : {
+                                backgroundColor: "transparent",
+                                color: "var(--store-text)",
+                                border: "1px solid var(--store-text)",
+                                opacity: 0.5,
+                              }),
+                        }}
+                      >
+                        {value}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <select
+                  value={selectedOptions[option.name] || ""}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setSelectedOptions((prev) => {
+                      if (!val) {
+                        const next = { ...prev }
+                        delete next[option.name]
+                        return next
+                      }
+                      return { ...prev, [option.name]: val }
+                    })
+                  }}
+                  className="h-5 w-full appearance-none border px-1.5 text-[8px]"
+                  style={{
+                    borderRadius: state.buttonStyle === "pill" ? "9999px" : radiusCss,
+                    backgroundColor: state.backgroundColor,
+                    color: state.textColor,
+                    borderColor: `${state.textColor}33`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='${encodeURIComponent(state.textColor)}' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 4px center",
+                    backgroundSize: "10px",
+                    paddingRight: "16px",
+                  }}
+                >
+                  <option value="">{st("designPreview.select")} {option.name}</option>
+                  {option.values.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add to Cart Button */}
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!allSelected}
+          className={cn(
+            "w-full py-1.5 text-[9px] font-medium transition-all",
+            !allSelected && "opacity-50",
+            added && "scale-95"
+          )}
+          style={{
+            backgroundColor: isOutline ? "transparent" : "var(--store-accent)",
+            color: isOutline ? "var(--store-accent)" : state.buttonTextColor,
+            borderRadius: pillRadius,
+            border: isOutline ? "1.5px solid var(--store-accent)" : "none",
+          }}
+        >
+          {added ? "✓" : !allSelected ? st("designPreview.selectOptions") : st("storefront.addToCart")}
+        </button>
+
+        {/* FAQs */}
+        <div className="space-y-1.5 border-t pt-2">
+          <p className="text-[10px] font-bold" style={{ fontFamily: "var(--store-heading-font)" }}>
+            {st("storefront.faq")}
+          </p>
+
+          {state.faqStyle === "cards" ? (
+            <div className="space-y-1">
+              {MOCK_FAQS.map((faq, i) => (
+                <div
+                  key={i}
+                  style={{
+                    borderRadius: radiusCss,
+                    boxShadow: getShadowCss(state.cardShadow),
+                    padding: getSpacing(state.layoutSpacing).padding,
+                  }}
+                  className="border"
+                >
+                  <p className="text-[8px] font-semibold" style={{ fontFamily: "var(--store-heading-font)" }}>
+                    {faq.question}
+                  </p>
+                  <p className="mt-0.5 text-[7px] leading-relaxed opacity-60">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {MOCK_FAQS.map((faq, i) => (
+                <div
+                  key={i}
+                  className="border"
+                  style={{ borderRadius: radiusCss, boxShadow: getShadowCss(state.cardShadow) }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    className="flex w-full items-center justify-between px-1.5 py-1 text-start"
+                  >
+                    <span className="text-[8px] font-semibold" style={{ fontFamily: "var(--store-heading-font)" }}>
+                      {faq.question}
+                    </span>
+                    <ChevronDown className={cn("h-2 w-2 shrink-0 opacity-40 transition-transform duration-200", openFaq === i && "rotate-180")} />
+                  </button>
+                  {openFaq === i && (
+                    <p className="px-1.5 pb-1.5 text-[7px] leading-relaxed opacity-60">{faq.answer}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="border-t px-2 py-2 text-center text-[10px] opacity-50">
+        <p>&copy; {new Date().getFullYear()} {storeName}</p>
+        {(state.socialInstagram || state.socialTiktok || state.socialFacebook || state.socialWhatsapp) && (
+          <div className="mt-1 flex items-center justify-center gap-2">
+            {state.socialInstagram && <div className="h-2.5 w-2.5 rounded-full bg-current opacity-40" />}
+            {state.socialTiktok && <div className="h-2.5 w-2.5 rounded-full bg-current opacity-40" />}
+            {state.socialFacebook && <div className="h-2.5 w-2.5 rounded-full bg-current opacity-40" />}
+            {state.socialWhatsapp && <div className="h-2.5 w-2.5 rounded-full bg-current opacity-40" />}
+          </div>
+        )}
+      </div>
 
       {state.whatsappFloat && (
         <div className="sticky bottom-1.5 flex justify-end px-2">

@@ -101,7 +101,7 @@ export function getStoreProducts(
       let query = supabase
         .from("products")
         .select(
-          "id, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price)",
+          "id, slug, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price, is_available, stock)",
         )
         .eq("store_id", storeId)
         .eq("status", "active")
@@ -132,20 +132,28 @@ export function getStoreProducts(
 // Single product
 // ---------------------------------------------------------------------------
 
-export function getProduct(productId: string, storeId: string) {
+export function getProduct(idOrSlug: string, storeId: string) {
   return unstable_cache(
     async () => {
       const supabase = createStaticClient()
-      const { data } = await supabase
+      // Try by slug first, then by UUID
+      const { data: bySlug } = await supabase
         .from("products")
         .select("*, collections(name, slug)")
-        .eq("id", productId)
+        .eq("slug", idOrSlug)
         .eq("store_id", storeId)
         .single()
-      return data
+      if (bySlug) return bySlug
+      const { data: byId } = await supabase
+        .from("products")
+        .select("*, collections(name, slug)")
+        .eq("id", idOrSlug)
+        .eq("store_id", storeId)
+        .single()
+      return byId
     },
-    [`product-${productId}`],
-    { tags: [`product:${productId}`, `products:${storeId}`], revalidate: REVALIDATE },
+    [`product-${storeId}-${idOrSlug}`],
+    { tags: [`products:${storeId}`], revalidate: REVALIDATE },
   )()
 }
 

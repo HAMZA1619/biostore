@@ -9,20 +9,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { SingleImageUpload } from "@/components/dashboard/single-image-upload"
 import { cn } from "@/lib/utils"
 import { FONT_OPTIONS, BORDER_RADIUS_OPTIONS, COLOR_THEME_PRESETS, BUTTON_STYLE_OPTIONS, BUTTON_SIZE_OPTIONS, CARD_SHADOW_OPTIONS, PRODUCT_IMAGE_RATIO_OPTIONS, LAYOUT_SPACING_OPTIONS } from "@/lib/constants"
-import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search, ChevronsUpDown } from "lucide-react"
+import { Shuffle, Palette, Type, LayoutGrid, Settings2, ImageIcon, CreditCard, Heart, Search, ChevronsUpDown, Package } from "lucide-react"
 import type { DesignState, PreviewTab } from "./design-preview"
 import { useTranslation } from "react-i18next"
 import "@/lib/i18n"
 import { STOREFRONT_LANGUAGES } from "@/lib/i18n/languages"
 import { Checkbox } from "@/components/ui/checkbox"
 
-type SectionId = "branding" | "colors" | "typography" | "layout" | "checkout" | "thankyou" | "preferences" | "seo"
+type SectionId = "branding" | "colors" | "typography" | "layout" | "product" | "checkout" | "thankyou" | "preferences" | "seo"
 
 const sections: { id: SectionId; icon: React.ComponentType<{ className?: string }>; labelKey: string; previewTab: PreviewTab }[] = [
   { id: "branding", icon: ImageIcon, labelKey: "design.branding", previewTab: "store" },
   { id: "colors", icon: Palette, labelKey: "design.colors", previewTab: "store" },
   { id: "typography", icon: Type, labelKey: "design.typography", previewTab: "store" },
   { id: "layout", icon: LayoutGrid, labelKey: "design.layoutStyle", previewTab: "store" },
+  { id: "product", icon: Package, labelKey: "design.productPage", previewTab: "product" },
   { id: "checkout", icon: CreditCard, labelKey: "design.checkout", previewTab: "checkout" },
   { id: "thankyou", icon: Heart, labelKey: "design.thankYou", previewTab: "thankyou" },
   { id: "seo", icon: Search, labelKey: "design.seo", previewTab: "store" },
@@ -52,6 +53,7 @@ const fontLinkHref = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
 
 const defaultSectionForTab: Record<PreviewTab, SectionId> = {
   store: "branding",
+  product: "product",
   checkout: "checkout",
   thankyou: "thankyou",
 }
@@ -748,6 +750,112 @@ export function DesignControls({ state, onChange, storeId, previewTab, onPreview
                 <div className="flex items-center justify-between">
                   <Label htmlFor="ty-address" className="text-sm">{t("design.thankYouShowAddress")}</Label>
                   <Switch id="ty-address" checked={state.thankYouShowAddress} onCheckedChange={(v) => onChange({ thankYouShowAddress: v })} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Product Page */}
+          {activeSection === "product" && (
+            <div className="space-y-6">
+              <p className="text-[11px] text-muted-foreground">{t("design.productPageHint")}</p>
+
+              {/* Variant Style */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{t("design.variantStyle")}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["buttons", "dropdown"] as const).map((style) => (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => onChange({ variantStyle: style })}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
+                        state.variantStyle === style
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      {style === "buttons" ? (
+                        <div className="flex gap-1">
+                          <div className="h-4 w-6 rounded-sm bg-primary" />
+                          <div className="h-4 w-6 rounded-sm border border-muted-foreground/40" />
+                          <div className="h-4 w-6 rounded-sm border border-muted-foreground/40" />
+                        </div>
+                      ) : (
+                        <div className="flex h-4 w-full items-center justify-between rounded-sm border border-muted-foreground/40 px-1">
+                          <span className="text-[7px]">Select</span>
+                          <ChevronsUpDown className="h-2 w-2 opacity-50" />
+                        </div>
+                      )}
+                      <span className="text-[10px] font-medium">{t(`design.variant${style.charAt(0).toUpperCase() + style.slice(1)}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* FAQ Style */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">{t("design.faqStyle")}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["cards", "accordion"] as const).map((style) => (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => onChange({ faqStyle: style })}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition-colors",
+                        state.faqStyle === style
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      )}
+                    >
+                      {style === "cards" ? (
+                        <div className="w-full space-y-0.5">
+                          <div className="h-3 w-full rounded-sm border border-muted-foreground/30 bg-muted/50" />
+                          <div className="h-3 w-full rounded-sm border border-muted-foreground/30 bg-muted/50" />
+                        </div>
+                      ) : (
+                        <div className="w-full space-y-0.5">
+                          <div className="flex h-3 items-center justify-between rounded-sm border border-muted-foreground/30 px-0.5">
+                            <div className="h-1 w-6 rounded-sm bg-muted-foreground/40" />
+                            <span className="text-[6px]">+</span>
+                          </div>
+                          <div className="flex h-3 items-center justify-between rounded-sm border border-muted-foreground/30 px-0.5">
+                            <div className="h-1 w-4 rounded-sm bg-muted-foreground/40" />
+                            <span className="text-[6px]">+</span>
+                          </div>
+                        </div>
+                      )}
+                      <span className="text-[10px] font-medium">{t(`design.faq${style.charAt(0).toUpperCase() + style.slice(1)}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Toggle options */}
+              <div className="border-t pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="show-sku" className="text-sm">{t("design.showProductSku")}</Label>
+                    <p className="text-[11px] text-muted-foreground">{t("design.showProductSkuHint")}</p>
+                  </div>
+                  <Switch
+                    id="show-sku"
+                    checked={state.showProductSku}
+                    onCheckedChange={(v) => onChange({ showProductSku: v })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="show-stock" className="text-sm">{t("design.showStockBadge")}</Label>
+                    <p className="text-[11px] text-muted-foreground">{t("design.showStockBadgeHint")}</p>
+                  </div>
+                  <Switch
+                    id="show-stock"
+                    checked={state.showStockBadge}
+                    onCheckedChange={(v) => onChange({ showStockBadge: v })}
+                  />
                 </div>
               </div>
             </div>

@@ -34,7 +34,7 @@ export default async function sitemap({
   const [{ data: products }, { data: collections }] = await Promise.all([
     supabase
       .from("products")
-      .select("id, updated_at, image_urls")
+      .select("id, slug, updated_at, image_urls")
       .eq("store_id", store.id)
       .eq("status", "active")
       .order("created_at", { ascending: false })
@@ -87,7 +87,7 @@ export default async function sitemap({
       .filter(Boolean) as string[]
 
     entries.push({
-      url: `${storeUrl}/products/${product.id}`,
+      url: `${storeUrl}/products/${product.slug || product.id}`,
       lastModified: new Date(product.updated_at),
       changeFrequency: "weekly",
       priority: 0.8,

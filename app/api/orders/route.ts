@@ -194,7 +194,7 @@ export async function POST(request: Request) {
       for (const item of items) {
         if (item.variant_id) {
           const variant = variants.find((v: { id: string }) => v.id === item.variant_id)
-          if (!variant || variant.product_id !== item.product_id || !variant.is_available) {
+          if (!variant || variant.product_id !== item.product_id || !variant.is_available || (variant.stock !== null && variant.stock <= 0)) {
             return NextResponse.json({
               error: "Invalid or unavailable variant selection",
             }, { status: 400 })

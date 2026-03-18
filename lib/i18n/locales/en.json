@@ -518,7 +518,19 @@
     "whatsappFloatHint": "Show a floating WhatsApp button with your phone number",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
     "socialLinks": "Social links",
-    "socialLinksHint": "Add links to show social icons in the footer"
+    "socialLinksHint": "Add links to show social icons in the footer",
+    "productPage": "Product Page",
+    "productPageHint": "Customize how product details are displayed on your storefront",
+    "variantStyle": "Variant Selector",
+    "variantButtons": "Buttons",
+    "variantDropdown": "Dropdown",
+    "faqStyle": "FAQ Display",
+    "faqCards": "Cards",
+    "faqAccordion": "Accordion",
+    "showProductSku": "Show SKU",
+    "showProductSkuHint": "Display the product SKU on the product page",
+    "showStockBadge": "Stock badge",
+    "showStockBadgeHint": "Show in stock / out of stock indicator"
   },
   "designPreview": {
     "tabStore": "Store",
@@ -541,7 +553,12 @@
     "sampleProduct": "Sample Product",
     "anotherItem": "Another Item",
     "addToCart": "Add to cart",
-    "viewCart": "View Cart"
+    "viewCart": "View Cart",
+    "tabProduct": "Product",
+    "inStock": "In Stock",
+    "sampleDescription": "A premium quality product crafted with care. Perfect for everyday use.",
+    "select": "Select",
+    "selectOptions": "Select options"
   },
   "deleteProduct": {
     "edit": "Edit",
@@ -678,6 +695,11 @@
     "poweredBy": "Powered by",
     "noProducts": "No products available",
     "variantSoldOut": "This variant is sold out",
+    "allVariantsSoldOut": "All options are currently sold out",
+    "clearSelection": "Clear selection",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "select": "Select",
     "sku": "SKU",
     "storefrontLanguage": "Storefront language",
     "storefrontLanguageHint": "Language displayed to your customers",

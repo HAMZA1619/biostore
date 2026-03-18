@@ -13,6 +13,20 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/dashboard/", "/api/", "/login", "/signup", "/auth/"],
       },
+      {
+        userAgent: [
+          "GPTBot",
+          "ChatGPT-User",
+          "Google-Extended",
+          "anthropic-ai",
+          "ClaudeBot",
+          "PerplexityBot",
+          "Bytespider",
+          "Applebot-Extended",
+        ],
+        allow: "/",
+        disallow: ["/dashboard/", "/api/", "/login", "/signup", "/auth/"],
+      },
     ],
     sitemap: urlJoin(baseUrl, "sitemap.xml"),
   }

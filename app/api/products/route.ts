@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("products")
-      .select("id, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price)")
+      .select("id, slug, name, price, compare_at_price, image_urls, is_available, stock, options, product_variants(price, is_available, stock)")
       .eq("store_id", storeId)
       .eq("status", "active")
       .order("sort_order")

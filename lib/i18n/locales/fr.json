@@ -518,7 +518,19 @@
     "whatsappFloatHint": "Afficher un bouton WhatsApp flottant avec votre numéro",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
     "socialLinks": "Liens sociaux",
-    "socialLinksHint": "Ajouter des liens pour afficher les icônes sociales dans le pied de page"
+    "socialLinksHint": "Ajouter des liens pour afficher les icônes sociales dans le pied de page",
+    "productPage": "Page Produit",
+    "productPageHint": "Personnalisez l'affichage des détails produit sur votre boutique",
+    "variantStyle": "Sélecteur de variantes",
+    "variantButtons": "Boutons",
+    "variantDropdown": "Menu déroulant",
+    "faqStyle": "Affichage FAQ",
+    "faqCards": "Cartes",
+    "faqAccordion": "Accordéon",
+    "showProductSku": "Afficher le SKU",
+    "showProductSkuHint": "Afficher le code produit (SKU) sur la page produit",
+    "showStockBadge": "Badge de stock",
+    "showStockBadgeHint": "Afficher l'indicateur de disponibilité (en stock / rupture)"
   },
   "designPreview": {
     "tabStore": "Boutique",
@@ -541,7 +553,12 @@
     "sampleProduct": "Produit exemple",
     "anotherItem": "Autre article",
     "addToCart": "Ajouter au panier",
-    "viewCart": "Voir le panier"
+    "viewCart": "Voir le panier",
+    "tabProduct": "Produit",
+    "inStock": "En stock",
+    "sampleDescription": "Un produit de qualité supérieure fabriqué avec soin. Parfait pour un usage quotidien.",
+    "select": "Sélectionner",
+    "selectOptions": "Sélectionner les options"
   },
   "deleteProduct": {
     "edit": "Modifier",
@@ -678,6 +695,11 @@
     "poweredBy": "Propulsé par",
     "noProducts": "Aucun produit disponible",
     "variantSoldOut": "Cette variante est épuisée",
+    "allVariantsSoldOut": "Toutes les options sont actuellement épuisées",
+    "clearSelection": "Effacer la sélection",
+    "inStock": "En stock",
+    "outOfStock": "Rupture de stock",
+    "select": "Sélectionner",
     "sku": "SKU",
     "storefrontLanguage": "Langue de la boutique",
     "storefrontLanguageHint": "Langue affichée à vos clients",

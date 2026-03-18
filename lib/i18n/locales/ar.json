@@ -518,7 +518,19 @@
     "whatsappFloatHint": "عرض زر واتساب عائم برقم هاتفك",
     "whatsappFloatPlaceholder": "+1 234 567 8900",
     "socialLinks": "روابط التواصل",
-    "socialLinksHint": "أضف روابط لعرض أيقونات التواصل في التذييل"
+    "socialLinksHint": "أضف روابط لعرض أيقونات التواصل في التذييل",
+    "productPage": "صفحة المنتج",
+    "productPageHint": "خصص طريقة عرض تفاصيل المنتج في متجرك",
+    "variantStyle": "محدد الخيارات",
+    "variantButtons": "أزرار",
+    "variantDropdown": "قائمة منسدلة",
+    "faqStyle": "عرض الأسئلة الشائعة",
+    "faqCards": "بطاقات",
+    "faqAccordion": "أكورديون",
+    "showProductSku": "إظهار رمز المنتج",
+    "showProductSkuHint": "عرض رمز المنتج (SKU) في صفحة المنتج",
+    "showStockBadge": "شارة المخزون",
+    "showStockBadgeHint": "إظهار حالة التوفر (متوفر / غير متوفر)"
   },
   "designPreview": {
     "tabStore": "المتجر",
@@ -541,7 +553,12 @@
     "sampleProduct": "منتج تجريبي",
     "anotherItem": "منتج آخر",
     "addToCart": "أضف إلى السلة",
-    "viewCart": "عرض السلة"
+    "viewCart": "عرض السلة",
+    "tabProduct": "المنتج",
+    "inStock": "متوفر",
+    "sampleDescription": "منتج عالي الجودة مصنوع بعناية. مثالي للاستخدام اليومي.",
+    "select": "اختر",
+    "selectOptions": "اختر الخيارات"
   },
   "deleteProduct": {
     "edit": "تعديل",
@@ -678,6 +695,11 @@
     "poweredBy": "مدعوم من",
     "noProducts": "لا توجد منتجات متاحة",
     "variantSoldOut": "هذا الخيار نفذ من المخزون",
+    "allVariantsSoldOut": "جميع الخيارات نفذت حالياً",
+    "clearSelection": "مسح الاختيار",
+    "inStock": "متوفر",
+    "outOfStock": "غير متوفر",
+    "select": "اختر",
     "sku": "SKU",
     "storefrontLanguage": "لغة المتجر",
     "storefrontLanguageHint": "اللغة المعروضة لعملائك",

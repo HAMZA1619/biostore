@@ -50,6 +50,7 @@ CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   collection_id UUID REFERENCES collections(id) ON DELETE SET NULL,
+  slug TEXT,
   sku TEXT,
   name TEXT NOT NULL,
   description TEXT,
@@ -67,6 +68,7 @@ CREATE TABLE products (
 );
 CREATE INDEX idx_products_store ON products(store_id);
 CREATE INDEX idx_products_collection ON products(collection_id);
+CREATE UNIQUE INDEX idx_products_store_slug ON products(store_id, slug);
 
 -- Product Variants
 CREATE TABLE product_variants (
@@ -291,6 +293,39 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON markets FOR EACH ROW EXECUTE FUNC
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON shipping_zones FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON store_integrations FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON abandoned_checkouts FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Auto-generate unique product slug on INSERT (immutable after creation unless explicitly changed)
+CREATE OR REPLACE FUNCTION public.generate_product_slug()
+RETURNS TRIGGER AS $$
+DECLARE
+  base_slug TEXT;
+  final_slug TEXT;
+  counter INTEGER := 2;
+BEGIN
+  -- Auto-generate slug from name if not provided
+  IF NEW.slug IS NULL OR NEW.slug = '' THEN
+    base_slug := lower(trim(regexp_replace(regexp_replace(NEW.name, '[^\w\s-]', '', 'g'), '[\s_-]+', '-', 'g'), '-'));
+    IF base_slug = '' THEN
+      base_slug := 'product';
+    END IF;
+  ELSE
+    base_slug := NEW.slug;
+  END IF;
+  -- Ensure uniqueness within the store
+  final_slug := base_slug;
+  LOOP
+    EXIT WHEN NOT EXISTS (
+      SELECT 1 FROM products WHERE store_id = NEW.store_id AND slug = final_slug AND id IS DISTINCT FROM NEW.id
+    );
+    final_slug := base_slug || '-' || counter;
+    counter := counter + 1;
+  END LOOP;
+  NEW.slug := final_slug;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = '';
+
+CREATE TRIGGER generate_product_slug BEFORE INSERT ON products FOR EACH ROW EXECUTE FUNCTION public.generate_product_slug();
 
 -- Auto-create profile on signup trigger
 CREATE OR REPLACE FUNCTION public.handle_new_user()

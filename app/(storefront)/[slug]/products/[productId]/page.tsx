@@ -7,6 +7,8 @@ import { VariantSelector } from "@/components/store/variant-selector"
 import { PixelViewContent } from "@/components/store/pixel-view-content"
 import { TiktokPixelViewContent } from "@/components/store/tiktok-pixel-view-content"
 import { getT } from "@/lib/i18n/storefront"
+import { parseDesignSettings } from "@/lib/utils"
+import { FaqAccordion } from "@/components/store/faq-accordion"
 import { getStoreBySlug, getProduct, getProductVariants, getStoreMarkets, getMarketPrices, getMarketExclusions, resolveImageUrls } from "@/lib/storefront/cache"
 import { resolvePrice } from "@/lib/market/resolve-price"
 import type { MarketInfo } from "@/lib/market/resolve-price"
@@ -37,7 +39,7 @@ export async function generateMetadata({
     ? product.description.slice(0, 160)
     : `${product.name} — ${formatPriceSymbol(Number(product.price), store.currency)}`
 
-  const canonical = `${getStoreUrl(slug)}/products/${productId}`
+  const canonical = `${getStoreUrl(slug)}/products/${product.slug || product.id}`
 
   return {
     title,
@@ -71,9 +73,11 @@ export default async function ProductPage({
 }) {
   const { slug, productId } = await params
 
-  const store = await getStoreBySlug(slug, "id, name, language, currency")
+  const store = await getStoreBySlug(slug, "id, name, language, currency, design_settings")
 
   if (!store) notFound()
+
+  const ds = parseDesignSettings((store.design_settings || {}) as Record<string, unknown>)
 
   const product = await getProduct(productId, store.id)
 
@@ -165,11 +169,14 @@ export default async function ProductPage({
   const t = getT(store.language || "en")
 
   const storeUrl = getStoreUrl(slug)
-  const productUrl = `${storeUrl}/products/${product.id}`
+  const productUrl = `${storeUrl}/products/${product.slug || product.id}`
   const collectionData = (product as Record<string, unknown>).collections as { name: string; slug?: string } | null
   const collectionName = collectionData?.name || null
   const collectionSlug = collectionData?.slug || null
   const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+
+  const variantInStock = (v: { is_available: boolean; stock: number | null }) =>
+    v.is_available && (v.stock === null || v.stock > 0)
 
   const offersSchema = hasOptions && variants.length > 0
     ? {
@@ -179,7 +186,7 @@ export default async function ProductPage({
         highPrice: Math.max(...variants.map((v) => v.price)),
         priceCurrency: displayCurrency,
         offerCount: variants.length,
-        availability: variants.some((v) => v.is_available)
+        availability: variants.some(variantInStock)
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
         offers: variants.map((v) => ({
@@ -188,7 +195,7 @@ export default async function ProductPage({
           price: v.price,
           priceCurrency: displayCurrency,
           priceValidUntil,
-          availability: v.is_available
+          availability: variantInStock(v)
             ? "https://schema.org/InStock"
             : "https://schema.org/OutOfStock",
           ...(v.sku ? { sku: v.sku } : {}),
@@ -263,7 +270,7 @@ export default async function ProductPage({
 
       <div className="space-y-3">
         <h1 className="text-2xl font-bold">{product.name}</h1>
-        {product.sku && !hasOptions && (
+        {ds.showProductSku && product.sku && !hasOptions && (
           <p className="text-sm text-muted-foreground">{t("storefront.sku")}: {product.sku}</p>
         )}
 
@@ -276,6 +283,22 @@ export default async function ProductPage({
               <span className="text-lg text-muted-foreground line-through">
                 {formatPriceSymbol(resolvedProduct.compare_at_price, displayCurrency)}
               </span>
+            )}
+          </div>
+        )}
+
+        {ds.showStockBadge && !hasOptions && (
+          <div className="flex items-center gap-1.5">
+            {productInStock ? (
+              <>
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <span className="text-sm font-medium text-green-600">{t("storefront.inStock")}</span>
+              </>
+            ) : (
+              <>
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-sm font-medium text-red-500">{t("storefront.outOfStock")}</span>
+              </>
             )}
           </div>
         )}
@@ -321,29 +344,33 @@ export default async function ProductPage({
           >
             {t("storefront.faq")}
           </h2>
-          <div style={{ display: "grid", gap: "var(--store-grid-gap, 0.75rem)" }}>
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="store-card"
-                style={{
-                  borderRadius: "var(--store-radius)",
-                  boxShadow: "var(--store-card-shadow)",
-                  padding: "var(--store-card-padding)",
-                }}
-              >
-                <h3
-                  className="text-sm font-semibold leading-snug"
-                  style={{ fontFamily: "var(--store-heading-font)" }}
+          {ds.faqStyle === "accordion" ? (
+            <FaqAccordion faqs={faqs} />
+          ) : (
+            <div style={{ display: "grid", gap: "var(--store-grid-gap, 0.75rem)" }}>
+              {faqs.map((faq, i) => (
+                <div
+                  key={i}
+                  className="store-card"
+                  style={{
+                    borderRadius: "var(--store-radius)",
+                    boxShadow: "var(--store-card-shadow)",
+                    padding: "var(--store-card-padding)",
+                  }}
                 >
-                  {faq.question}
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  {faq.answer}
-                </p>
-              </div>
-            ))}
-          </div>
+                  <h3
+                    className="text-sm font-semibold leading-snug"
+                    style={{ fontFamily: "var(--store-heading-font)" }}
+                  >
+                    {faq.question}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
     </div>

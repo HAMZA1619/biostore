@@ -134,5 +134,10 @@ export function parseDesignSettings(raw: Record<string, unknown> = {}): DesignSt
     seoImagePath: (raw.seoImagePath as string) || null,
     // Checkout field overrides
     checkoutFields: (raw.checkoutFields as Record<string, { label?: Record<string, string>; placeholder?: Record<string, string> }>) || {},
+    // Product page
+    variantStyle: (raw.variantStyle as DesignState["variantStyle"]) || "buttons",
+    faqStyle: (raw.faqStyle as DesignState["faqStyle"]) || "cards",
+    showProductSku: typeof raw.showProductSku === "boolean" ? raw.showProductSku : true,
+    showStockBadge: typeof raw.showStockBadge === "boolean" ? raw.showStockBadge : false,
   }
 }

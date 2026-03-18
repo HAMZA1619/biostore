@@ -159,7 +159,7 @@ export default async function CollectionPage({
     itemListElement: products.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: `${storeUrl}/products/${p.id}`,
+      url: `${storeUrl}/products/${p.slug || p.id}`,
       name: p.name,
     })),
   } : null

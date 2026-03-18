@@ -307,7 +307,8 @@ In short: any new order field must flow end-to-end — schema → trigger payloa
 - Button styles: filled, outline, pill. Button sizes: small, medium, large.
 - Card shadow intensity. Product image ratio: square, portrait, landscape.
 - Layout spacing: compact, normal, spacious.
-- Live preview (desktop & mobile).
+- Product page controls: variant selector style (buttons or dropdown), FAQ display style (cards or collapsible accordion), show/hide SKU, show/hide stock availability badge.
+- Live preview with 4 tabs: Store, Product, Checkout, Thank You.
 - Dark mode support.
 
 ### Dashboard — AI Chat Assistant
@@ -474,7 +475,7 @@ In short: any new order field must flow end-to-end — schema → trigger payloa
 - `design_settings` (JSON — colors, font, border radius, button style, spacing, etc.).
 
 ### products
-- `id`, `store_id`, `collection_id`, `name`, `description`, `price`, `compare_at_price`, `sku`, `stock` (0–1000).
+- `id`, `store_id`, `collection_id`, `slug` (auto-generated from name on INSERT via DB trigger, unique per store, immutable after creation), `name`, `description`, `price`, `compare_at_price`, `sku`, `stock` (0–1000).
 - `status` (active/draft), `is_available`, `faqs` (JSONB array of `{ question, answer }`).
 
 ### product_images

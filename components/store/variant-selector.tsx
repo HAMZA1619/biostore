@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { formatPriceSymbol } from "@/lib/utils"
 import { useStoreCurrency } from "@/lib/hooks/use-store-currency"
 import { useButtonStyle, useButtonSize, getButtonStyleProps } from "@/lib/hooks/use-button-style"
+import { useStoreConfig } from "@/lib/store/store-config"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShoppingCart } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -40,6 +42,10 @@ interface VariantSelectorProps {
   storeSlug: string
 }
 
+function isVariantInStock(v: Variant): boolean {
+  return v.is_available && (v.stock === null || v.stock > 0)
+}
+
 export function VariantSelector({ product, options, variants, storeSlug }: VariantSelectorProps) {
   const { t } = useTranslation()
   const addItem = useCartStore((s) => s.addItem)
@@ -49,9 +55,12 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
   const market = useMarket()
   const buttonStyle = useButtonStyle()
   const buttonSize = useButtonSize()
+  const config = useStoreConfig()
+  const variantStyle = config?.variantStyle || "buttons"
   const [selected, setSelected] = useState<Record<string, string>>({})
 
   const allSelected = options.every((o) => selected[o.name])
+  const anyAvailable = variants.some(isVariantInStock)
 
   const matchedVariant = allSelected
     ? variants.find((v) =>
@@ -61,9 +70,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
 
   const displayPrice = matchedVariant ? matchedVariant.price : product.price
   const displayCompareAtPrice = matchedVariant?.compare_at_price ?? null
-  const variantInStock = matchedVariant
-    ? matchedVariant.is_available && (matchedVariant.stock === null || matchedVariant.stock > 0)
-    : false
+  const variantInStock = matchedVariant ? isVariantInStock(matchedVariant) : false
 
   function getAvailableValues(optionName: string): Set<string> {
     const otherSelections = Object.entries(selected).filter(
@@ -74,8 +81,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
       variants
         .filter(
           (v) =>
-            v.is_available &&
-            (v.stock === null || v.stock > 0) &&
+            isVariantInStock(v) &&
             otherSelections.every(([key, val]) => v.options[key] === val)
         )
         .map((v) => v.options[optionName])
@@ -83,6 +89,28 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
   }
 
   function handleSelect(optionName: string, value: string) {
+    // Toggle: clicking the same option deselects it
+    if (selected[optionName] === value) {
+      setSelected((prev) => {
+        const next = { ...prev }
+        delete next[optionName]
+        return next
+      })
+      return
+    }
+    setSelected((prev) => ({ ...prev, [optionName]: value }))
+  }
+
+  function handleDropdownChange(optionName: string, value: string) {
+    // For dropdown, use "__clear__" as a sentinel to deselect
+    if (value === "__clear__") {
+      setSelected((prev) => {
+        const next = { ...prev }
+        delete next[optionName]
+        return next
+      })
+      return
+    }
     setSelected((prev) => ({ ...prev, [optionName]: value }))
   }
 
@@ -118,39 +146,89 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
 
   return (
     <div className="space-y-4">
+      {!anyAvailable && (
+        <p className="text-sm font-medium text-red-500">{t("storefront.allVariantsSoldOut")}</p>
+      )}
+
       {options.map((option) => {
         const available = getAvailableValues(option.name)
         return (
           <div key={option.name} className="space-y-2">
-            <p className="text-sm font-medium">{option.name}</p>
-            <div className="flex flex-wrap gap-2">
-              {option.values.map((value) => {
-                const isSelected = selected[option.name] === value
-                const isAvailable = available.has(value)
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled={!isAvailable}
-                    onClick={() => handleSelect(option.name, value)}
-                    className="rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-                    style={
-                      isSelected
-                        ? {
-                            backgroundColor: "var(--store-accent)",
-                            color: "var(--store-btn-text)",
-                            borderColor: "var(--store-accent)",
-                          }
-                        : {
-                            borderColor: "var(--store-text, #666)",
-                          }
-                    }
-                  >
-                    {value}
-                  </button>
-                )
-              })}
-            </div>
+            <p className="text-sm font-medium">
+              {option.name}
+              {selected[option.name] && (
+                <span className="ms-1 font-normal text-muted-foreground">: {selected[option.name]}</span>
+              )}
+            </p>
+            {variantStyle === "dropdown" ? (
+              <Select
+                value={selected[option.name] || ""}
+                onValueChange={(value) => handleDropdownChange(option.name, value)}
+              >
+                <SelectTrigger className="w-full" style={{ borderRadius: buttonStyle === "pill" ? "9999px" : "var(--store-radius)" }}>
+                  <SelectValue placeholder={`${t("storefront.select")} ${option.name}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {selected[option.name] && (
+                    <SelectItem value="__clear__" className="text-muted-foreground">
+                      {t("storefront.clearSelection")}
+                    </SelectItem>
+                  )}
+                  {option.values.map((value) => {
+                    const isAvailable = available.has(value)
+                    return (
+                      <SelectItem key={value} value={value} disabled={!isAvailable}>
+                        {value}{!isAvailable ? ` (${t("storefront.soldOut")})` : ""}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {option.values.map((value) => {
+                  const isSelected = selected[option.name] === value
+                  const isAvailable = available.has(value)
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={!isAvailable && !isSelected}
+                      onClick={() => handleSelect(option.name, value)}
+                      className="border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{
+                        borderRadius: buttonStyle === "pill" ? "9999px" : "var(--store-radius, 6px)",
+                        ...(isSelected
+                          ? isAvailable
+                            ? buttonStyle === "outline"
+                              ? {
+                                  backgroundColor: "transparent",
+                                  color: "var(--store-accent)",
+                                  borderColor: "var(--store-accent)",
+                                  borderWidth: "1.5px",
+                                }
+                              : {
+                                  backgroundColor: "var(--store-accent)",
+                                  color: "var(--store-btn-text)",
+                                  borderColor: "var(--store-accent)",
+                                }
+                            : {
+                                backgroundColor: buttonStyle === "outline" ? "transparent" : "var(--store-accent)",
+                                color: buttonStyle === "outline" ? "var(--store-accent)" : "var(--store-btn-text)",
+                                borderColor: "var(--store-accent)",
+                                opacity: 0.6,
+                              }
+                          : {
+                              borderColor: "var(--store-text, #666)",
+                            }),
+                      }}
+                    >
+                      {value}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )
       })}
@@ -164,7 +242,7 @@ export function VariantSelector({ product, options, variants, storeSlug }: Varia
             {formatPriceSymbol(displayCompareAtPrice, currency)}
           </span>
         )}
-        {matchedVariant?.sku && (
+        {config?.showProductSku !== false && matchedVariant?.sku && (
           <span className="text-sm text-muted-foreground">{t("storefront.sku")}: {matchedVariant.sku}</span>
         )}
       </div>
