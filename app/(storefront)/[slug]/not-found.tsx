@@ -1,6 +1,5 @@
 "use client"
 
-import urlJoin from "url-join"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -22,7 +21,7 @@ export default function StoreNotFound() {
         <Button
           variant="outline"
           className="mt-6"
-          onClick={() => router.push(urlJoin(baseHref, "/"))}
+          onClick={() => router.push(baseHref || "/")}
         >
           {t("storefront.continueShopping")}
         </Button>

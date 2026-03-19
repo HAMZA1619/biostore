@@ -1,6 +1,5 @@
 "use client"
 
-import urlJoin from "url-join"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ShoppingCart } from "lucide-react"
@@ -41,7 +40,7 @@ export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = t
     <>
     <header className={cn("z-40 border-b backdrop-blur", stickyHeader && "sticky top-0")} style={{ top: stickyAnnouncement ? "var(--announcement-h, 0px)" : undefined, backgroundColor: "color-mix(in srgb, var(--store-bg) 95%, transparent)" }}>
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
-        <Link href={urlJoin(baseHref, "/")} className="flex items-center gap-2">
+        <Link href={baseHref || "/"} className="flex items-center gap-2">
           {logoUrl && (
             <Image src={logoUrl} alt={`${name} logo`} width={32} height={32} className="h-8 w-8 shrink-0 rounded-full object-cover" />
           )}
@@ -57,7 +56,7 @@ export function StoreHeader({ slug, name, logoPath, bannerPath, stickyHeader = t
             <MarketPicker markets={markets} activeMarketSlug={activeMarketSlug} />
           )}
           <Button asChild variant="outline" size="sm" className="relative">
-            <Link href={urlJoin(baseHref, "cart")}>
+            <Link href={`${baseHref}/cart`}>
               <ShoppingCart className="h-4 w-4" />
               {mounted && itemCount > 0 && (
                 <span className="absolute -end-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">

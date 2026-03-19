@@ -1,4 +1,3 @@
-import urlJoin from "url-join"
 import { Button } from "@/components/ui/button"
 import { parseDesignSettings, getImageUrl, formatPriceSymbol } from "@/lib/utils"
 import Link from "next/link"
@@ -107,7 +106,7 @@ export default async function OrderConfirmedPage({
         borderRadius: ds.buttonStyle === "pill" ? "9999px" : "var(--store-radius)",
         border: ds.buttonStyle === "outline" ? "2px solid var(--store-accent)" : "none",
       }}>
-        <Link href={urlJoin(baseHref, "/")}>{t("storefront.continueShopping")}</Link>
+        <Link href={baseHref || "/"}>{t("storefront.continueShopping")}</Link>
       </Button>
     </div>
   )

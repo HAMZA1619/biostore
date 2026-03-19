@@ -1,6 +1,5 @@
 "use client"
 
-import urlJoin from "url-join"
 import { useCartStore } from "@/lib/store/cart-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -380,7 +379,7 @@ export default function CartPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() => router.push(urlJoin(baseHref, "/"))}
+          onClick={() => router.push(baseHref || "/")}
         >
           {t("storefront.continueShopping")}
         </Button>
@@ -444,7 +443,7 @@ export default function CartPage() {
 
       const data = await res.json()
       clearCart()
-      router.push(urlJoin(baseHref, "order-confirmed") + `?order=${data.order_number}`)
+      router.push(`${baseHref}/order-confirmed?order=${data.order_number}`)
     } catch {
       toast.error(t("storefront.failedPlaceOrder"))
       if (requireCaptcha) {
